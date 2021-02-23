@@ -4,7 +4,7 @@
     "keywords": ["logisticsApi", "logistics-api", "smiler"],
     "type": "library",
     "require": {
-        "php": ">=7.4.0"
+        "php": ">=7.0"
     },
     "license": "Apache-2.0",
     "authors": [
@@ -16,7 +16,7 @@
     "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
-            "smiler\\logisticsApi\\": "src/"
+            "smiler\\logistics\\": "src"
         }
     }
 }
