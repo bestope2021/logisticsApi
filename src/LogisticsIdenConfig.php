@@ -8,8 +8,14 @@
 namespace smiler\logistics;
 
 
+use smiler\logistics\Api\Wts\Wts;
+use smiler\logistics\Api\XyExp\XyExp;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
+use smiler\logistics\Api\ShiHang\ShiHang;
+use smiler\logistics\Api\XyExp\XyExpTrack;
+use smiler\logistics\Api\Yw\Yw;
+use smiler\logistics\Api\Yw\YwTrack;
 
 /**
  * Class LogisticsApiIdenConfig
@@ -22,6 +28,8 @@ class LogisticsIdenConfig
     public static $class = [
         'huahan' => HuaHan::class, //华翰物流
         'heimao' => HeiMao::class, //黑猫物流
+        'shgj' =>  ShiHang::class, //世航国际物流
+        'xyexp' => XyExp::class, //兴源物流商
     ];
 
     /**

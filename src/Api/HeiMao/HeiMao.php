@@ -24,12 +24,13 @@ use smiler\logistics\Common\TrackLogisticsInterface;
  */
 class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
 {
-    protected $iden = 'heimao';
+    public $iden = 'heimao';
 
     public $iden_name = '黑猫物流';
 
     const ORDER_COUNT = 1;
 
+    const QUERY_TRACK_COUNT = 1;
     /**
      * curl 请求数据类型
      * @var string
@@ -57,7 +58,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         'getShippingMethod' => 'getshippingmethod', //获取配送方式
 
-        'getPackagesDetail' => 'getOrder', //查询订单
+        'getPackagesDetail' => 'getbusinessweight', //查询订单
 
         'feeTrail' => 'feetrail', //运费试算 todo 暂时未用
     ];
@@ -72,6 +73,13 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $this->config = $config;
     }
 
+    /**
+     * 创建订单，生成跟踪号
+     * @param array $params
+     * @return mixed
+     * @throws InvalidIArgumentException
+     * @throws ManyProductException
+     */
     public function createOrder(array $params = [])
     {
 
@@ -120,8 +128,8 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 'cargotype' => '',//N:货物类型W：包裹  D：文件 B：袋子
                 'order_status' => '', //N:订单状态P：已预报 (默认) D：草稿 (如果创建草稿订单，则需要再调用submitforecast【提交预报】接口)
                 'mail_cargo_type' => '',//N:包裹申报种类（1-Gif礼品；2-CommercialSample商品货样；3-Document文件；4-Other其他。默认4）
-                'buyer_id' => '', //N:EORI
-                'order_info' => '', //N:订单备注
+                'buyer_id' => $item['buyer_id'] ?? '', //N:EORI
+                'order_info' => $item['remark'] ?? '', //N:订单备注
                 'platform_id' => '', //N:平台ID（如果您是电商平台，请联系我们添加并确认您对应的平台ID）
                 'custom_hawbcode' => '', //N:自定义单号
                 'shipper' => [
@@ -166,7 +174,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             ];
         }
 
-        $response = $this->request(__FUNCTION__,'post',$ls[0]);
+        $response = $this->request(__FUNCTION__,$ls[0]);
         if($response['success'] != 1){
             return $response;
         }
@@ -179,7 +187,12 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $response['enmessage'] = $trackNumberResponse['enmessage'];
             return $response;
         }
-        $response['data']['TrackingNumber'] = $trackNumberResponse['data']['channel_hawbcode'] ?? '';
+        $response['data']['TrackingNumber'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
+        $response['trackingNumberInfo'] = [
+            'trackingNumber' => $response['data']['TrackingNumber'],
+            'platform_order_id' => $response['data']['refrence_no'],
+            'logistics_order_id' => $response['data']['order_id']
+        ];
         return $response;
 
     }
@@ -194,7 +207,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $params = [
             'reference_no' => $reference_no //客户参考号
         ];
-        $res = $this->request(__FUNCTION__, 'post', $params);
+        $res = $this->request(__FUNCTION__,  $params);
         return $res;
     }
 
@@ -219,7 +232,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $params['order_id'] ?? '',
             'order_weight' => $params['weight'] ?? '',
         ];
-        $response = $this->request(__FUNCTION__,'post',$data);
+        $response = $this->request(__FUNCTION__,$data);
         return $response;
     }
 
@@ -233,7 +246,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $data = [
             'reference_no' => $order_code, //客户参考号
         ];
-        $response = $this->request(__FUNCTION__,'post',$data);
+        $response = $this->request(__FUNCTION__,$data);
         return $response;
     }
 
@@ -257,12 +270,24 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_code,
             'shipping_method_no' => '',
         ];
-        $response = $this->request(__FUNCTION__,'post',$data);
+        $response = $this->request(__FUNCTION__,$data);
         return $response;
     }
 
+    /**
+     * 获取订单费用明细
+     * @param $order_id
+     * @return mixed
+     */
     public function getFeeDetailByOrder($order_id)
     {
+        $data = [
+            'order_id' => '', //订单ID
+            'reference_no' => $order_id, //三选一  客户参考号
+            'shipping_method_no' => '', //服务商单号
+        ];
+        $response = $this->request(__FUNCTION__,$data);
+        return $response;
     }
 
     /**
@@ -291,7 +316,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 'config_code' => '1', //标签纸张配置代码1：标签纸-地址标签2：标签纸-地址标签+报关单3：标签纸-地址标签+配货单4：标签纸-地址标签+报关单+配货单5：A4纸-地址标签6：A4纸-地址标签+报关单7：A4纸-地址标签+配货单8：A4纸-地址标签+报关单+配货单
             ];
         }
-        $response = $this->request(__FUNCTION__,'post',$data);
+        $response = $this->request(__FUNCTION__,$data);
         return $response;
     }
 
@@ -301,7 +326,15 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function queryTrack($trackNumber)
     {
-
+       $trackNumberArray = $this->toArray($trackNumber);
+       if(count($trackNumberArray) > self::QUERY_TRACK_COUNT){
+           throw new InvalidIArgumentException($this->iden_name."查询物流轨迹一次最多查询".self::QUERY_TRACK_COUNT."个物流单号");
+       }
+       $data = [
+           'tracking_number' => $trackNumber,
+       ];
+        $response = $this->request(__FUNCTION__,$data);
+        return $response;
     }
 
 
@@ -312,7 +345,11 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function getPackagesDetail($order_id)
     {
-
+        $data = [
+            'reference_no' => $order_id,
+        ];
+        $response = $this->request(__FUNCTION__,$data);
+        return $response;
     }
 
     /**
@@ -334,10 +371,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         return $data;
     }
 
-    public function request($function, $method = 'post', $data = [])
+    public function request($function, $data = [])
     {
         $data = $this->buildParams($function,$data);
-        $response = $this->sendCurl($method,$this->config['url'],$data,$this->dataType,$this->apiHeaders);
+        $response = $this->sendCurl('post',$this->config['url'],$data,$this->dataType,$this->apiHeaders);
         return $response;
     }
 }

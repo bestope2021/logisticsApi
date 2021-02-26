@@ -16,11 +16,23 @@ abstract class LogisticsAbstract
 {
     use LogisticsTool;
 
+    protected $iden;
     protected $iden_name;
 
+    /**
+     * 创建订单可上传的数量
+     */
     const ORDER_COUNT = 5;
 
+    /**
+     * 单个订单最多有几个产品
+     */
     const ORDER_COUNT_SKU = 5;
+
+    /**
+     * 单次查询物流轨迹的数量
+     */
+    const QUERY_TRACK_COUNT = 30;
 
     /**
      * @var array
@@ -38,8 +50,9 @@ abstract class LogisticsAbstract
 
     /**
      * 统一发送请求
+     * @param $parseResponse bool 是否解析响应数据 todo 有些物流商接口物流面单响应返回的字节流
      */
-    final public function sendCurl($method = 'post', $url = '', $data = [], $dataType = 'json', $header = [], $encoding = 'utf-8', $root = 'xml')
+    final public function sendCurl($method = 'post', $url = '', $data = [], $dataType = 'json', $header = [], $encoding = 'utf-8', $root = 'xml', $parseResponse = true)
     {
         $curl = new Curl();
         $method = strtolower($method);
@@ -76,30 +89,34 @@ abstract class LogisticsAbstract
 
         }
         $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->$method($url);
+        if (!$parseResponse) {
+            return $response;
+        }
 //        var_dump($response);exit;
+        return static::parseResponse($curl, $dataType, $response);
+
+    }
+
+    protected static function parseResponse($curl, $dataType, $response)
+    {
         switch ($curl->responseCode) {
             case 'timeout':
-                throw new CurlException('请求错误');
+                throw new CurlException('curl:请求错误');
                 break;
-
             case 200:
-                //success logic here
                 switch (strtolower($dataType)) {
                     case 'xml':
-                        $data = static::xmlToArray($response);
+                        $return = static::xmlToArray($response);
                         break;
 
                     case 'form':
                     case 'json':
                     default:
-                        $data = json_decode($response, true);
+                        $return = json_decode($response, true);
                         break;
                 }
-                $return = $data;
                 break;
-
             case 401:
-                //404 Error logic here
                 throw new CurlException('curl: 授权失败');
                 break;
 
@@ -139,15 +156,11 @@ abstract class LogisticsAbstract
     {
         $xml = '';
         foreach ($array as $key => $val) {
-            if (is_array($val)) {
-                $xml .= self::arrayToXmlInc($val);
-            } else {
-                if (is_numeric($val)) {
-                    $xml .= "<" . $key . ">" . $val . "</" . $key . ">";
-                } else {
-                    $xml .= "<" . $key . "><![CDATA[" . $val . "]]></" . $key . ">";
-                }
-            }
+            is_numeric($key) && $key = "item id=\"$key\"";
+            $xml .= "<$key>";
+            $xml .= (is_array($val) || is_object($val)) ? static::arrayToXmlInc($val) : $val;
+            list($key,) = explode(' ', $key);
+            $xml .= "</$key>";
         }
         return $xml;
     }
@@ -155,6 +168,6 @@ abstract class LogisticsAbstract
 
     public function __call($name, $arguments)
     {
-        throw new BadFunctionCallException("未实现该方法");
+        throw new BadFunctionCallException("未实现" . $name . "方法");
     }
 }

@@ -19,17 +19,19 @@ interface BaseLogisticsInterface
     public function buildParams($interface,$data=[]);
 
     /**
-     * @param string $function 方法名
-     * @param string $method 请求方式
-     * @param array $data 请求数据
+     * @param string $interface 方法名
      * @return mixed
      * 物流商公共请求
      */
-    public function request($function, $method = 'post', $data = []);
+    public function request($interface);
 
     /**
      * 创建物流包裹生成运单号
      * @return mixed
+     * @return  $response['trackingNumberInfo'] array 物流商信息 失败没有该key
+     * @return  $response['trackingNumberInfo']['trackingNumber'] string 物流跟踪号
+     * @return  $response['trackingNumberInfo']['platform_order_id'] string 自己平台单号
+     * @return  $response['trackingNumberInfo']['logistics_order_id'] string 物流商自己的单号
      */
     public function createOrder(array $params=[]);
 
