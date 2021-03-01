@@ -42,21 +42,14 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
     public $interface = [
         'createOrder' => 'Insure_Waybill', // 【创建订单】
 
-        'operationPackages' => '', //修改订单重量
-
         'deleteOrder' => '', //删除订单
 
         'getPackagesLabel' => 'Load_FaceSingle', // 【打印标签|面单】
 
-        'getTrackNumber' => '',//获取跟踪号
-
         'queryTrack' => 'Load_Track_Info', //轨迹查询
-
-        'getFeeByOrder' => '', //费用查询
 
         'getShippingMethod' => 'Load_Freight_Channels', //获取配送方式
 
-        'getPackagesDetail' => '', //查询订单
     ];
 
     /**
@@ -156,15 +149,16 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $response = $this->request(__FUNCTION__, 'post', [
             'WaybillnfoXml' => static::arrayToXml(['WaybillInfo' => $ls[0]], 'InsertWaybillService')
         ]);
-
-        if(!empty($response['WaybillInfoList']['WaybillInfo']['WaybillId'])){
-            $response['trackingNumberInfo'] = [
-                'trackingNumber' => $response['WaybillInfoList']['WaybillInfo']['ServiceNumber'],
-                'platform_order_id' => $response['WaybillInfoList']['WaybillInfo']['CustomerWaybillNumber'],
-                'logistics_order_id' => $response['WaybillInfoList']['WaybillInfo']['WaybillId']
+        $tmpData = $response['WaybillInfoList']['WaybillInfo'] ?? [];
+        if (!empty($tmpData['WaybillId'])) {
+            $response['trackingNumberInfo'][$tmpData['CustomerWaybillNumber']] = [
+                'trackingNumber' => $tmpData['ServiceNumber'],
+                'platform_order_id' => $tmpData['CustomerWaybillNumber'],
+                'logistics_order_id' => $tmpData['WaybillId'],
+                'flag' => !empty($tmpData['WaybillId']) ? true : false,
+                'msg' => $tmpData['Result'] ?? '',
             ];
         }
-
         return $response;
     }
 
@@ -188,7 +182,7 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function operationPackages($params)
     {
-        throw new NotSupportException($this->iden_name . "暂不支持修改订单重量");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -198,7 +192,7 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function deleteOrder(string $order_code)
     {
-        throw new NotSupportException($this->iden_name . "暂不支持删除订单");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -207,7 +201,7 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function updateOrderStatus(array $params)
     {
-        throw new NotSupportException($this->iden_name . "暂不支持修改订单状态");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -216,7 +210,7 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function getFeeByOrder(string $order_code)
     {
-        throw new NotSupportException($this->iden_name . "暂不支持获取订单费用");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -226,7 +220,7 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function getFeeDetailByOrder($order_id)
     {
-        throw new NotSupportException($this->iden_name . "暂不支持获取订单费用明细");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -243,12 +237,11 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'ServiceNumberList' => [
                     'ServiceNumber' => $this->toArray($params['trackNumber'])
                 ]
-            ],'WaybillPrintService')
+            ], 'WaybillPrintService')
         ];
-        $response = $this->request(__FUNCTION__,'post',$data);
+        $response = $this->request(__FUNCTION__, 'post', $data);
         return $response;
     }
-
 
 
     /**
@@ -258,7 +251,7 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function getPackagesDetail($order_id)
     {
-        throw new NotSupportException($this->iden_name . "暂不支持获取包裹详情");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**

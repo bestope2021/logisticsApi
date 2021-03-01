@@ -11,6 +11,7 @@ namespace smiler\logistics;
 use smiler\logistics\Exception\BadFunctionCallException;
 use smiler\logistics\Exception\CurlException;
 use smiler\logistics\Exception\InvalidIArgumentException;
+use smiler\logistics\Exception\NotSupportException;
 
 abstract class LogisticsAbstract
 {
@@ -92,7 +93,8 @@ abstract class LogisticsAbstract
         if (!$parseResponse) {
             return $response;
         }
-//        var_dump($response);exit;
+        var_dump($params);
+        var_dump($response);die;
         return static::parseResponse($curl, $dataType, $response);
 
     }
@@ -169,5 +171,9 @@ abstract class LogisticsAbstract
     public function __call($name, $arguments)
     {
         throw new BadFunctionCallException("未实现" . $name . "方法");
+    }
+
+    final public function throwNotSupport($function){
+        throw new NotSupportException($this->iden_name."暂不支持".$function);
     }
 }

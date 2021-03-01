@@ -28,8 +28,14 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
     public $iden_name = '黑猫物流';
 
+    /**
+     * 一次最多提交多少个包裹
+     */
     const ORDER_COUNT = 1;
 
+    /**
+     * 一次最多查询多少个跟踪号
+     */
     const QUERY_TRACK_COUNT = 1;
     /**
      * curl 请求数据类型
@@ -174,24 +180,29 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             ];
         }
 
-        $response = $this->request(__FUNCTION__,$ls[0]);
-        if($response['success'] != 1){
+        $response = $this->request(__FUNCTION__, $ls[0]);
+
+        if ($response['success'] != 1) {
             return $response;
         }
 
         //todo 获取追踪号
 
         $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
-        if($trackNumberResponse['success'] != 1){
+
+
+        if ($trackNumberResponse['success'] != 1) {
             $response['cnmessage'] = $trackNumberResponse['cnmessage'];
             $response['enmessage'] = $trackNumberResponse['enmessage'];
             return $response;
         }
-        $response['data']['TrackingNumber'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
-        $response['trackingNumberInfo'] = [
-            'trackingNumber' => $response['data']['TrackingNumber'],
+        $trackNumber = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
+        $response['trackingNumberInfo'][$response['data']['refrence_no']] = [
+            'trackingNumber' => $trackNumber,
             'platform_order_id' => $response['data']['refrence_no'],
-            'logistics_order_id' => $response['data']['order_id']
+            'logistics_order_id' => $response['data']['shipping_method_no'],
+            'flag' => $response['success'] == 1 ? true : false,
+            'msg' => $response['cnmessage'] ?? ($response['enmessage'] ?? ''),
         ];
         return $response;
 
@@ -207,7 +218,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $params = [
             'reference_no' => $reference_no //客户参考号
         ];
-        $res = $this->request(__FUNCTION__,  $params);
+        $res = $this->request(__FUNCTION__, $params);
         return $res;
     }
 
@@ -232,7 +243,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $params['order_id'] ?? '',
             'order_weight' => $params['weight'] ?? '',
         ];
-        $response = $this->request(__FUNCTION__,$data);
+        $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
 
@@ -246,7 +257,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $data = [
             'reference_no' => $order_code, //客户参考号
         ];
-        $response = $this->request(__FUNCTION__,$data);
+        $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
 
@@ -256,7 +267,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function updateOrderStatus(array $params)
     {
-        throw new NotSupportException($this->iden_name."暂不支持修改订单状态");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -270,7 +281,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_code,
             'shipping_method_no' => '',
         ];
-        $response = $this->request(__FUNCTION__,$data);
+        $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
 
@@ -286,7 +297,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_id, //三选一  客户参考号
             'shipping_method_no' => '', //服务商单号
         ];
-        $response = $this->request(__FUNCTION__,$data);
+        $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
 
@@ -310,13 +321,13 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             ],
         ];
         $trackNumbers = $this->toArray($params['trackNumber']);
-        foreach ($trackNumbers as $number){
+        foreach ($trackNumbers as $number) {
             $data['listorder'][] = [
                 'reference_no' => $number,
                 'config_code' => '1', //标签纸张配置代码1：标签纸-地址标签2：标签纸-地址标签+报关单3：标签纸-地址标签+配货单4：标签纸-地址标签+报关单+配货单5：A4纸-地址标签6：A4纸-地址标签+报关单7：A4纸-地址标签+配货单8：A4纸-地址标签+报关单+配货单
             ];
         }
-        $response = $this->request(__FUNCTION__,$data);
+        $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
 
@@ -326,14 +337,14 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function queryTrack($trackNumber)
     {
-       $trackNumberArray = $this->toArray($trackNumber);
-       if(count($trackNumberArray) > self::QUERY_TRACK_COUNT){
-           throw new InvalidIArgumentException($this->iden_name."查询物流轨迹一次最多查询".self::QUERY_TRACK_COUNT."个物流单号");
-       }
-       $data = [
-           'tracking_number' => $trackNumber,
-       ];
-        $response = $this->request(__FUNCTION__,$data);
+        $trackNumberArray = $this->toArray($trackNumber);
+        if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
+            throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
+        }
+        $data = [
+            'tracking_number' => $trackNumber,
+        ];
+        $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
 
@@ -348,7 +359,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $data = [
             'reference_no' => $order_id,
         ];
-        $response = $this->request(__FUNCTION__,$data);
+        $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
 
@@ -373,8 +384,8 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
     public function request($function, $data = [])
     {
-        $data = $this->buildParams($function,$data);
-        $response = $this->sendCurl('post',$this->config['url'],$data,$this->dataType,$this->apiHeaders);
+        $data = $this->buildParams($function, $data);
+        $response = $this->sendCurl('post', $this->config['url'], $data, $this->dataType, $this->apiHeaders);
         return $response;
     }
 }

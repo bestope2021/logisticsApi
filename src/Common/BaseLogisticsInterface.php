@@ -29,6 +29,8 @@ interface BaseLogisticsInterface
      * 创建物流包裹生成运单号
      * @return mixed
      * @return  $response['trackingNumberInfo'] array 物流商信息 失败没有该key
+     * @return  $response['trackingNumberInfo']['flag'] bool 获取跟踪号是否成功
+     * @return  $response['trackingNumberInfo']['msg'] string 获取物流商单号返回信息
      * @return  $response['trackingNumberInfo']['trackingNumber'] string 物流跟踪号
      * @return  $response['trackingNumberInfo']['platform_order_id'] string 自己平台单号
      * @return  $response['trackingNumberInfo']['logistics_order_id'] string 物流商自己的单号

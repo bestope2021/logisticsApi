@@ -28,8 +28,14 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
     public $iden_name = '华翰物流';
 
-    const ORDER_COUNT = 1;
+    /**
+     * 一次最多提交多少个包裹,5自定义
+     */
+    const ORDER_COUNT = 5;
 
+    /**
+     * 一次最多查询多少个物流商
+     */
     const QUERY_TRACK_COUNT = 50;
 
     /**
@@ -41,7 +47,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public $apiHeaders = [];
 
     public $interface = [
-        'createOrder' => 'createOrder', // 【创建订单】
+        'createOrder' => 'batchCreateOrder', // 【创建订单】
 
         'batchCreateOrder' => 'batchCreateOrder', //批量创建订单
 
@@ -76,6 +82,9 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $this->checkKeyExist(['appToken', 'url', 'appKey'], $config);
         $this->config = $config;
+        if(!empty($config)){
+            $this->apiHeaders = array_merge($this->apiHeaders,$config['apiHeaders']);
+        }
     }
 
 
@@ -140,7 +149,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             }
 
             $ls[] = [
-                'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
+                'reference_no' =>  $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'HYTGHC',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'country_code' => $item['recipientCountryCode'] ?? '',// Y:收件人国家二字代码，可用值参见 6.1。Lenth = 2
@@ -173,7 +182,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 ],
                 'Shipper' => [
                     //发件人信息
-                    'shipper_company' => '', // N:发件人公司名
+                    'shipper_company' => $item['senderCompany'] ?? '', // N:发件人公司名
                     'shipper_countrycode' => $item['senderCountryCode'] ?? '', // Y:发件人国家二字码
                     'shipper_province' => $item['senderState'] ?? '', // Y:发件人省
                     'shipper_city' => $item['senderCity'] ?? '',// Y:发件人城市Length<=64
@@ -191,19 +200,34 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'ItemArr' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
         }
-        $response = $this->request(__FUNCTION__, 'post', $ls[0]);
+        $response = $this->request(__FUNCTION__, 'post', $ls);
         //请求创建单号失败
         if ($response['ask'] != 'Success') {
             return $response;
         }
         //todo 获取订单追踪号，部分渠道不能及时获取
-        $trackNumberResponse = $this->getTrackNumber($response['reference_no']);
-        $response['TrackingNumber'] = $trackNumberResponse['data'][0]['TrackingNumber'] ?? $response['shipping_method_no'];
-        $response['trackingNumberInfo'] = [
-            'trackingNumber' => $response['TrackingNumber'],
-            'platform_order_id' => $response['reference_no'],
-            'logistics_order_id' => $response['order_code']
-        ];
+        $reference_nos = array_column($response['Result'], 'reference_no');
+        $trackNumberResponse = $this->getTrackNumber($reference_nos);
+
+        $response['trackingNumberInfo'] = [];
+
+        $trackNumberData = [];
+        if (!empty($trackNumberResponse['data'])) {
+            $trackNumberData = array_column($trackNumberResponse['data'] ?? [], null, 'OrderNumber');
+        }
+        if ($response['Result']) {
+            foreach ($response['Result'] as $keyVale=>$value) {
+                $key = !empty($value['reference_no']) ? $value['reference_no'] : $keyVale;
+                $response['trackingNumberInfo'][$key] = [
+                    'trackingNumber' => $trackNumberData[$value['reference_no']]['TrackingNumber'] ?? ($value['shipping_method_no'] ?? ''),
+                    'platform_order_id' => $value['reference_no'] ?? '',
+                    'logistics_order_id' => $value['order_code'] ?? '',
+                    'flag' => $value['ask'] != 'Failure' ? true : false,
+                    'msg' => $value['message'] ?? '',
+                ];
+            }
+        }
+
         return $response;
 
     }
@@ -281,7 +305,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function updateOrderStatus($params = [])
     {
-        throw new NotSupportException($this->iden_name . "不支持修改订单状态");
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -299,6 +323,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
     public function getFeeDetailByOrder($order_id)
     {
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**
@@ -327,8 +352,8 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function queryTrack($trackNumber)
     {
         $trackNumberArray = $this->toArray($trackNumber);
-        if(count($trackNumberArray) > self::QUERY_TRACK_COUNT){
-            throw new InvalidIArgumentException($this->iden_name."查询物流轨迹一次最多查询".self::QUERY_TRACK_COUNT."个物流单号");
+        if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
+            throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
         }
         $data = [
             'codes' => $this->toArray($trackNumber),
