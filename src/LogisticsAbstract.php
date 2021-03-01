@@ -93,8 +93,7 @@ abstract class LogisticsAbstract
         if (!$parseResponse) {
             return $response;
         }
-        var_dump($params);
-        var_dump($response);die;
+//        var_dump($response);die;
         return static::parseResponse($curl, $dataType, $response);
 
     }
