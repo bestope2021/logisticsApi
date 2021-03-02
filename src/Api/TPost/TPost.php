@@ -222,7 +222,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
         }
         $sign = $this->getMd5Sign(__FUNCTION__, true, $params);
         $this->apiHeaders['sign'] = $sign;
-        $res = $this->request(__FUNCTION__);
+        $res = $this->request(__FUNCTION__,$params);
         return $res;
     }
 
