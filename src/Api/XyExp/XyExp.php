@@ -77,9 +77,6 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
 
         foreach ($params as $item) {
             $productList = [];
-            if (count($item['productList']) > self::ORDER_COUNT_SKU) {
-                throw new ManyProductException($this->iden_name . '每个订单一次最多支持 ' . self::ORDER_COUNT_SKU . "个SKU产品");
-            }
             $weight = 0;
             foreach ($item['productList'] as $value) {
                 $productList[] = [

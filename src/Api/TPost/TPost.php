@@ -34,7 +34,9 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
      */
     public $dataType = 'json';
 
-    public $apiHeaders = [];
+    public $apiHeaders = [
+        'Content-type' => 'application/json',
+    ];
 
     public $interface = [
         'createOrder' => 'order/createOrder', // 【创建订单】
@@ -55,7 +57,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
     {
         $this->checkKeyExist(['userToken', 'url', 'source'], $config);
         $this->config = $config;
-        array_push($this->apiHeaders, 'userToken: '. $config['userToken']);
+        $this->apiHeaders['userToken'] = $config['userToken'];
     }
 
     /**
@@ -78,9 +80,6 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
         }
         foreach ($params as $item) {
             $productList = [];
-//            if (count($item['productList']) > self::ORDER_COUNT_SKU) {
-//                throw new ManyProductException($this->iden_name . '每个订单一次最多支持 ' . self::ORDER_COUNT_SKU . "个SKU产品");
-//            }
             $isElectricity =  0;
             $material = [];
             foreach ($item['productList'] as $value){
@@ -110,7 +109,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
                 'orderNo' => $item['customerOrderNo'] ?? '',// N:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 'charged' => $isElectricity,// Y:带电与否（0：否 ; 1：是）。 默认 0：否
                 'itemType' => intval($item['itemType'] ?? 4),// Y:物品类型（0、礼物；1、文 件;2、商业样本;3、回货品;4、 其他） 默认 0：礼物
-                'logisticsId' => $item['shippingMethodCode'] ?? '',// Y:物流编码（拓扑链系统中的 系统渠道编号）
+                'logisticsId' => $item['shippingMethodCode'] ?? 'HHOLYIF1100',// Y:物流编码（拓扑链系统中的 系统渠道编号）
                 'material' => !empty($material) ? join(',', $material) : '',// 材质
                 'note' => $item['packageRemark'] ?? '',// 备注
                 'passportNumber' => $item['passportNumber'] ?? '',// 护照号
@@ -119,7 +118,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
                 'trackNo' => $item['trackingNumber'] ?? '',// N:追踪条码
                 'transportNo' => $item['transportNumber'] ?? '',// N:转单号
                 'weight' => (float)($item['predictionWeight'] ?? ''),// Y:预报重量（kg）
-                'productList' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
+                'declareInfos' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
                 'sender' => [
                     'act_id' => '',// 卖家账号 id
                     'c_name' => $item['senderCompany'] ?? '',// N:公司名称
@@ -155,8 +154,9 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
         }
         $data = $ls[0];
         $sign = $this->getMd5Sign(__FUNCTION__, true, $data);
-        array_push($this->apiHeaders, 'sign: '. $sign);
+        $this->apiHeaders['sign'] = $sign;
         $response = $this->request(__FUNCTION__, $data);
+//        var_dump($response);die;
         return $response;
 
     }
@@ -185,7 +185,6 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
     public function getShippingMethod()
     {
         $res = $this->request(__FUNCTION__);
-        $res = json_decode($res, true);
         return $res;
     }
 
@@ -196,9 +195,8 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
      */
     public function getPackagesLabel($params){
         $sign = $this->getMd5Sign(__FUNCTION__, true, $params);
-        array_push($this->apiHeaders, 'sign: '. $sign);
+        $this->apiHeaders['sign'] = $sign;
         $res = $this->request(__FUNCTION__);
-        $res = json_decode($res, true);
         return $res;
     }
 
