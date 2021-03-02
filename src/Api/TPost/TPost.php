@@ -80,9 +80,9 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
         }
         foreach ($params as $item) {
             $productList = [];
-            $isElectricity =  0;
+            $isElectricity = 0;
             $material = [];
-            foreach ($item['productList'] as $value){
+            foreach ($item['productList'] as $value) {
                 $productList[] = [
                     'currency' => $value['currencyCode'] ?? 'USD',// Y:申报币种，默认：USD
                     'des' => $value['declareEnName'] ?? '',// N:物品描述
@@ -96,10 +96,10 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
                     'url' => $value['productUrl'] ?? '',// N:产品链接
                 ];
                 // 判断
-                if(isset($value['isElectricity']) && $value['isElectricity'] == 1){
+                if (isset($value['isElectricity']) && $value['isElectricity'] == 1) {
                     $isElectricity = 1;
                 }
-                if(!empty($value['productMaterial']) && !in_array(trim($value['productMaterial']), $material)){
+                if (!empty($value['productMaterial']) && !in_array(trim($value['productMaterial']), $material)) {
                     array_push($material, trim($value['productMaterial']));
                 }
             }
@@ -118,7 +118,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
                 'trackNo' => $item['trackingNumber'] ?? '',// N:追踪条码
                 'transportNo' => $item['transportNumber'] ?? '',// N:转单号
                 'weight' => (float)($item['predictionWeight'] ?? ''),// Y:预报重量（kg）
-                'declareInfos' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
+                'declareInfos' => $productList,// Y:申报产品数据
                 'sender' => [
                     'act_id' => '',// 卖家账号 id
                     'c_name' => $item['senderCompany'] ?? '',// N:公司名称
@@ -177,11 +177,33 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
 
     }
 
-    public function orderCallback($params){
+
+    public function orderCallback($params)
+    {
         $sign = $this->getMd5Sign(__FUNCTION__, true, $params);
         $this->apiHeaders['sign'] = $sign;
-        $res = $this->request(__FUNCTION__,$params);
+        $res = $this->request(__FUNCTION__, $params);
         return $res;
+    }
+    /**
+     * MD5签名
+     * @param string $action 请求方法
+     * @param bool $isSign 是否需要签名，默认 ，false
+     * @param array $data
+     */
+    protected function getMd5Sign(string $action = '', bool $isSign = false, $data = [])
+    {
+        if (!$isSign) {
+            return true;
+        }
+        $interface = $action . 'SignData';
+        $signData = $this->$interface($data);
+        $fieldValue = '';
+        array_walk($signData, function ($item) use (&$fieldValue) {
+            $fieldValue .= $item;
+        });
+        $sign = $this->config['userToken'] . $fieldValue;
+        return strtoupper(md5($sign));
     }
 
     public function request($function, $data = [], $parseResponse = true)
@@ -213,7 +235,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
 
     /**
      * 打印面单
-     * @param $params
+     * @param
      * @return mixed
      */
     public function getPackagesLabel($params){
@@ -291,32 +313,12 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
     }
 
     /**
-     * MD5签名
-     *
-     * 格式：userToken+物流编码 (logisticsId)+订单号 (orderNo)+买家联系人 (contact_person)+买家国家 简码(country_code)+买家洲 省(province)+买家城市 (city)+买家地址 1(address)+ 买家地址 2(address2)+买家 地址 3(address3)+买家电话 (tel_no)+买家手机 (mobile_no)+买家邮编(zip)。 (注：签名中所需的各字段在 请求报文中必须传递，缺一 不可，如果贵司有个别字段 没有对应值，可以传空字符， 例如： ”address2”:””。 各字段直接拼接，不需要添 加其他字符)
-     * @param string $action 请求方法
-     * @param bool $isSign 是否需要签名，默认 ，false
-     * @param array $data
-     */
-    protected function getMd5Sign(string $action = '',bool $isSign = false, $data = []){
-        if(!$isSign){
-            return true;
-        }
-        $interface = $action . 'SignData';
-        $signData = $this->$interface($data);
-        $fieldValue = '';
-        array_walk($signData, function ($item) use(&$fieldValue){
-            $fieldValue .= $item;
-        });
-        $sign = $this->config['userToken'] . $fieldValue;
-        return strtoupper(md5($sign));
-    }
-
-    /**
      * 创建订单加密数据
+     * 格式：userToken+物流编码 (logisticsId)+订单号 (orderNo)+买家联系人 (contact_person)+买家国家 简码(country_code)+买家洲 省(province)+买家城市 (city)+买家地址 1(address)+ 买家地址 2(address2)+买家 地址 3(address3)+买家电话 (tel_no)+买家手机 (mobile_no)+买家邮编(zip)。 (注：签名中所需的各字段在 请求报文中必须传递，缺一 不可，如果贵司有个别字段 没有对应值，可以传空字符， 例如： ”address2”:””。 各字段直接拼接，不需要添 加其他字符)
      * @param array $data
      */
-    protected function createOrderSignData(array $data = []){
+    protected function createOrderSignData(array $data = [])
+    {
         $recipient = $data['recipient'];
         $signData = [
             'logisticsId' => $data['logisticsId'],
@@ -337,9 +339,11 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
 
     /**
      * 打印面单加密数据
+     * md5(32 位大写)加密签名。格 式：userToken +物流编码 (logisticsId )+ 订 单 编 号 (orderNo)+追踪条码(trackNo) (注：各字段顺序必须和本文 档提供的字段顺序相同)
      * @param array $data
      */
-    protected function getPackagesLabelSignData(array $data = []){
+    protected function getPackagesLabelSignData(array $data = [])
+    {
         $signData = [
             'logisticsId' => $data['logisticsId'],
             'orderNo' => $data['orderNo'],
