@@ -9,6 +9,7 @@ namespace smiler\logistics;
 
 
 use smiler\logistics\Api\BxXms\BxXms;
+use smiler\logistics\Api\TPost\TPost;
 use smiler\logistics\Api\Wts\Wts;
 use smiler\logistics\Api\Wts\WtsLabel;
 use smiler\logistics\Api\XyExp\XyExp;
@@ -38,6 +39,7 @@ class LogisticsIdenConfig
         'wts'        => Wts::class, //梧桐树物流商
         'wtsLabel'   => WtsLabel::class, //梧桐树打印面单标签
         'bxxms'      => BxXms::class, //八星物流商
+        'tpost'      => TPost::class, //通邮物流商
     ];
 
     /**
