@@ -109,7 +109,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
                 'orderNo' => $item['customerOrderNo'] ?? '',// N:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 'charged' => $isElectricity,// Y:带电与否（0：否 ; 1：是）。 默认 0：否
                 'itemType' => intval($item['itemType'] ?? 4),// Y:物品类型（0、礼物；1、文 件;2、商业样本;3、回货品;4、 其他） 默认 0：礼物
-                'logisticsId' => $item['shippingMethodCode'] ?? 'HHOLYIF1100',// Y:物流编码（拓扑链系统中的 系统渠道编号）
+                'logisticsId' => $item['shippingMethodCode'] ?? 'BGOCMMPD623',// Y:物流编码（拓扑链系统中的 系统渠道编号）
                 'material' => !empty($material) ? join(',', $material) : '',// 材质
                 'note' => $item['packageRemark'] ?? '',// 备注
                 'passportNumber' => $item['passportNumber'] ?? '',// 护照号
@@ -156,9 +156,32 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
         $sign = $this->getMd5Sign(__FUNCTION__, true, $data);
         $this->apiHeaders['sign'] = $sign;
         $response = $this->request(__FUNCTION__, $data);
-//        var_dump($response);die;
+        if($response['success'] != true){
+            return $response;
+        }
+        $response['trackingNumberInfo'][$response['order_no']] = [
+            'trackingNumber' => $response['logistics_no'] ?? '',
+            'platform_order_id' => $response['order_no'] ?? '',
+            'logistics_order_id' => $response['logisticsId'] ?? '',
+            'flag' =>$response['success'] == true ? true : false,
+            'msg' => $response['msg'] ?? '',
+        ];
+        //todo需要调用回调
+        if($response['isCallBack']){
+            $callbackResponse = $this->orderCallback([
+                'orderNo' => $response['order_no'],
+                'logisticsId' => $response['logisticsId'],
+            ]);
+        }
         return $response;
 
+    }
+
+    public function orderCallback($params){
+        $sign = $this->getMd5Sign(__FUNCTION__, true, $params);
+        $this->apiHeaders['sign'] = $sign;
+        $res = $this->request(__FUNCTION__,$params);
+        return $res;
     }
 
     public function request($function, $data = [], $parseResponse = true)
@@ -194,6 +217,9 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
      * @return mixed
      */
     public function getPackagesLabel($params){
+        if(!isset($params['source']) || empty($params['source'])){
+            $params['source'] = $this->config['source'];
+        }
         $sign = $this->getMd5Sign(__FUNCTION__, true, $params);
         $this->apiHeaders['sign'] = $sign;
         $res = $this->request(__FUNCTION__);
@@ -318,6 +344,18 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
             'logisticsId' => $data['logisticsId'],
             'orderNo' => $data['orderNo'],
             'trackNo' => $data['trackNo'],
+        ];
+        return $signData;
+    }
+
+    /**
+     * 订单回调加密数据
+     * @param array $data
+     */
+    protected function orderCallbackSignData(array $data = []){
+        $signData = [
+            'logisticsId' => $data['logisticsId'],
+            'orderNo' => $data['orderNo'],
         ];
         return $signData;
     }
