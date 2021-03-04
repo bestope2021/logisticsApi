@@ -31,7 +31,7 @@ class LogisticsIdenConfig
     public static $class = [
         'huahan' => HuaHan::class, //华翰物流
         'heimao' => HeiMao::class, //黑猫物流
-        'shgj' =>  ShiHang::class, //世航国际物流
+        'shihang' =>  ShiHang::class, //世航国际物流
         'yw' => Yw::class,         //燕文物流
         'ywTrack' => YwTrack::class, //燕文物流轨迹查询
         'xyexp' => XyExp::class, //兴源物流商

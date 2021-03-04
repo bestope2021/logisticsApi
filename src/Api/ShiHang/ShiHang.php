@@ -18,7 +18,7 @@ use smiler\logistics\Api\HeiMao\HeiMao;
  */
 class ShiHang extends HeiMao
 {
-    public $iden = "shgj";
+    public $iden = "shihang";
 
     public $iden_name = "世航国际物流";
 }
