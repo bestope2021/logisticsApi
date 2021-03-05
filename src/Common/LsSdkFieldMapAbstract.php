@@ -13,7 +13,7 @@ namespace smiler\logistics\Common;
  * Class ActionFieldMap
  * @package smiler\logistics\Common
  */
-class LsSdkFieldMapAbstract
+abstract class LsSdkFieldMapAbstract
 {
     // 追踪数据格式类型 - 一维
     const QUERY_TRACK_ONE = 1;
@@ -26,18 +26,15 @@ class LsSdkFieldMapAbstract
      * @param array $fieldMap 字段映射关系 - 一维数据
      * @return array
      */
-    static function getResponseData2MapData(array $response = [], array $fieldMap = []): array
+    final static function getResponseData2MapData(array $response = [], array $fieldMap = []): array
     {
         if (!$response) {
             return [];
         }
         $ret = [];
-        foreach ($response as $key => $val) {
-            if (!array_key_exists($key, $fieldMap)) {
-                continue;
-            }
-            $ret[$fieldMap[$key]] = $val ?? '';
-        }
+        array_walk($fieldMap, function ($val, $key) use ($response, &$ret) {
+            $ret[$val] = $response[$key] ?? '';
+        });
         return $ret;
     }
 
@@ -46,34 +43,35 @@ class LsSdkFieldMapAbstract
      * 可扩展
      * @return array
      */
-    static function getCreateOrderFields(): array
+    final static function getCreateOrderFields(): array
     {
         return [
-            ResponseDataConst::LSA_FLAG,
-            ResponseDataConst::LSA_TIP_MESSAGE,
-            ResponseDataConst::LSA_ORDER_NUM,
-            ResponseDataConst::LSA_ORDER_NUM_TP,
-            ResponseDataConst::LSA_TRACKING_NUM,
-            ResponseDataConst::LSA_FRT_TRACKING_NUM,
-            ResponseDataConst::LSA_PRE_FREIGHT,
-            ResponseDataConst::LSA_EFFECTIVE_DAY,
+            ResponseDataConst::LSA_FLAG,// 处理状态： true 成功，false 失败
+            ResponseDataConst::LSA_TIP_MESSAGE,// 提示信息
+            ResponseDataConst::LSA_ORDER_NUM,// 客户订单号
+            ResponseDataConst::LSA_ORDER_NUM_TP,// 第三方订单号
+            ResponseDataConst::LSA_TRACKING_NUM,// 追踪号
+            ResponseDataConst::LSA_FRT_TRACKING_NUM,// 尾程追踪号
+            ResponseDataConst::LSA_PRE_FREIGHT,// 预估费用
+            ResponseDataConst::LSA_EFFECTIVE_DAY,// 跟踪号有效期天数
         ];
     }
 
     /**
-     * 必须字段 - 创建物流包裹生成运单号
+     * 必须字段 - 获取订单标签
      * 可扩展
      * @return array
      */
-    static function getPackagesLabelFields(): array
+    final static function getPackagesLabelFields(): array
     {
         return [
-            ResponseDataConst::LSA_FLAG,
-            ResponseDataConst::LSA_TIP_MESSAGE,
-            ResponseDataConst::LSA_ORDER_NO,
-            ResponseDataConst::LSA_LABEL_TYPE,
-            ResponseDataConst::LSA_LABEL_PATH,
-            ResponseDataConst::LSA_LABEL_PATH_LOCAL,
+            ResponseDataConst::LSA_FLAG,// 处理状态： true 成功，false 失败
+            ResponseDataConst::LSA_TIP_MESSAGE,// 提示信息
+            ResponseDataConst::LSA_ORDER_NO,// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+            ResponseDataConst::LSA_LABEL_PATH_TYPE,// 面单路径类型
+            ResponseDataConst::LSA_LABEL_PATH,// 面单路径URL
+            ResponseDataConst::LSA_LABEL_PATH_LOCAL,// 平台路径
+            ResponseDataConst::LSA_LABEL_TYPE,// 面单类型
         ];
     }
 
@@ -84,25 +82,25 @@ class LsSdkFieldMapAbstract
      * @param int $type 几维数据
      * @return array
      */
-    static function getQueryTrackFields($type = self::QUERY_TRACK_ONE): array
+    final static function getQueryTrackFields($type = self::QUERY_TRACK_ONE): array
     {
         if ($type == self::QUERY_TRACK_ONE) {
             return [
-                ResponseDataConst::LSA_FLAG,
-                ResponseDataConst::LSA_TIP_MESSAGE,
-                ResponseDataConst::LSA_ORDER_NO,
-                ResponseDataConst::LSA_ORDER_STATUS,
-                ResponseDataConst::LSA_ORDER_STATUS_MSG,
-                ResponseDataConst::LSA_LOGISTICS_TRAJECTORY,
+                ResponseDataConst::LSA_FLAG,// 处理状态： true 成功，false 失败
+                ResponseDataConst::LSA_TIP_MESSAGE,// 提示信息
+                ResponseDataConst::LSA_ORDER_NO,// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+                ResponseDataConst::LSA_ORDER_STATUS,// 订单状态
+                ResponseDataConst::LSA_ORDER_STATUS_MSG,// 订单状态（货态）说明
+                ResponseDataConst::LSA_LOGISTICS_TRAJECTORY,// 物流轨迹明细
             ];
         }
 
         if ($type == self::QUERY_TRACK_TWO) {
             return [
-                ResponseDataConst::LSA_ORDER_STATUS,
-                ResponseDataConst::LSA_ORDER_STATUS_CONTENT,
-                ResponseDataConst::LSA_ORDER_STATUS_TIME,
-                ResponseDataConst::LSA_ORDER_STATUS_LOCATION,
+                ResponseDataConst::LSA_ORDER_STATUS,// 订单状态（货态）
+                ResponseDataConst::LSA_ORDER_STATUS_CONTENT,// 订单状态（货态）描述
+                ResponseDataConst::LSA_ORDER_STATUS_TIME,// 订单状态（货态）时间
+                ResponseDataConst::LSA_ORDER_STATUS_LOCATION,// 所在地
             ];
         }
         return [];
@@ -113,13 +111,14 @@ class LsSdkFieldMapAbstract
      * 可扩展
      * @return array
      */
-    static function getShippingMethodFields(): array
+    final static function getShippingMethodFields(): array
     {
         return [
-            ResponseDataConst::LSA_SHIP_METHOD_CODE,
-            ResponseDataConst::LSA_SHIP_METHOD_EN_NAME,
-            ResponseDataConst::LSA_SHIP_METHOD_CN_NAME,
-            ResponseDataConst::LSA_SHIP_METHOD_TYPE,
+            ResponseDataConst::LSA_SHIP_METHOD_CODE,// 运输方式代码
+            ResponseDataConst::LSA_SHIP_METHOD_EN_NAME,// 运输方式英文
+            ResponseDataConst::LSA_SHIP_METHOD_CN_NAME,// 运输方式中文
+            ResponseDataConst::LSA_SHIP_METHOD_TYPE,// 运输方式类型
+            ResponseDataConst::LSA_SHIP_METHOD_REMARK,// 备注
         ];
     }
 

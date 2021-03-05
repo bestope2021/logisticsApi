@@ -8,33 +8,31 @@
 namespace smiler\logistics;
 
 
+use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\Exception\BadFunctionCallException;
 use smiler\logistics\Exception\CurlException;
-use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\NotSupportException;
 
 abstract class LogisticsAbstract
 {
     use LogisticsTool;
 
-    protected $iden;
-    protected $iden_name;
-
     /**
      * 创建订单可上传的数量
      */
     const ORDER_COUNT = 5;
-
     /**
      * 单个订单最多有几个产品
      */
     const ORDER_COUNT_SKU = 5;
-
     /**
      * 单次查询物流轨迹的数量
      */
     const QUERY_TRACK_COUNT = 30;
-
+    protected $iden;
+    protected $iden_name;
+    protected $req_data;
+    protected $res_data;
     /**
      * @var array
      * 物流商方法名
@@ -98,6 +96,34 @@ abstract class LogisticsAbstract
 
     }
 
+    /**
+     * array转XML
+     * @param $array
+     * @param string $root
+     * @return string
+     */
+    protected static function arrayToXml($array, $root = 'xml', $encoding = 'utf-8')
+    {
+        $xml = '<?xml version="1.0" encoding="' . $encoding . '"?>';
+        $xml .= "<{$root}>";
+        $xml .= self::arrayToXmlInc($array);
+        $xml .= "</{$root}>";
+        return $xml;
+    }
+
+    protected static function arrayToXmlInc($array)
+    {
+        $xml = '';
+        foreach ($array as $key => $val) {
+            is_numeric($key) && $key = "item id=\"$key\"";
+            $xml .= "<$key>";
+            $xml .= (is_array($val) || is_object($val)) ? static::arrayToXmlInc($val) : $val;
+            list($key,) = explode(' ', $key);
+            $xml .= "</$key>";
+        }
+        return $xml;
+    }
+
     protected static function parseResponse($curl, $dataType, $response)
     {
         switch ($curl->responseCode) {
@@ -138,41 +164,74 @@ abstract class LogisticsAbstract
         return $data;
     }
 
-    /**
-     * array转XML
-     * @param $array
-     * @param string $root
-     * @return string
-     */
-    protected static function arrayToXml($array, $root = 'xml', $encoding = 'utf-8')
-    {
-        $xml = '<?xml version="1.0" encoding="' . $encoding . '"?>';
-        $xml .= "<{$root}>";
-        $xml .= self::arrayToXmlInc($array);
-        $xml .= "</{$root}>";
-        return $xml;
-    }
-
-    protected static function arrayToXmlInc($array)
-    {
-        $xml = '';
-        foreach ($array as $key => $val) {
-            is_numeric($key) && $key = "item id=\"$key\"";
-            $xml .= "<$key>";
-            $xml .= (is_array($val) || is_object($val)) ? static::arrayToXmlInc($val) : $val;
-            list($key,) = explode(' ', $key);
-            $xml .= "</$key>";
-        }
-        return $xml;
-    }
-
-
     public function __call($name, $arguments)
     {
         throw new BadFunctionCallException("未实现" . $name . "方法");
     }
 
-    final public function throwNotSupport($function){
-        throw new NotSupportException($this->iden_name."暂不支持".$function);
+    final public function throwNotSupport($function)
+    {
+        throw new NotSupportException($this->iden_name . "暂不支持" . $function);
+    }
+
+    /**
+     * 设置请求和响应参数, 默认为空
+     * @param array $req_data 请求参数
+     * @param array $res_data 响应参数
+     */
+    final public function setReqResData($req_data = [], $res_data = [])
+    {
+        $this->req_data = $req_data;
+        $this->res_data = $res_data;
+    }
+
+    /**
+     * 获取请求和响应参数
+     * @return array [请求参数，响应参数]
+     */
+    final public function getReqResData()
+    {
+        return [
+            ResponseDataConst::LSA_CURL_REQ_DATA => $this->req_data,
+            ResponseDataConst::LSA_CURL_RES_DATA => $this->res_data
+        ];
+    }
+
+    /**
+     * 统一返回API接口数据 - 失败
+     * @param string $info 提示信息
+     * @param array $data 数据
+     * @return array
+     */
+    final public function retErrorResponseData($info = 'error', $data = [])
+    {
+        return $this->retResponseData(1, $info, $data);
+    }
+
+    /**
+     * 统一返回API接口数据
+     * @param int $code 状态码，0：成功，非0：失败，
+     * @param string $info 提示信息
+     * @param array $data 数据
+     * @return array
+     */
+    final public function retResponseData($code = 0, $info = 'success', $data = [])
+    {
+        return [
+            'code' => $code,
+            'info' => $info,
+            'data' => $data,
+        ];
+    }
+
+    /**
+     * 统一返回API接口数据 - 成功
+     * @param array $data 数据
+     * @param string $info 提示信息
+     * @return array
+     */
+    final public function retSuccessResponseData($data = [], $info = 'success')
+    {
+        return $this->retResponseData(0, $info, $data);
     }
 }

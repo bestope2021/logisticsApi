@@ -9,12 +9,13 @@ namespace smiler\logistics\Api\HeiMao;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
+use smiler\logistics\Common\PackageLabelLogisticsInterface;
+use smiler\logistics\Common\ResponseDataConst;
+use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
-use smiler\logistics\Exception\NotSupportException;
 use smiler\logistics\LogisticsAbstract;
-use smiler\logistics\Common\PackageLabelLogisticsInterface;
-use smiler\logistics\Common\TrackLogisticsInterface;
 
 /**
  * 黑猫物流
@@ -24,19 +25,16 @@ use smiler\logistics\Common\TrackLogisticsInterface;
  */
 class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
 {
-    public $iden = 'heimao';
-
-    public $iden_name = '黑猫物流';
-
     /**
      * 一次最多提交多少个包裹
      */
     const ORDER_COUNT = 1;
-
     /**
      * 一次最多查询多少个跟踪号
      */
     const QUERY_TRACK_COUNT = 1;
+    public $iden = 'heimao';
+    public $iden_name = '黑猫物流';
     /**
      * curl 请求数据类型
      * @var string
@@ -85,10 +83,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      * @return mixed
      * @throws InvalidIArgumentException
      * @throws ManyProductException
+     * {"code":0,"info":"success","data":{"flag":true,"tipMsg":"","customerOrderNo":"T1020210305180144601085785","syOrderNo":"HMEUS0000209822YQ","trackingNumber":"4208340492748927005485000029484197","frtTrackingNumber":"","predictionFreight":"","effectiveDays":"","req_data":{"appToken":"133995f4fd84a213dca365a024416007","appKey":"32bcfeeeb4476abd2ea706c94fcfe50a32bcfeeeb4476abd2ea706c94fcfe50a","serviceMethod":"createorder"},"res_data":{"data":{"order_id":2671015,"refrence_no":"T1020210305180144601085785","shipping_method_no":"HMEUS0000209822YQ","channel_hawbcode":"4208340492748927005485000029484197","consignee_areacode":null,"station_code":null},"success":1,"cnmessage":"订单创建成功","enmessage":"订单创建成功","order_id":2671015}}}
      */
     public function createOrder(array $params = [])
     {
-
         if (empty($params)) {
             throw new InvalidIArgumentException($this->iden_name . " 创建订单参数不能为空");
         }
@@ -163,7 +161,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'consignee_doorplate' => '', //N:收件人门牌号
                     'consignee_areacode' => '', //N:收件人区域代码
                     'consignee_telephone' => $item['recipientPhone'] ?? '', //N:收件人电话
-                    'consignee_mobile' => $item['recipientPhone'] ?? '', //N:收件人手机
+                    'consignee_mobile' => $item['recipientMobile'] ?? '', //N:收件人手机
                     'consignee_email' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
 //                        'consignee_certificatetype' => 1,// N:收件人证件类型（ID-身份证；PP-护照）
                     'consignee_fax' => '', //N:收件人传真
@@ -179,30 +177,61 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         $response = $this->request(__FUNCTION__, $ls[0]);
 
-        if ($response['success'] != 1) {
-            return $response;
+        $reqRes = $this->getReqResData();
+//        var_dump($response);exit;
+
+        $fieldData = [];
+        $fieldMap = FieldMap::createOrder();
+
+        $fieldData['flag'] = $response['success'] == 1 ? true : false;
+        $fieldData['info'] = $response['success'] == 1 ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
+
+        // 获取追踪号
+        if ($response['success'] == 1 && empty($response['data']['channel_hawbcode'])) {
+            $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
+            if ($trackNumberResponse['success'] != 1) {
+                $fieldData['flag'] = false;
+                $fieldData['info'] = $trackNumberResponse['cnmessage'];
+            }
+            $fieldData['channel_hawbcode'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
         }
 
-        //todo 获取追踪号
+        $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
+        $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
+        $fieldData['channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
 
-        $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
+        return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
 
-        if ($trackNumberResponse['success'] != 1) {
-            $response['cnmessage'] = $trackNumberResponse['cnmessage'];
-            $response['enmessage'] = $trackNumberResponse['enmessage'];
-            return $response;
-        }
-        $trackNumber = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
-        $response['trackingNumberInfo'][$response['data']['refrence_no']] = [
-            'trackingNumber' => $trackNumber,
-            'platform_order_id' => $response['data']['refrence_no'],
-            'logistics_order_id' => $response['data']['shipping_method_no'],
-            'flag' => $response['success'] == 1 ? true : false,
-            'msg' => $response['cnmessage'] ?? ($response['enmessage'] ?? ''),
-        ];
+    }
+
+    public function request($function, $data = [])
+    {
+        $data = $this->buildParams($function, $data);
+        $this->req_data = $data;
+        $response = $this->sendCurl('post', $this->config['url'], $data, $this->dataType, $this->apiHeaders);
+        $this->res_data = $response;
         return $response;
+    }
 
+    /**
+     * @param $interface string 方法名
+     * @param array $arr 请求参数
+     * @return array
+     */
+    public function buildParams($interface, $arr = [])
+    {
+        $data = [
+            'appToken' => $this->config['appToken'],
+            'appKey' => $this->config['appKey'],
+            'serviceMethod' => $this->interface[$interface],
+            'paramsJson' => "{}",
+        ];
+        if (!empty($arr)) {
+            $data['paramsJson'] = json_encode($arr, JSON_UNESCAPED_UNICODE);
+        }
+        return $data;
     }
 
     /**
@@ -220,13 +249,23 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     }
 
     /**
-     * @return mixed
      * 获取物流商运输方式
+     * @return mixed
+     * {"code":0,"info":"success","data":[{"shippingMethodCode":"CH001","shippingMethodEnName":"瑞士Asendia专线","shippingMethodCnName":"瑞士Asendia专线","shippingMethodType":"","remark":""},{"shippingMethodCode":"USYT01","shippingMethodEnName":"美国海卡","shippingMethodCnName":"美国海卡","shippingMethodType":"","remark":""}]}
      */
     public function getShippingMethod()
     {
+        $fieldData = [];
+        $fieldMap = FieldMap::shippingMethod();
+
         $response = $this->request(__FUNCTION__);
-        return $response;
+        if ($response['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        foreach ($response['data'] as $item) {
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -299,11 +338,15 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     }
 
     /**
-     * 获取订单标签 todo 传入多个订单时，pdf返回到一个文件里面
+     * 获取订单标签
      * @return mixed
+     * {"code":0,"info":"success","data":[{"flag":"","tipMsg":"","orderNo":"","labelPathType":"pdf","labelPath":"http://szdbf.rtb56.com/api-lable/pdf/20210305/aad7b262-e3c0-49db-872b-adeb1431b633.pdf","labelPathPlat":"","labelType":"1"}]}
      */
     public function getPackagesLabel($params)
     {
+        $fieldData = [];
+        $fieldMap = FieldMap::packagesLabel();
+
         $data = [
             'configInfo' => [
                 'lable_file_type' => 2, //标签文件类型1：PNG文件2：PDF文件
@@ -325,15 +368,30 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             ];
         }
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+
+        if ($response['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        foreach ($response['data'] as $item) {
+            $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
+
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
      * 获取物流商轨迹
+     * {"data":[{"shipper_hawbcode":"T1020210305164402901045177","server_hawbcode":"HMEUS0000223958YQ","channel_hawbcode":null,"destination_country":"US","destination_country_name":null,"track_status":"NT","track_status_name":"转运中","signatory_name":"","details":[{"tbs_id":"2826898","track_occur_date":"2021-03-05 16:44:59","track_location":"","track_description":"快件电子信息已经收到","track_description_en":"Shipment information received","track_code":"IR","track_status":"NT","track_status_cnname":"转运中"}]}],"success":1,"cnmessage":"获取跟踪记录成功","enmessage":"获取跟踪记录成功","order_id":0}
      * @return mixed
+     * {"code":0,"info":"success","data":[{"flag":"","tipMsg":"","orderNo":"HMEUS0000223958YQ","status":"NT","statusMsg":"转运中","logisticsTrackingDetails":[{"status":"NT","statusContent":"快件电子信息已经收到","statusTime":"2021-03-05 16:44:59","statusLocation":""}]}]}
      */
     public function queryTrack($trackNumber)
     {
+        $fieldData = [];
+        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
+        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
+
         $trackNumberArray = $this->toArray($trackNumber);
         if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
             throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
@@ -342,9 +400,22 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'tracking_number' => $trackNumber,
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
-    }
 
+        if ($response['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+
+        $data = $response['data'][0];
+
+        $ls = [];
+        foreach ($data['details'] as $key => $val) {
+            $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+        }
+        $data['details'] = $ls;
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
+
+        return $this->retSuccessResponseData($fieldData);
+    }
 
     /**
      * @param $order_id
@@ -357,32 +428,6 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_id,
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
-    }
-
-    /**
-     * @param $interface string 方法名
-     * @param array $arr 请求参数
-     * @return array
-     */
-    public function buildParams($interface, $arr = [])
-    {
-        $data = [
-            'appToken' => $this->config['appToken'],
-            'appKey' => $this->config['appKey'],
-            'serviceMethod' => $this->interface[$interface],
-            'paramsJson' => "{}",
-        ];
-        if (!empty($arr)) {
-            $data['paramsJson'] = json_encode($arr, JSON_UNESCAPED_UNICODE);
-        }
-        return $data;
-    }
-
-    public function request($function, $data = [])
-    {
-        $data = $this->buildParams($function, $data);
-        $response = $this->sendCurl('post', $this->config['url'], $data, $this->dataType, $this->apiHeaders);
         return $response;
     }
 }
