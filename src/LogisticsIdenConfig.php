@@ -9,13 +9,13 @@ namespace smiler\logistics;
 
 
 use smiler\logistics\Api\BxXms\BxXms;
+use smiler\logistics\Api\HeiMao\HeiMao;
+use smiler\logistics\Api\HuaHan\HuaHan;
+use smiler\logistics\Api\ShiHang\ShiHang;
 use smiler\logistics\Api\TPost\TPost;
 use smiler\logistics\Api\Wts\Wts;
 use smiler\logistics\Api\Wts\WtsLabel;
 use smiler\logistics\Api\XyExp\XyExp;
-use smiler\logistics\Api\HeiMao\HeiMao;
-use smiler\logistics\Api\HuaHan\HuaHan;
-use smiler\logistics\Api\ShiHang\ShiHang;
 use smiler\logistics\Api\XyExp\XyExpTrack;
 use smiler\logistics\Api\Yw\Yw;
 use smiler\logistics\Api\Yw\YwTrack;
@@ -28,18 +28,22 @@ use smiler\logistics\Api\Yw\YwTrack;
 class LogisticsIdenConfig
 {
 
+    /**
+     * 定义脚本执行映射关系
+     * @var string[]
+     */
     public static $class = [
-        'huahan' => HuaHan::class, //华翰物流
-        'heimao' => HeiMao::class, //黑猫物流
-        'shihang' =>  ShiHang::class, //世航国际物流
-        'yw' => Yw::class,         //燕文物流
-        'ywTrack' => YwTrack::class, //燕文物流轨迹查询
-        'xyexp' => XyExp::class, //兴源物流商
-        'xyexpTrack' => XyExpTrack::class, //兴源物流商轨迹查询
-        'wts'        => Wts::class, //梧桐树物流商
-        'wtsLabel'   => WtsLabel::class, //梧桐树打印面单标签
-        'bxxms'      => BxXms::class, //八星物流商
-        'tpost'      => TPost::class, //通邮物流商
+        LogisticsIdent::LS_IDENT_HUA_HAN => HuaHan::class,// 华翰
+        LogisticsIdent::LS_IDENT_BLACK_CAT => HeiMao::class,// 黑猫
+        LogisticsIdent::LS_IDENT_SHI_HANG => ShiHang::class,// 世航
+        LogisticsIdent::LS_IDENT_YAN_WEB => Yw::class,// 燕文
+        LogisticsIdent::LS_IDENT_YAN_WEB_TRACK => YwTrack::class,// 燕文-轨迹查询
+        LogisticsIdent::LS_IDENT_XY_EXP => XyExp::class,//兴源
+        LogisticsIdent::LS_IDENT_XY_EXP_TRACK => XyExpTrack::class,// 兴源-轨迹查询
+        LogisticsIdent::LS_IDENT_WT_TREE => Wts::class,// 梧桐树
+        LogisticsIdent::LS_IDENT_WT_TREE_LABEL => WtsLabel::class,// 梧桐树-打印面单标签
+        LogisticsIdent::LS_IDENT_BX_XMS => BxXms::class,// 八星
+        LogisticsIdent::LS_IDENT_T_POST => TPost::class,// 通邮
     ];
 
     /**
@@ -49,7 +53,6 @@ class LogisticsIdenConfig
      */
     public static function getApiObj(string $name)
     {
-
         return self::$class[$name];
     }
 }
