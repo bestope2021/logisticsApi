@@ -234,4 +234,14 @@ abstract class LogisticsAbstract
     {
         return $this->retResponseData(0, $info, $data);
     }
+
+    /**
+     * 打印json数据
+     * @param mixed ...$ver
+     */
+    final public function dd(...$ver)
+    {
+        echo json_encode($ver, JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 }
