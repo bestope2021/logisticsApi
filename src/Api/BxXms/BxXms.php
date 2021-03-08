@@ -9,6 +9,7 @@ namespace smiler\logistics\Api\BxXms;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
 use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\InvalidIArgumentException;
@@ -177,12 +178,21 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
     /**
      * 获取物流商运输方式
      * @return mixed
-     * {"success":"true","transportWays":[{"autoFetchTrackingNo":"Y","code":"DHLV4-THN","name":"德国特惠普货","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"},{"autoFetchTrackingNo":"Y","code":"DETHZX","name":"德国特惠带电专线","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"}]}
+     * [{"success":"true","transportWays":[{"autoFetchTrackingNo":"Y","code":"DHLV4-OT","name":"OTTO专线","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"},{"autoFetchTrackingNo":"Y","code":"DHL-ALL","name":"全欧特派","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"}]}]
      */
     public function getShippingMethod()
     {
+        $fieldData = [];
+        $fieldMap = FieldMap::shippingMethod();
         $res = $this->request(__FUNCTION__);
-        return $res;
+//        $this->dd($res);
+        if ($res['success'] != 'true') {
+            return $this->retErrorResponseData($res['errorInfo'] ?? '未知错误');
+        }
+        foreach ($res['transportWays'] as $item) {
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
