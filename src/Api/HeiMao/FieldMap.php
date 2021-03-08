@@ -62,7 +62,6 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 
     /**
      * 获取物流商轨迹
-     * todo: 待配置
      * @param mixed ...$vars
      * @return mixed
      */

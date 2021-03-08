@@ -29,9 +29,9 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
         $field = [
             'flag',// 处理状态： true 成功，false 失败
             'info',// 提示信息
-            'refrence_no',// 客户订单号
-            'shipping_method_no',// 第三方订单号
-            'channel_hawbcode',// 追踪号
+            'orderNo',// 客户订单号
+            'id',// 第三方订单号
+            'trackingNo',// 追踪号
             'frt_channel_hawbcode',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
@@ -50,9 +50,9 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
         $field = [
             'flag',// 处理状态： true 成功，false 失败
             'info',// 提示信息
-            'order_no',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+            'trackingNo',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
             'label_path_type',// 面单路径类型
-            'lable_file',// 面单路径URL
+            'url',// 面单路径URL
             'label_path_plat',// 平台路径
             'lable_content_type',// 面单类型
         ];
@@ -62,7 +62,6 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 
     /**
      * 获取物流商轨迹
-     * todo: 待配置
      * @param mixed ...$vars
      * @return mixed
      */
@@ -72,19 +71,19 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             $field = [
                 'flag',// 处理状态： true 成功，false 失败
                 'info',// 提示信息
-                'server_hawbcode',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
-                'track_status',// 订单状态
-                'track_status_name',// 订单状态（货态）说明
-                'details',// 物流轨迹明细
+                'tno',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+                'status',// 订单状态
+                'pathInfo',// 订单状态（货态）说明
+                'sPaths',// 物流轨迹明细
             ];
         }
 
         if ($vars[0] == LsSdkFieldMapAbstract::QUERY_TRACK_TWO) {
             $field = [
-                'track_status',// 订单状态（货态）
-                'track_description',// 订单状态（货态）描述
-                'track_occur_date',// 订单状态（货态）时间
-                'track_location',// 所在地
+                'status',// 订单状态（货态）
+                'pathInfo',// 订单状态（货态）描述
+                'pathTime',// 订单状态（货态）时间
+                'pathAddr',// 所在地
             ];
         }
 

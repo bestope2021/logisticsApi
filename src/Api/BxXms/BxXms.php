@@ -11,28 +11,24 @@ namespace smiler\logistics\Api\BxXms;
 use smiler\logistics\Common\BaseLogisticsInterface;
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
+use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
-use smiler\logistics\Exception\NotSupportException;
 use smiler\logistics\LogisticsAbstract;
 
 class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
 {
-    public $iden = 'bxxms';
-
-    public $iden_name = '八星物流';
-
     /**
      * 一次最多提交多少个包裹,5自定义
      */
     const ORDER_COUNT = 2;
-
     /**
      * 一次最多查询多少个物流商
      */
     const QUERY_TRACK_COUNT = 1;
-
+    public $iden = 'bxxms';
+    public $iden_name = '八星物流';
     /**
      * curl 请求数据类型
      * @var string
@@ -69,6 +65,33 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
         }
     }
 
+    /**
+     * array转XML
+     * @param $array
+     * @param string $root
+     * @return string
+     */
+    public static function arrayToXml($array, $root = 'ns1:callService', $encoding = 'utf-8')
+    {
+        $xml = '<?xml version="1.0" encoding="' . $encoding . '"?>';
+        $xml .= '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.hop.service.ws.hlt.com/">';
+        $xml .= '<soapenv:Body>';
+        $xml .= "<ser:{$root}>";
+        $xml .= static::arrayToXmlInc($array);
+        $xml .= "</ser:{$root}>";
+        $xml .= "<soapenv:Body>";
+        $xml .= "</soap:Envelope>";
+        return $xml;
+    }
+
+    public static function xmlToArray($xml)
+    {
+        $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $xml);
+        $xml = new \SimpleXMLElement($response);
+        $body = $xml->xpath('//return')[0];
+        $array = json_decode(json_encode($body), true);
+        return $array;
+    }
 
     /**
      * 创建订单
@@ -156,24 +179,43 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
         }
         $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
 
-        //请求创建单号失败
-        if ($response['success'] != 'true') {
-            return $response;
-        }
+        // 处理结果
+        $reqRes = $this->getReqResData();
 
+        $fieldData = [];
+        $fieldMap = FieldMap::createOrder();
 
-        $response['trackingNumberInfo'][$params[0]['customerOrderNo']] = [
-            'trackingNumber' => $response['trackingNo'] ?? '',
-            'platform_order_id' => $params[0]['customerOrderNo'] ?? '',
-            'logistics_order_id' => $response['id'] ?? '',
-            'flag' => $response['success'] != 'true' ? false : true,
-            'msg' => $response['error']['errorInfo'] ?? '',
-        ];
+        // 结果
+        $flag = $response['success'] == 'true';
 
-        return $response;
+        $fieldData['flag'] = $flag ? true : false;
+        $fieldData['info'] = $flag ? '' : ($response['error']['errorInfo'] ?? '未知错误');
 
+        $fieldData['orderNo'] = $ls[0]['orderNo'];
+        $fieldData['trackingNo'] = $response['trackingNo'] ?? '';
+        $fieldData['id'] = $response['id'] ?? '';
+
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
+//        $this->dd($response, $ret, $reqRes);
+        return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
+    public function request($function, $data = [])
+    {
+        $data = $this->buildParams($function, $data);
+        $this->req_data = $data;
+        $res = $this->sendCurl('post', $this->config['url'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', $this->interface[$function]);
+        $this->res_data = $res;
+        return $res;
+    }
+
+    /**
+     * 获取请求数据
+     */
+    public function buildParams($interface, $arr = [])
+    {
+        return array_merge(['userToken' => $this->config['userToken']], $arr);
+    }
 
     /**
      * 获取物流商运输方式
@@ -182,9 +224,12 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function getShippingMethod()
     {
+        $res = $this->request(__FUNCTION__);
+
+        // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-        $res = $this->request(__FUNCTION__);
+
 //        $this->dd($res);
         if ($res['success'] != 'true') {
             return $this->retErrorResponseData($res['errorInfo'] ?? '未知错误');
@@ -232,7 +277,7 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function getFeeByOrder(string $order_code)
     {
-       $this->throwNotSupport(__FUNCTION__);
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     public function getFeeDetailByOrder($order_id)
@@ -249,14 +294,31 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
     {
         $data = [
             'printOrderRequest' => [
-                'trackingNo' => implode(',',$this->toArray($params['trackNumber'])),
+                'trackingNo' => implode(',', $this->toArray($params['trackNumber'])),
                 'printSelect' => $params['label_content'] ?? 1, //选择打印样式“1” 地址标签打印 “11” 报关单 “2” 地址标签+配货信息 “3” 地址标签+报关单（默认） “13”地址标签+(含配货信息) “12” 地址标签+(含配货信息)+报关单 “15” 地址标签+报关单+配货信息
-                'pageSizeCode' =>  $params['label_type'] ?? 6, //“1”表示80.5mm × 90mm “2”表示105mm × 210mm “7”表示100mm × 150mm “4”表示102mm × 76mm “5”表示110mm × 85mm “6”表示100mm × 100mm（默认） “3”表示A4,
+                'pageSizeCode' => $params['label_type'] ?? 6, //“1”表示80.5mm × 90mm “2”表示105mm × 210mm “7”表示100mm × 150mm “4”表示102mm × 76mm “5”表示110mm × 85mm “6”表示100mm × 100mm（默认） “3”表示A4,
                 'downloadPdf' => 0,
             ],
         ];
-        $response = $this->request(__FUNCTION__,  $data);
-        return $response;
+        $response = $this->request(__FUNCTION__, $data);
+
+        // 处理结果
+        $fieldData = [];
+        $fieldMap = FieldMap::packagesLabel();
+
+        // 结果
+        $flag = $response['success'] == 'true';
+
+        if (!$flag) {
+            return $this->retErrorResponseData($response['error']['errorInfo'] ?? '未知错误');
+        }
+        foreach ($response as $item) {
+            $item['trackingNo'] = $params['trackNumber'][0] ?? '';
+            $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
+            $item['lable_content_type'] = $params['label_content'] ?? 1;
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -274,56 +336,34 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
             'trackingNo' => $trackNumber,
             'orderNo' => '',
         ];
-        $response = $this->request(__FUNCTION__,  $data);
-        return $response;
+        $response = $this->request(__FUNCTION__, $data);
+
+        // 处理结果
+        $fieldData = [];
+        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
+        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
+
+        // 结果
+        $flag = $response['success'] == 'true';
+
+        if (!$flag) {
+            return $this->retErrorResponseData($response['error']['errorInfo'] ?? '未知错误');
+        }
+
+        $data = $response['trace '];
+
+        $ls = [];
+        foreach ($data['sPaths'] as $key => $val) {
+            $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+        }
+        $data['sPaths'] = $ls;
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
+
+        return $this->retSuccessResponseData($fieldData);
     }
 
     public function getPackagesDetail($order_id)
     {
         $this->throwNotSupport(__FUNCTION__);
-    }
-
-    public function request($function, $data = [])
-    {
-        $data = $this->buildParams($function, $data);
-        $res = $this->sendCurl('post', $this->config['url'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', $this->interface[$function]);
-        return $res;
-    }
-
-    /**
-     * 获取请求数据
-     */
-    public function buildParams($interface, $arr = [])
-    {
-        return array_merge(['userToken' => $this->config['userToken']], $arr);
-    }
-
-    /**
-     * array转XML
-     * @param $array
-     * @param string $root
-     * @return string
-     */
-    public static function arrayToXml($array, $root = 'ns1:callService', $encoding = 'utf-8')
-    {
-        $xml = '<?xml version="1.0" encoding="' . $encoding . '"?>';
-        $xml .= '<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ser="http://service.hop.service.ws.hlt.com/">';
-        $xml .= '<soapenv:Body>';
-        $xml .= "<ser:{$root}>";
-        $xml .= static::arrayToXmlInc($array);
-        $xml .= "</ser:{$root}>";
-        $xml .= "<soapenv:Body>";
-        $xml .= "</soap:Envelope>";
-        return $xml;
-    }
-
-
-    public static function xmlToArray($xml)
-    {
-        $response = preg_replace("/(<\/?)(\w+):([^>]*>)/", "$1$2$3", $xml);
-        $xml = new \SimpleXMLElement($response);
-        $body = $xml->xpath('//return')[0];
-        $array = json_decode(json_encode($body), true);
-        return $array;
     }
 }

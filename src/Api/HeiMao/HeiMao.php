@@ -178,16 +178,20 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $ls[0]);
 
         $reqRes = $this->getReqResData();
-//        var_dump($response);exit;
+//        $this->dd($response);
 
+        // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        $fieldData['flag'] = $response['success'] == 1 ? true : false;
-        $fieldData['info'] = $response['success'] == 1 ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
+        // 结果
+        $flag = $response['success'] == 1;
+
+        $fieldData['flag'] = $flag ? true : false;
+        $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
 
         // 获取追踪号
-        if ($response['success'] == 1 && empty($response['data']['channel_hawbcode'])) {
+        if ($flag && empty($response['data']['channel_hawbcode'])) {
             $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
             if ($trackNumberResponse['success'] != 1) {
                 $fieldData['flag'] = false;
@@ -255,10 +259,11 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function getShippingMethod()
     {
+        $response = $this->request(__FUNCTION__);
+
+        // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-
-        $response = $this->request(__FUNCTION__);
         if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
@@ -344,9 +349,6 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function getPackagesLabel($params)
     {
-        $fieldData = [];
-        $fieldMap = FieldMap::packagesLabel();
-
         $data = [
             'configInfo' => [
                 'lable_file_type' => 2, //标签文件类型1：PNG文件2：PDF文件
@@ -369,6 +371,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         }
         $response = $this->request(__FUNCTION__, $data);
 
+        // 处理结果
+        $fieldData = [];
+        $fieldMap = FieldMap::packagesLabel();
+
         if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
@@ -388,10 +394,6 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function queryTrack($trackNumber)
     {
-        $fieldData = [];
-        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
-        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
-
         $trackNumberArray = $this->toArray($trackNumber);
         if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
             throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
@@ -400,6 +402,11 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'tracking_number' => $trackNumber,
         ];
         $response = $this->request(__FUNCTION__, $data);
+
+        // 处理结果
+        $fieldData = [];
+        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
+        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
 
         if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
