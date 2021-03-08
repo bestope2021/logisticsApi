@@ -17,7 +17,7 @@ use smiler\logistics\Common\LsSdkFieldMapInterface;
  * Class FieldMap
  * @package smiler\logistics\Api\HeiMao
  */
-class FieldMap implements LsSdkFieldMapInterface
+class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 {
     /**
      * 创建订单
@@ -26,7 +26,7 @@ class FieldMap implements LsSdkFieldMapInterface
      */
     public static function createOrder(...$vars)
     {
-        $fieldKey = [
+        $field = [
             'flag',// 处理状态： true 成功，false 失败
             'info',// 提示信息
             'refrence_no',// 客户订单号
@@ -37,7 +37,7 @@ class FieldMap implements LsSdkFieldMapInterface
             'effective_days',// 跟踪号有效期天数
         ];
 
-        return array_combine($fieldKey, LsSdkFieldMapAbstract::getCreateOrderFields());
+        return self::getFieldMap(self::getCreateOrderFields(), $field);
     }
 
     /**
@@ -47,7 +47,7 @@ class FieldMap implements LsSdkFieldMapInterface
      */
     public static function packagesLabel(...$vars)
     {
-        $fieldKey = [
+        $field = [
             'flag',// 处理状态： true 成功，false 失败
             'info',// 提示信息
             'order_no',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
@@ -57,7 +57,7 @@ class FieldMap implements LsSdkFieldMapInterface
             'lable_content_type',// 面单类型
         ];
 
-        return array_combine($fieldKey, LsSdkFieldMapAbstract::getPackagesLabelFields());
+        return self::getFieldMap(self::getPackagesLabelFields(), $field);
     }
 
     /**
@@ -68,8 +68,8 @@ class FieldMap implements LsSdkFieldMapInterface
      */
     public static function queryTrack(...$vars)
     {
-        if ($vars[0] == LsSdkFieldMapAbstract::QUERY_TRACK_ONE) {
-            $fieldKey = [
+        if ($vars[0] == self::QUERY_TRACK_ONE) {
+            $field = [
                 'flag',// 处理状态： true 成功，false 失败
                 'info',// 提示信息
                 'server_hawbcode',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
@@ -79,8 +79,8 @@ class FieldMap implements LsSdkFieldMapInterface
             ];
         }
 
-        if ($vars[0] == LsSdkFieldMapAbstract::QUERY_TRACK_TWO) {
-            $fieldKey = [
+        if ($vars[0] == self::QUERY_TRACK_TWO) {
+            $field = [
                 'track_status',// 订单状态（货态）
                 'track_description',// 订单状态（货态）描述
                 'track_occur_date',// 订单状态（货态）时间
@@ -88,7 +88,7 @@ class FieldMap implements LsSdkFieldMapInterface
             ];
         }
 
-        return array_combine($fieldKey, LsSdkFieldMapAbstract::getQueryTrackFields($vars[0]));
+        return self::getFieldMap(self::getQueryTrackFields($vars[0]), $field);
     }
 
     /**
@@ -98,7 +98,7 @@ class FieldMap implements LsSdkFieldMapInterface
      */
     public static function shippingMethod(...$vars)
     {
-        $fieldKey = [
+        $field = [
             'code',// 运输方式代码
             'enname',// 运输方式英文
             'cnname',// 运输方式中文
@@ -106,6 +106,6 @@ class FieldMap implements LsSdkFieldMapInterface
             'remark',// 备注
         ];
 
-        return array_combine($fieldKey, LsSdkFieldMapAbstract::getShippingMethodFields());
+        return self::getFieldMap(self::getShippingMethodFields(), $field);
     }
 }

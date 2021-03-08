@@ -32,10 +32,21 @@ abstract class LsSdkFieldMapAbstract
             return [];
         }
         $ret = [];
-        array_walk($fieldMap, function ($val, $key) use ($response, &$ret) {
+        array_walk($fieldMap, function ($key, $val) use ($response, &$ret) {
             $ret[$val] = $response[$key] ?? '';
         });
         return $ret;
+    }
+
+    /**
+     * 生成新数组
+     * @param array $key 基类 key
+     * @param array $val 子类 val
+     * @return array
+     */
+    final static function getFieldMap($key = [], $val = [])
+    {
+        return array_combine($key, $val);
     }
 
     /**
