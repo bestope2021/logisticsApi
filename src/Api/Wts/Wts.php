@@ -322,10 +322,10 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         ];
         $response = $this->request(__FUNCTION__, $data, false);
         $response = json_decode(iconv('GBK', 'utf-8', $response), true);
-        if (empty($response)) {
-            return $this->retErrorResponseData();
+        if (empty($response) || $response[0]['ack'] == 'false') {
+            return $this->retErrorResponseData($response[0]['message'] ?? '');
         }
-        $response = $response[0]['data'];
+        $response = $response[0]['data'] ?? [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
         foreach ($response as $item) {
@@ -343,7 +343,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
             $tmpArr['details'] = $ls;
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($tmpArr, $fieldMap1);
         }
-        return $response;
+        return $this->retSuccessResponseData($fieldData);
     }
 
     public function getPackagesDetail($order_id)
