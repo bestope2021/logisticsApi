@@ -287,7 +287,6 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
 
     /**
      * 获取订单标签
-     * todo 批量获取 得到的结果在一个pdf文件上面
      * @return mixed
      */
     public function getPackagesLabel($params = [])
@@ -312,12 +311,13 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
         if (!$flag) {
             return $this->retErrorResponseData($response['error']['errorInfo'] ?? '未知错误');
         }
-        foreach ($response as $item) {
-            $item['trackingNo'] = $params['trackNumber'][0] ?? '';
-            $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
-            $item['lable_content_type'] = $params['label_content'] ?? 1;
-            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
-        }
+
+        $response['trackingNo'] = $params['trackNumber'][0] ?? '';
+        $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
+        $response['lable_content_type'] = $params['label_content'] ?? 1;
+
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
+//        $this->dd($fieldData);
         return $this->retSuccessResponseData($fieldData);
     }
 

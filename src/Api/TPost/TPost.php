@@ -10,7 +10,9 @@ namespace smiler\logistics\Api\TPost;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
+use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
@@ -156,25 +158,36 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
         $sign = $this->getMd5Sign(__FUNCTION__, true, $data);
         $this->apiHeaders['sign'] = $sign;
         $response = $this->request(__FUNCTION__, $data);
-        if($response['success'] != true){
-            return $response;
-        }
-        $response['trackingNumberInfo'][$response['order_no']] = [
-            'trackingNumber' => $response['logistics_no'] ?? '',
-            'platform_order_id' => $response['order_no'] ?? '',
-            'logistics_order_id' => $response['logisticsId'] ?? '',
-            'flag' =>$response['success'] == true ? true : false,
-            'msg' => $response['msg'] ?? '',
-        ];
+
+        $reqRes = $this->getReqResData();
+
+        $fieldData = [];
+        $fieldMap = FieldMap::createOrder();
+
+        // 处理数据
+        $flag = $response['success'] == true;
+
+        $fieldData['flag'] = $flag ? true : false;
+        $fieldData['info'] = $flag ? '' : ($response['msg'] ?? '未知错误');
+
+        $fieldData['order_no'] = $response['order_no'] ?? '';
+        $fieldData['logisticsId'] = $response['logisticsId'] ?? '';
+        $fieldData['logistics_no'] = $response['logistics_no'] ?? '';
+        $fieldData['tlTrackNo'] = $response['tlTrackNo'] ?? '';
+
         //todo需要调用回调
-        if($response['isCallBack']){
+        if($flag && $response['isCallBack']){
             $callbackResponse = $this->orderCallback([
                 'orderNo' => $response['order_no'],
                 'logisticsId' => $response['logisticsId'],
             ]);
         }
-        return $response;
 
+//        $this->dd($response);
+
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
+//        $this->dd($response, $ret, $reqRes);
+        return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
 
@@ -210,7 +223,9 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
 
     {
         $requestUrl = $this->config['url'] . $this->interface[$function];
+        $this->req_data = $data;
         $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+        $this->res_data = $res;
         return $res;
     }
 
@@ -230,7 +245,21 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
     public function getShippingMethod()
     {
         $res = $this->request(__FUNCTION__);
-        return $res;
+
+        // 处理结果
+        $fieldData = [];
+        $fieldMap = FieldMap::shippingMethod();
+
+//        $this->dd($res);
+        if ($res['success'] != true) {
+            return $this->retErrorResponseData($res['msg'] ?? '未知错误');
+        }
+        foreach ($res['channelInfos'] as $item) {
+            $item['enName'] = is_null($item['enName']) ? '' : $item['enName'];
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+//        $this->dd($fieldData);
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -245,7 +274,34 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
         $sign = $this->getMd5Sign(__FUNCTION__, true, $params);
         $this->apiHeaders['sign'] = $sign;
         $res = $this->request(__FUNCTION__,$params);
-        return $res;
+
+        // 处理结果
+        $fieldData = [];
+        $fieldMap = FieldMap::getPackagesLabelFields();
+
+//        $this->dd($res);
+        if ($res['success'] != true) {
+            return $this->retErrorResponseData($res['msg'] ?? '未知错误');
+        }
+
+        $path_type = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
+        if($res['type'] == 1){
+            $path_type = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
+            $url = $res['url'] ?? '';
+        }
+        if($res['type'] == 0){
+            $path_type = ResponseDataConst::LSA_LABEL_PATH_TYPE_IMG_BASE64;
+            $url = $res['base64'] ?? '';
+        }
+
+        $res['orderNo'] = $params['orderNo'] ?? '';
+        $res['label_path_type'] = $path_type;
+        $res['lable_content_type'] = 1;
+        $res['url'] = $url;
+
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($res, $fieldMap);
+//        $this->dd($fieldData);
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
