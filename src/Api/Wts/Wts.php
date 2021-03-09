@@ -214,7 +214,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                     'flag' => $value['ack'] == 'true' ? true : false,
                     'info' => urldecode($value['message']),
                 ];
-                $data[] = array_merge($reqRes, LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap));
+                $data = array_merge($reqRes, LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap));
 
             }
         }
