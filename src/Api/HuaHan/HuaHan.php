@@ -8,7 +8,10 @@
 namespace smiler\logistics\Api\HuaHan;
 
 
+use smiler\logistics\Api\HuaHan\FieldMap;
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
+use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\Exception\NotSupportException;
@@ -82,7 +85,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $this->checkKeyExist(['appToken', 'url', 'appKey'], $config);
         $this->config = $config;
-        if(!empty($config)){
+        if(!empty($config['apiHeaders'])){
             $this->apiHeaders = array_merge($this->apiHeaders,$config['apiHeaders']);
         }
     }
@@ -198,35 +201,30 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             ];
         }
         $response = $this->request(__FUNCTION__, 'post', $ls);
-        //请求创建单号失败
-        if ($response['ask'] != 'Success') {
-            return $response;
-        }
-        //todo 获取订单追踪号，部分渠道不能及时获取
-        $reference_nos = array_column($response['Result'], 'reference_no');
-        $trackNumberResponse = $this->getTrackNumber($reference_nos);
 
-        $response['trackingNumberInfo'] = [];
+        $reqRes = $this->getReqResData();
+        $fieldMap = FieldMap::createOrder();
+
 
         $trackNumberData = [];
         if (!empty($trackNumberResponse['data'])) {
-            $trackNumberData = array_column($trackNumberResponse['data'] ?? [], null, 'OrderNumber');
+            $trackNumberData = array_column($trackNumberResponse['data'], null, 'OrderNumber');
         }
+        $data = [];
         if ($response['Result']) {
             foreach ($response['Result'] as $keyVale=>$value) {
-                $key = !empty($value['reference_no']) ? $value['reference_no'] : $keyVale;
-                $response['trackingNumberInfo'][$key] = [
-                    'trackingNumber' => $trackNumberData[$value['reference_no']]['TrackingNumber'] ?? ($value['shipping_method_no'] ?? ''),
-                    'platform_order_id' => $value['reference_no'] ?? '',
-                    'logistics_order_id' => $value['order_code'] ?? '',
+                $fieldData =  [
+                    'channel_hawbcode' => $trackNumberData[$value['reference_no']]['TrackingNumber'] ?? ($value['shipping_method_no'] ?? ''),
+                    'refrence_no' => $value['reference_no'] ?? '',
+                    'shipping_method_no' => $value['order_code'] ?? '',
                     'flag' => $value['ask'] != 'Failure' ? true : false,
-                    'msg' => $value['message'] ?? '',
+                    'info' => $value['Error']['errMessage'] ?? ($value['message'] ?? ''),
                 ];
+                $data[] = array_merge($reqRes,LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap));
+
             }
         }
-
-        return $response;
-
+        return $this->retSuccessResponseData($data);
     }
 
     /**
@@ -250,8 +248,16 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function getShippingMethod()
     {
+        $fieldData = [];
+        $fieldMap = FieldMap::shippingMethod();
         $res = $this->request(__FUNCTION__);
-        return $res;
+        if ($res['ask'] != 'Success') {
+            return $this->retErrorResponseData($res['Error']['errMessage'] ?? ($res['message'] ?? '未知错误'));
+        }
+        foreach ($res['data'] as $item) {
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -330,6 +336,8 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function getPackagesLabel($params = [])
     {
+        $fieldData = [];
+        $fieldMap = FieldMap::packagesLabel();
         $data = [
             'reference_nos' => $this->toArray($params['trackNumber']),
             'label_type' => $params['label_type'] ?? 1, //PDF标签尺寸类型：1：10 * 10 标签；2：A4纸；3：10 * 15标签
@@ -339,7 +347,15 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             ],
         ];
         $response = $this->request(__FUNCTION__, 'post', $data);
-        return $response;
+        if($response['ask'] != 'Success'){
+            $this->retErrorResponseData();
+        }
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData([
+            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
+            'lable_file' => $response['url'],
+            'flag' => true,
+        ], $fieldMap);
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -348,6 +364,9 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function queryTrack($trackNumber)
     {
+        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
+        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
+
         $trackNumberArray = $this->toArray($trackNumber);
         if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
             throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
@@ -356,7 +375,23 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'codes' => $this->toArray($trackNumber),
         ];
         $response = $this->request(__FUNCTION__, 'post', $data);
-        return $response;
+
+        if ($response['ask'] != 'Success') {
+            return $this->retErrorResponseData($value['Error']['errMessage'] ?? ($value['message'] ?? ''));
+        }
+
+        $data = $response['Data'];
+        $fieldData = [];
+        foreach ($data as $item){
+            $ls = [];
+            foreach ($item['Detail'] as $key => $val) {
+                $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+            }
+            $item['details'] = $ls;
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap1);
+        }
+
+        return $this->retSuccessResponseData($fieldData);
     }
 
     public function getPackagesDetail($order_id)
@@ -371,7 +406,9 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function request($function, $method = 'post', $data = [])
     {
         $data = $this->buildParams($function, $data);
+        $this->req_data = $data;
         $res = $this->sendCurl($method, $this->config['url'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'ns1:callService');
+        $this->res_data = $res;
         return $res;
     }
 

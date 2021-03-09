@@ -8,6 +8,7 @@
 namespace smiler\logistics\Api\Yw;
 
 
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\LogisticsAbstract;
 
@@ -46,9 +47,24 @@ class YwTrack extends LogisticsAbstract implements TrackLogisticsInterface
         $this->apiHeaders['Authorization'] = $this->config['userId'];
 
         $requestUrl = trim($this->config['url'],'/')."/api/tracking?nums=".$trackNumber;
-
         $response = $this->sendCurl('get',$requestUrl,[],'form',$this->apiHeaders);
-        var_dump($response);
-        return $response;
+        if($response['code'] != 0){
+            return $this->retErrorResponseData($response['message']);
+        }
+        $arr = $response['result'];
+        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
+        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
+        foreach ($arr as $item){
+            $ls = [];
+            if(!empty($item['checkpoints'])){
+                foreach ($item['checkpoints'] as $key=>$trackDetail){
+                    $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($trackDetail, $fieldMap2);
+                }
+            }
+            $item['checkpoints'] = $ls;
+            $item['flag'] = true;
+            $fieldData [] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap1);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 }

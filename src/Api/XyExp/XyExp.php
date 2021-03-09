@@ -9,7 +9,9 @@ namespace smiler\logistics\Api\XyExp;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
+use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\CurlException;
 use smiler\logistics\Exception\InvalidIArgumentException;
@@ -146,17 +148,22 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $response = $this->request(__FUNCTION__, 'post', [
             'WaybillnfoXml' => static::arrayToXml(['WaybillInfo' => $ls[0]], 'InsertWaybillService')
         ]);
-        $tmpData = $response['WaybillInfoList']['WaybillInfo'] ?? [];
-        if (!empty($tmpData['WaybillId'])) {
-            $response['trackingNumberInfo'][$tmpData['CustomerWaybillNumber']] = [
-                'trackingNumber' => $tmpData['ServiceNumber'],
-                'platform_order_id' => $tmpData['CustomerWaybillNumber'],
-                'logistics_order_id' => $tmpData['WaybillId'],
-                'flag' => !empty($tmpData['WaybillId']) ? true : false,
-                'msg' => $tmpData['Result'] ?? '',
-            ];
+        if (!isset($response['WaybillInfoList']['WaybillInfo']['ServiceNumber']) || empty($response['WaybillInfoList']['WaybillInfo']['ServiceNumber'])) {
+            return $this->retErrorResponseData($response['WaybillInfoList']['WaybillInfo']['Result'] ?? '未知错误');
         }
-        return $response;
+        $tmpData = $response['WaybillInfoList']['WaybillInfo'] ?? [];
+
+        $reqRes = $this->getReqResData();
+        $fieldMap = FieldMap::createOrder();
+        $fieldData = [
+            'channel_hawbcode' => $tmpData['ServiceNumber'],
+            'refrence_no' => $tmpData['CustomerWaybillNumber'],
+            'shipping_method_no' => $tmpData['WaybillId'],
+            'flag' => !empty($tmpData['WaybillId']) ? true : false,
+            'info' => $tmpData['Result'] ?? '',
+        ];
+        $arr = array_merge($reqRes, LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap));
+        return $this->retSuccessResponseData($arr);
     }
 
 
@@ -169,7 +176,15 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
     {
 
         $response = $this->request(__FUNCTION__, 'get');
-        return $response;
+        if (!isset($response['FreightWayInfoList']['FreightWayInfo']) || empty($response['FreightWayInfoList']['FreightWayInfo'])) {
+            return $this->retErrorResponseData($response['Result'] ?? '未知错误');
+        }
+
+        $fieldMap = FieldMap::shippingMethod();
+        foreach ($response['FreightWayInfoList']['FreightWayInfo'] as $item) {
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -237,7 +252,17 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
             ], 'WaybillPrintService')
         ];
         $response = $this->request(__FUNCTION__, 'post', $data);
-        return $response;
+        if($response['status'] != 'success'){
+            return $this->retErrorResponseData();
+        }
+        $fieldMap = FieldMap::packagesLabel();
+        $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData([
+            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
+            'lable_file' => $response['url'] ?? '',
+            'order_no' =>  implode(',', $this->toArray($params['trackNumber'])),
+            'flag' => $response['status'] == 'success' ? true : false,
+        ], $fieldMap);
+        return $this->retSuccessResponseData($fieldData);
     }
 
 
@@ -271,8 +296,10 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
         if (!empty($data)) {
             $commonParam = array_merge($commonParam, $data);
         }
+        $this->req_data = $commonParam;
         $requestUrl = $this->config['url'] . $this->interface[$interface];
         $response = $this->sendCurl($method, $requestUrl, $commonParam, $this->dataType, $this->apiHeaders);
+        $this->res_data = $response;
         return $response;
     }
 
