@@ -114,7 +114,6 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
         }
         foreach ($params as $item) {
             $productList = [];
-            $invoiceValue = 0;
             $productList = [
                 'name' => '',// Y:申报英文名称Length <= 50
                 'cnName' => '',// N:申报中文名称Length <= 50
@@ -124,18 +123,19 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'customsNo' => '',// N:物品的 HTS Code
                 'productMemo' => '', //配货信息
             ];
-            foreach ($item['productList'] as $value) {
-                $productList['name'] .= !empty($value['declareEnName']) ? $value['declareEnName'] . "," : '';
-                $productList['cnName'] .= !empty($value['declareCnName']) ? $value['declareCnName'] . "," : '';
-                $productList['pieces'] += (int)($value['quantity'] ?? '');
-                $productList['netWeight'] += ($value['declareWeight'] ?? '');
-                $productList['unitPrice'] += (float)($value['declarePrice'] ?? '');
-                $productList['customsNo'] = $value['htsCode'] ?? '';
-                $productList['productMemo'] .= $value['productSku'] ?? '' . " ";
-                $invoiceValue += (float)($value['declarePrice'] ?? '') * (int)($value['quantity'] ?? '');
+            foreach ($item['productList'] as $key => $value) {
+                if($key == 0){
+                    $productList['name'] = $value['declareEnName'] ?? '';
+                    $productList['cnName'] = $value['declareCnName'] ?? '';
+                    $productList['pieces'] = (int)($value['quantity'] ?? '');
+                    $productList['netWeight'] = ($value['declareWeight'] ?? '');
+                    $productList['unitPrice'] = (float)($value['declarePrice'] ?? '');
+                    $productList['customsNo'] = $value['htsCode'] ?? '';
+                    $productList['productMemo'] = $value['productSku'] ?? '';
+                }else{
+                    break;
+                }
             }
-            $productList['name'] = trim($productList['name'], ',');
-            $productList['cnName'] = trim($productList['cnName'], ',');
             $ls[] = [
                 'orderNo' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
                 'trackingNo' => '', //N:服务商跟踪号码。若填写，需符合运输方式中规定的编码规则。length <= 32
@@ -172,7 +172,7 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'goodsCategory' => 'O', //Y:物品类别。取值范围[G:礼物/D:文件/S:商业样本/R:回货品/O:其他]
                 'goodsDescription' => '', //物品类别内容
                 'memo' => $item['remark'] ?? '', //N:备注
-                'codSum' => $invoiceValue, //N:COD金额
+                'codSum' => (float)($item['packageCodAmount'] ?? ''), //N:COD金额
                 'codCurrency' => $item['packageCodCurrencyCode'] ?? 'USD', //N:币种
                 'declareItems' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
