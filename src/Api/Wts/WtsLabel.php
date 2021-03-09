@@ -8,7 +8,9 @@
 namespace smiler\logistics\Api\Wts;
 
 
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
+use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\LogisticsAbstract;
 
 
@@ -50,8 +52,15 @@ class WtsLabel extends LogisticsAbstract implements PackageLabelLogisticsInterfa
             'PrintType' => $params['label_type'] ?? 'lab10_10', //PDF标签尺寸类型：1：10 * 10 标签；2：A4纸；3：10 * 15标签
             'order_id' => implode(',', $this->toArray($params['trackNumber'])),
         ];
+        $fieldMap = FieldMap::packagesLabel();
         $requestUrl = $this->config['url'] . $this->interface[__FUNCTION__]."?".http_build_query($data);
-        return $requestUrl;
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData([
+            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
+            'lable_file' => $requestUrl,
+            'order_no' =>  implode(',', $this->toArray($params['trackNumber'])),
+            'flag' => true,
+        ], $fieldMap);
+        return $this->retSuccessResponseData($fieldData);
     }
 
     public function request($function)

@@ -9,7 +9,9 @@ namespace smiler\logistics\Api\Yw;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
+use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\Exception\NotSupportException;
@@ -43,6 +45,8 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
         'getPackagesLabel' => 'Users/%s/Expresses/%s/%sLabel', // 【打印标签|面单】
 
         'updateOrderStatus' => 'Users/%s/Expresses/ChangeStatus/%s', //修改订单状态
+
+        'getShippingMethod' => '/Users/%s/GetChannels'
     ];
 
     /**
@@ -146,19 +150,16 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
 
         $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId']);
         $response = $this->request($requestUrl, 'post', $ls[0]);
-
         if ($response['CallSuccess'] != true) {
-            return $response;
+            return $this->retErrorResponseData($response['Response']['ReasonMessage'] ?? '未知错误');
         }
-        $customerOrderNo = $response['CreatedExpress']['UserOrderNumber'] ?? $params[0]['customerOrderNo'];
-        $response['trackingNumberInfo'][$customerOrderNo] = [
-            'trackingNumber' => $response['CreatedExpress']['Epcode'],
-            'platform_order_id' => $customerOrderNo,
-            'logistics_order_id' => $response['CreatedExpress']['YanwenNumber'],
-            'flag' => $response['CallSuccess'] != 'false' ? true : false,
-            'msg' => $response['Response']['ReasonMessage'] ?? '',
-        ];
-        return $response;
+        $reqRes = $this->getReqResData();
+        $tmpArr = $response['CreatedExpress'];
+        $tmpArr['flag']= $response['CallSuccess'] != 'false' ? true : false;
+        $tmpArr['info']= $response['Response']['ReasonMessage'] ?? '';
+        $fieldMap = FieldMap::createOrder();
+        $arr = array_merge($reqRes, LsSdkFieldMapAbstract::getResponseData2MapData($tmpArr, $fieldMap));
+        return $this->retSuccessResponseData($arr);
     }
 
 
@@ -170,7 +171,15 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
     {
         $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId']);
         $response = $this->request($requestUrl, 'get');
-        return $response;
+        $fieldMap = FieldMap::shippingMethod();
+        if($response['CallSuccess'] != 'true'){
+            return $this->retErrorResponseData();
+        }
+        $arr = $response['ChannelCollection']['ChannelType'];
+        foreach ($arr as $key=>$value){
+                $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($value, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -234,8 +243,15 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
     {
 
         $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId'], $order_id, 'A10x10L'); //标签大小。支持的值为：A4L, A4LI, A4LC, A4LCI, A6L, A6LI, A6LC, A6LCI, A10x10L, A10x10LI,A10x10LC, A10x10LCI。(注：L为运单，C为报关签条，I为拣货单。)
-        $response = $this->request($requestUrl, 'get', [], false);
-        return $response;
+        $response = $this->request($requestUrl, 'get', [], 'ExpressType',false);
+        $fieldMap = FieldMap::packagesLabel();
+        $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData([
+            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
+            'lable_file' => $response,
+            'order_no' =>  $order_id,
+            'flag' => $response ? true : false,
+        ], $fieldMap);
+        return $this->retSuccessResponseData($fieldData);
     }
 
 
@@ -262,7 +278,9 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
     public function request($requestUrl, $method = 'post', $data = [], $xml = 'ExpressType', $parseResponse = true)
     {
         $this->apiHeaders['Authorization'] = " basic " . $this->config['apiToken'];
+        $this->req_data = $data;
         $response = $this->sendCurl($method, $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', $xml, $parseResponse);
+        $this->res_data = $response;
         return $response;
     }
 

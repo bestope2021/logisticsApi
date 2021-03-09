@@ -9,6 +9,7 @@ namespace smiler\logistics\Api\XyExp;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
 use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\CurlException;
@@ -67,7 +68,20 @@ class XyExpTrack extends LogisticsAbstract implements TrackLogisticsInterface
             ],'TrackInfoService')
         ];
         $response = $this->request(__FUNCTION__,'post',$data);
-        return $response;
+        if(!isset($response['TrackInfo']) || empty($response['TrackInfo'])){
+           return $this->retSuccessResponseData();
+        }
+        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
+        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
+        $tmpArr = $response['TrackInfo'];
+        $tmpArr['flag'] = true;
+        foreach ($tmpArr['TrackDetailsList'] as $key=>$item) {
+            $ls = [];
+            $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap2);
+            $tmpArr['TrackDetailsList'] = $ls;
+        }
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($tmpArr, $fieldMap1);
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**

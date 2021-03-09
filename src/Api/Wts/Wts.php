@@ -8,7 +8,9 @@
 namespace smiler\logistics\Api\Wts;
 
 
+use smiler\logistics\Api\Wts\FieldMap;
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\CurlException;
 use smiler\logistics\Exception\InvalidIArgumentException;
@@ -57,7 +59,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
 
         'getShippingMethod' => 'getProductList.htm', //获取配送方式
 
-        'getTrackNumber'  => 'getOrderTrackingNumber.htm', //获取跟踪号
+        'getTrackNumber' => 'getOrderTrackingNumber.htm', //获取跟踪号
 
     ];
 
@@ -195,23 +197,28 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
             ];
         }
         $response = $this->request(__FUNCTION__, ['param' => json_encode($ls, JSON_UNESCAPED_UNICODE)]);
+
         //请求创建单号失败
         if ($response['resultCode'] != 'true') {
-            return $response;
+            return $this->retErrorResponseData(urldecode($response['message']));
         }
-        $response['trackingNumberInfo'] = [];
-        if (!empty($response['data'])) {
-            foreach ($response['data'] as $item) {
-                $response['trackingNumberInfo'][$item['reference_number']] = [
-                    'trackingNumber' => $item['tracking_number'],
-                    'platform_order_id' => $item['reference_number'],
-                    'logistics_order_id' => $item['order_id'],
-                    'msg' => urldecode($item['message']),
-                    'flag' => $item['ack'] == 'true' ? true : false,
+        $data = [];
+        $reqRes = $this->getReqResData();
+        $fieldMap = FieldMap::createOrder();
+        if ($response['data']) {
+            foreach ($response['data'] as $keyVale => $value) {
+                $fieldData = [
+                    'channel_hawbcode' => $value['tracking_number'] ?? '',
+                    'refrence_no' => $value['reference_number'] ?? '',
+                    'shipping_method_no' => $value['order_id'] ?? '',
+                    'flag' => $value['ack'] == 'true' ? true : false,
+                    'info' => urldecode($value['message']),
                 ];
+                $data[] = array_merge($reqRes, LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap));
+
             }
         }
-        return $response;
+        return $this->retSuccessResponseData($data);
 
     }
 
@@ -226,6 +233,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         $response = $this->request(__FUNCTION__, $data);
         return $response;
     }
+
     /**
      * 获取物流商运输方式
      * @return mixed
@@ -233,10 +241,18 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
      */
     public function getShippingMethod()
     {
+        $fieldData = [];
+        $fieldMap = FieldMap::shippingMethod();
         $res = $this->request(__FUNCTION__, [], false);
+        if (empty($res)) {
+            $this->retErrorResponseData();
+        }
         $res = iconv('GBK', 'utf-8', $res);
         $res = json_decode($res, true);
-        return $res;
+        foreach ($res as $item) {
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+        }
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -302,10 +318,31 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
     public function queryTrack($trackNumber)
     {
         $data = [
-            'documentCode' => implode(',',$this->toArray($trackNumber))
+            'documentCode' => implode(',', $this->toArray($trackNumber))
         ];
-        $response = $this->request(__FUNCTION__, $data,false );
-        $response = json_decode(iconv('GBK', 'utf-8', $response),true);
+        $response = $this->request(__FUNCTION__, $data, false);
+        $response = json_decode(iconv('GBK', 'utf-8', $response), true);
+        if (empty($response)) {
+            return $this->retErrorResponseData();
+        }
+        $response = $response[0]['data'];
+        $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
+        $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
+        foreach ($response as $item) {
+            $tmpArr = [
+                'flag' => $item ? true : false,
+                'info' => '',
+                'trackingNumber' => $item['trackingNumber'],
+                'trackContent' => $item['trackContent']
+            ];
+
+            $ls = [];
+            foreach ($item['trackDetails'] as $key => $detail) {
+                $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($detail, $fieldMap2);
+            }
+            $tmpArr['details'] = $ls;
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($tmpArr, $fieldMap1);
+        }
         return $response;
     }
 
@@ -317,7 +354,9 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
     public function request($function, $data = [], $parseResponse = true)
     {
         $requestUrl = $this->config['url'] . $this->interface[$function];
+        $this->req_data = $data;
         $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+        $this->res_data = $res;
         return $res;
     }
 
