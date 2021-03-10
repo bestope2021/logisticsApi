@@ -200,6 +200,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $fieldData['channel_hawbcode'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
         }
 
+        $fieldData['order_id'] = $response['data']['order_id'] ?? '';
         $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
         $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
         $fieldData['channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';

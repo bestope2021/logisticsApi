@@ -30,9 +30,9 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'flag',// 处理状态： true 成功，false 失败
             'info',// 提示信息
             'refrence_no',// 客户订单号
-            'shipping_method_no',// 第三方订单号
-            'channel_hawbcode',// 追踪号
-            'frt_channel_hawbcode',// 尾程追踪号
+            'order_id',// 第三方订单号
+            'shipping_method_no',// 追踪号
+            'channel_hawbcode',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
         ];
