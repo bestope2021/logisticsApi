@@ -79,10 +79,10 @@ abstract class LsSdkFieldMapAbstract
             ResponseDataConst::LSA_FLAG,// 处理状态： true 成功，false 失败
             ResponseDataConst::LSA_TIP_MESSAGE,// 提示信息
             ResponseDataConst::LSA_ORDER_NO,// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
-            ResponseDataConst::LSA_LABEL_PATH_TYPE,// 面单路径类型
+            ResponseDataConst::LSA_LABEL_TYPE,// 面单路径类型
             ResponseDataConst::LSA_LABEL_PATH,// 面单路径URL
             ResponseDataConst::LSA_LABEL_PATH_LOCAL,// 平台路径
-            ResponseDataConst::LSA_LABEL_TYPE,// 面单类型
+            ResponseDataConst::LSA_LABEL_CONTENT_TYPE,// 面单类型
         ];
     }
 

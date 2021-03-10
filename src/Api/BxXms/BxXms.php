@@ -293,7 +293,7 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
     {
         $data = [
             'printOrderRequest' => [
-                'trackingNo' => implode(',', $this->toArray($params['trackNumber'])),
+                'trackingNo' => implode(',', $this->toArray($params['orderNo'])),
                 'printSelect' => $params['label_content'] ?? 1, //选择打印样式“1” 地址标签打印 “11” 报关单 “2” 地址标签+配货信息 “3” 地址标签+报关单（默认） “13”地址标签+(含配货信息) “12” 地址标签+(含配货信息)+报关单 “15” 地址标签+报关单+配货信息
                 'pageSizeCode' => $params['label_type'] ?? 6, //“1”表示80.5mm × 90mm “2”表示105mm × 210mm “7”表示100mm × 150mm “4”表示102mm × 76mm “5”表示110mm × 85mm “6”表示100mm × 100mm（默认） “3”表示A4,
                 'downloadPdf' => 0,
@@ -312,6 +312,7 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
             return $this->retErrorResponseData($response['error']['errorInfo'] ?? '未知错误');
         }
 
+        $response['flag'] = $flag;
         $response['trackingNo'] = $params['trackNumber'][0] ?? '';
         $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
         $response['lable_content_type'] = $params['label_content'] ?? 1;

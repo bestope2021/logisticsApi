@@ -380,6 +380,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
         foreach ($response['data'] as $item) {
+            $item['flag'] = true;
             $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
 
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);

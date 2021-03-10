@@ -16,6 +16,7 @@ use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\Exception\NotSupportException;
 use smiler\logistics\LogisticsAbstract;
+use function phpamqp\re;
 
 /**
  * 燕文物流
@@ -242,12 +243,13 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
     public function getPackagesLabel($order_id)
     {
 
-        $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId'], $order_id, 'A10x10L'); //标签大小。支持的值为：A4L, A4LI, A4LC, A4LCI, A6L, A6LI, A6LC, A6LCI, A10x10L, A10x10LI,A10x10LC, A10x10LCI。(注：L为运单，C为报关签条，I为拣货单。)
+        $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId'], $order_id, 'A10x10LCI'); //标签大小。支持的值为：A4L, A4LI, A4LC, A4LCI, A6L, A6LI, A6LC, A6LCI, A10x10L, A10x10LI,A10x10LC, A10x10LCI。(注：L为运单，C为报关签条，I为拣货单。)
         $response = $this->request($requestUrl, 'get', [], 'ExpressType',false);
+
         $fieldMap = FieldMap::packagesLabel();
-        $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData([
-            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
-            'lable_file' => $response,
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData([
+            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF,
+            'lable_file' => base64_encode($response),
             'order_no' =>  $order_id,
             'flag' => $response ? true : false,
         ], $fieldMap);

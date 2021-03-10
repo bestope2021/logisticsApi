@@ -251,12 +251,14 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 ]
             ], 'WaybillPrintService')
         ];
+//        $this->dd($data);
         $response = $this->request(__FUNCTION__, 'post', $data);
+//        $this->dd($response);
         if($response['status'] != 'success'){
             return $this->retErrorResponseData();
         }
         $fieldMap = FieldMap::packagesLabel();
-        $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData([
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData([
             'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
             'lable_file' => $response['url'] ?? '',
             'order_no' =>  implode(',', $this->toArray($params['trackNumber'])),

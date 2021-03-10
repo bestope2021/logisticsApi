@@ -277,7 +277,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
 
         // 处理结果
         $fieldData = [];
-        $fieldMap = FieldMap::getPackagesLabelFields();
+        $fieldMap = FieldMap::packagesLabel();
 
 //        $this->dd($res);
         if ($res['success'] != true) {
@@ -290,16 +290,18 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
             $url = $res['url'] ?? '';
         }
         if($res['type'] == 0){
-            $path_type = ResponseDataConst::LSA_LABEL_PATH_TYPE_IMG_BASE64;
+            $path_type = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
             $url = $res['base64'] ?? '';
         }
 
+        $res['flag'] = true;
         $res['orderNo'] = $params['orderNo'] ?? '';
         $res['label_path_type'] = $path_type;
         $res['lable_content_type'] = 1;
         $res['url'] = $url;
 
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($res, $fieldMap);
+
 //        $this->dd($fieldData);
         return $this->retSuccessResponseData($fieldData);
     }

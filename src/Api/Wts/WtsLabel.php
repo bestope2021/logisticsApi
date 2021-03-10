@@ -55,8 +55,8 @@ class WtsLabel extends LogisticsAbstract implements PackageLabelLogisticsInterfa
         $fieldMap = FieldMap::packagesLabel();
         $requestUrl = $this->config['url'] . $this->interface[__FUNCTION__]."?".http_build_query($data);
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData([
-            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
-            'lable_file' => $requestUrl,
+            'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF,
+            'lable_file' => base64_encode(file_get_contents($requestUrl)),
             'order_no' =>  implode(',', $this->toArray($params['trackNumber'])),
             'flag' => true,
         ], $fieldMap);

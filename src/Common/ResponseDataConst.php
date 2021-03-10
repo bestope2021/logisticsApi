@@ -55,10 +55,11 @@ class ResponseDataConst
     const LSA_LABEL_PATH_LOCAL = 'labelPathPlat';// 平台路径
     const LSA_LABEL_PATH = 'labelPath';// 面单路径URL|base64
     const LSA_LABEL_BASE64_PREFIX = 'data:image/jpg;base64,';// base64图片编码前缀
-    const LSA_LABEL_PATH_TYPE = 'labelPathType';// 面单路径URL|base64  类型
+    const LSA_LABEL_TYPE = 'labelType';// 面单路径URL|base64  类型
     const LSA_LABEL_PATH_TYPE_PDF = 'pdf';// 面单路径URL|base64  类型
+    const LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF = 'byte_stream_pdf';// 字节流类型
     const LSA_LABEL_PATH_TYPE_IMG_BASE64 = 'img_base64';// 面单路径URL|base64  类型
-    const LSA_LABEL_TYPE = 'labelType';// 面单类型
+    const LSA_LABEL_CONTENT_TYPE = 'labelContentType';// 面单内容类型
     const LSA_LABEL_TYPE_1 = 1;// 面单类型 - 运单
     const LSA_LABEL_TYPE_2 = 2;// 面单类型 - 报关单/发票
 

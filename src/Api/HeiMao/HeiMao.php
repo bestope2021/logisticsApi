@@ -369,6 +369,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 'config_code' => '1', //标签纸张配置代码1：标签纸-地址标签2：标签纸-地址标签+报关单3：标签纸-地址标签+配货单4：标签纸-地址标签+报关单+配货单5：A4纸-地址标签6：A4纸-地址标签+报关单7：A4纸-地址标签+配货单8：A4纸-地址标签+报关单+配货单
             ];
         }
+
         $response = $this->request(__FUNCTION__, $data);
 
         // 处理结果
@@ -378,7 +379,9 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
+
         foreach ($response['data'] as $item) {
+            $item['flag'] = true;
             $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
 
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
