@@ -1,5 +1,5 @@
 {
-    "name": "smiler/logistics-api",
+    "name": "fengdanxing/logistics-api",
     "description": "第三方物流商接口整合SDK包",
     "keywords": ["logisticsApi", "logistics-api", "smiler"],
     "type": "library",
