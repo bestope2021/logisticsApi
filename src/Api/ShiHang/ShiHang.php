@@ -202,6 +202,8 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             }
             $fieldData['channel_hawbcode'] = !empty($trackNumberResponse['data']['channel_hawbcode']) ?$trackNumberResponse['data']['channel_hawbcode'] :  $response['data']['shipping_method_no'];
         }
+
+        $fieldData['order_id'] = $response['data']['order_id'] ?? '';
         $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
         $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
 
