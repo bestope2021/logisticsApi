@@ -109,8 +109,8 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'unit_code' => 'PCE', //N:单位  MTR：米  PCE：件 SET：套 默认PCE
                     'invoice_weight' => $value['declareWeight'] ?? '',// Y:总量;Length <= 50 KG
                     'invoice_unitcharge' => (float)($value['declarePrice'] ?? ''), //Y:单价
-                    'invoice_currencycode' => $item['packageCodCurrencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
-                    'hs_code' => $value['htsCode'] ?? '',// N:物品的 HTS Code
+                    'invoice_currencycode' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
+                    'hs_code' => $value['hsCode'] ?? '',// N:海关编码
                     'invoice_note' => '', //配货信息
                     'invoice_url' => $value['productUrl'] ?? '',// N:销售地址
                     'invoice_info' => '', //N:商品图片地址

@@ -86,7 +86,7 @@ class XyExp extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     'ProductName_CN' => $value['declareCnName'] ?? '',// Y:申报中文名称Length <= 50
                     'DeclareQuantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                     'DeclarePrice' => (float)($value['declarePrice'] ?? ''), //Y:单价
-                    'CustomsCode' => $value['htsCode'] ?? '',// N:物品的 HTS Code
+                    'CustomsCode' => $value['hsCode'] ?? '',// N:海关编码
                     'invoice_weight' => $value['declareWeight'] ?? '',// Y:总量;Length <= 50 KG
                     'CustomsNote' => '', //N:报关备注
                     'ProductInfo' => '', //N:商品信息

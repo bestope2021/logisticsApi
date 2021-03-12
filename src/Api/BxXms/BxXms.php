@@ -130,7 +130,7 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     $productList['pieces'] = (int)($value['quantity'] ?? '');
                     $productList['netWeight'] = ($value['declareWeight'] ?? '');
                     $productList['unitPrice'] = (float)($value['declarePrice'] ?? '');
-                    $productList['customsNo'] = $value['htsCode'] ?? '';
+                    $productList['customsNo'] = $value['hsCode'] ?? '';
                     $productList['productMemo'] = $value['productSku'] ?? '';
                 }else{
                     break;
