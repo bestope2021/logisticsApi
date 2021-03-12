@@ -151,7 +151,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
 
         $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId']);
         $response = $this->request($requestUrl, 'post', $ls[0]);
-        if ($response['CallSuccess'] != true) {
+        if ($response['CallSuccess'] != 'true') {
             return $this->retErrorResponseData($response['Response']['ReasonMessage'] ?? '未知错误');
         }
         $reqRes = $this->getReqResData();
