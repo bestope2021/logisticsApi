@@ -94,8 +94,8 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                 'NameCh' => '',// N:申报中文名称Length <= 50
                 'Weight' => 0,// Y:总量;Length <= 50 KG todo 单位:g
                 'DeclaredValue' => 0, //Y:单价
-                'DeclaredCurrency' => $item['packageCodCurrencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
-                'HsCode' => $value['htsCode'] ?? '',// N:物品的 HTS Code
+                'DeclaredCurrency' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
+                'HsCode' => $value['hsCode'] ?? '',// N:海关编码
                 'MoreGoodsName' => '', //多品名. 会出现在拣货单上
                 'ProductBrand' => '', //产品品牌，中俄SPSR专线此项必填
                 'ProductSize' => '',  //产品尺寸，中俄SPSR专线此项必填
@@ -107,7 +107,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                 $productList['NameCh'] .= !empty($value['declareCnName']) ? $value['declareCnName'] . "," : '';
                 $productList['Weight'] += ($value['declareWeight'] ?? '') * 1000;
                 $productList['DeclaredValue'] += (float)($value['declarePrice'] ?? '') * (int)($value['quantity'] ?? '');
-                $productList['HsCode'] = $value['htsCode'] ?? '';
+                $productList['HsCode'] = $value['hsCode'] ?? '';
                 $quantity += $value['quantity'];
                 $order_weight += $value['declareWeight'];
             }
