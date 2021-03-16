@@ -13,6 +13,7 @@ use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
 use smiler\logistics\Api\ShiHang\ShiHang;
 use smiler\logistics\Api\TPost\TPost;
+use smiler\logistics\Api\WanbExpress\WanbExpress;
 use smiler\logistics\Api\Wts\Wts;
 use smiler\logistics\Api\Wts\WtsLabel;
 use smiler\logistics\Api\XyExp\XyExp;
@@ -44,6 +45,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_WT_TREE_LABEL => WtsLabel::class,// 梧桐树-打印面单标签
         LogisticsIdent::LS_IDENT_BX_XMS => BxXms::class,// 八星
         LogisticsIdent::LS_IDENT_T_POST => TPost::class,// 通邮
+        LogisticsIdent::LS_IDENT_WAN_BANG_EXPRESS => WanbExpress::class,// 万邦
     ];
 
     /**

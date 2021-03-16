@@ -34,4 +34,6 @@ class LogisticsIdent
     const LS_IDENT_BX_XMS = 'bxxms';
     // 通邮
     const LS_IDENT_T_POST = 'tpost';
+    // 万邦
+    const LS_IDENT_WAN_BANG_EXPRESS = 'WanbExpress';
 }

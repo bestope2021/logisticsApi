@@ -228,7 +228,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
 
         // 重新获取追踪号
         if ($flag && empty($fieldData['TrackingNumber'])) {
-
+            $fieldData['TrackingNumber'] = $this->getTrackNumber($fieldData['ProcessCode']);
         }
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
@@ -248,15 +248,19 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     public function request($function, $data = [], $method = self::METHOD_POST, $extUrlParams = [], $parseResponse = true, $encoding = 'utf-8', $root = 'xml')
     {
         $data = $this->buildParams($function, $data);
-        $this->req_data = $data;
+//        $this->req_data = $data;
         $_this = $this;
         if ($function != 'authApi') {
+            $this->req_data = $data;
             $_this = $this->authApi();
         }
         $url = $this->config['url'] . $this->interface[$function];
         !empty($extUrlParams) && $url = vsprintf($url, $extUrlParams);
-        $this->dd($url);
+//        $this->dd($url);
+//        var_dump($url);
+//        var_dump($extUrlParams);
         $response = $_this->sendCurl($method, $url, $data, $this->dataType, $this->apiHeaders, $encoding, $root, $parseResponse);
+//        var_dump($response);
         $this->res_data = $response;
         return $response;
     }
@@ -291,17 +295,24 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     }
 
     /**
-     * 获取跟踪号，todo 有些渠道生成订单号不能立刻获取跟踪号
+     * 获取跟踪号
      * @param $reference_no
      * @return array|mixed
      */
-    public function getTrackNumber(string $reference_no)
+    public function getTrackNumber(string $processCode)
     {
-        $params = [
-            'reference_no' => $reference_no //客户参考号
-        ];
-        $res = $this->request(__FUNCTION__, $params);
-        return $res;
+        $extUrlParams = [$processCode];
+
+        $response = $this->request(__FUNCTION__, [], self::METHOD_GET, $extUrlParams);
+
+        // 结果
+        $flag = $response['Succeeded'] == true;
+
+        if(!$flag){
+            return '';
+        }
+
+        return $response['Data']['FinalTrackingNumber'] ?? '';
     }
 
     /**
@@ -381,7 +392,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
      */
     public function getPackagesLabel($params)
     {
-        $extUrlParams = [$params['trackingNumber']];
+        $extUrlParams = [$params['ProcessCode']];
 
         $response = $this->request(__FUNCTION__, [], self::METHOD_GET, $extUrlParams, false);
 
@@ -395,9 +406,9 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         $item = [];
 
         $item['flag'] = true;
-        $item['order_no'] = $params['trackingNumber'];
-        $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
-        $item['lable_file'] = $response;
+        $item['order_no'] = $params['ProcessCode'];
+        $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $item['lable_file'] = base64_encode($response);
 
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
@@ -411,7 +422,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     {
         $extUrlParams = [$trackNumber];
 
-        $response = $this->request(__FUNCTION__, [], self::METHOD_GET, $extUrlParams, false);
+        $response = $this->request(__FUNCTION__, [], self::METHOD_GET, $extUrlParams);
 
         // 处理结果
         $fieldData = [];
@@ -435,7 +446,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
         $data['details'] = $ls;
-        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
+        $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 
         return $this->retSuccessResponseData($fieldData);
     }
