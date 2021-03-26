@@ -88,7 +88,7 @@ abstract class LogisticsAbstract
 
         }
 //        var_dump($url, $header, $params);
-        $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->$method($url);
+        $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->setOption(CURLOPT_TIMEOUT, 180)->$method($url);
         if (!$parseResponse) {
             return $response;
         }
