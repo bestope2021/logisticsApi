@@ -8,6 +8,7 @@
 namespace smiler\logistics;
 
 
+use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
@@ -46,6 +47,8 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_BX_XMS => BxXms::class,// 八星
         LogisticsIdent::LS_IDENT_T_POST => TPost::class,// 通邮
         LogisticsIdent::LS_IDENT_WAN_BANG_EXPRESS => WanbExpress::class,// 万邦
+        LogisticsIdent::LS_IDENT_BTD_XMS => BtdXms::class,// 宝通达
+
     ];
 
     /**
