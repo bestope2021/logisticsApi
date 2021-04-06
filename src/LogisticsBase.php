@@ -12,6 +12,7 @@ namespace smiler\logistics;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
+use smiler\logistics\Common\Logs;
 use smiler\logistics\Exception\InvalidIArgumentException;
 
 class LogisticsBase
@@ -36,7 +37,7 @@ class LogisticsBase
      * @return BaseLogisticsInterface
      * @throws InvalidIArgumentException
      */
-    final public static function getInstance(string $name,array $config=[])
+    final public static function getInstance(string $name,array $config=[], $rootPath = '/log_ls_sdk/', $title = '')
     {
 //        if(empty($config)){
 //            throw new InvalidIArgumentException('物流商配置参数不能为空');
@@ -50,7 +51,8 @@ class LogisticsBase
             $obj = LogisticsIdenConfig::getApiObj($name);
             self::$instances[$name] = new $obj($config);
         }
-
+        Logs::setRootPath($rootPath);
+        Logs::setTitle($title);
         return self::$instances[$name];
     }
 
