@@ -135,16 +135,16 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                     'sku_code' => $value['productSku'] ?? '',// Y:产品 SKU;Length <= 100
                     "item_id" => '',
                     "item_transactionid" => '',
-                    "transaction_url" => "", //销售地址
+                    "transaction_url" => $value['productUrl'] ?? '', //销售地址
                     "invoiceunit_code" => "", //申报单位
                     "invoice_imgurl" => "", //图片地址
-                    "invoice_brand" => "", //品牌
+                    "invoice_brand" => $value['brand'] ?? '', //品牌
                     "invoice_rule" => "", //规格
-                    "invoice_currency" => "", //申报币种
+                    "invoice_currency" => $value['currencyCode'] ?? 'USD', //申报币种
                     "invoice_taxno" => "", //税则号
-                    "origin_country" => "", //原产国
-                    "invoice_material" => "", //材质
-                    "invoice_purpose" => "", //用途
+                    "origin_country" => $value['originCountry'] ?? '', //原产国
+                    "invoice_material" => $value['productMaterial'] ?? '', //材质
+                    "invoice_purpose" => $value['productPurpose'] ?? '', //用途
                 ];
                 $invoiceValue += (float)($value['declarePrice'] ?? '') * (int)($value['quantity'] ?? '');
                 $weight += $value['declareWeight'];
