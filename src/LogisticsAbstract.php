@@ -8,6 +8,7 @@
 namespace smiler\logistics;
 
 
+use smiler\logistics\Common\Logs;
 use smiler\logistics\Common\ResponseDataConst;
 use smiler\logistics\Exception\BadFunctionCallException;
 use smiler\logistics\Exception\CurlException;
@@ -88,12 +89,18 @@ abstract class LogisticsAbstract
 
         }
 //        var_dump($url, $header, $params);
+        $title = Logs::getTitle();
+        $reqTitle = "第三方请求: {$title}";
+        $resTitle = "第三方响应: {$title}";
+        Logs::info($reqTitle, "请求头", $header, $this->iden);
+        Logs::info($reqTitle, "请求方式@URL: {$method}@{$url}", $params, $this->iden);
         $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->setOption(CURLOPT_TIMEOUT, 180)->$method($url);
+        Logs::info($resTitle, "请求方式@URL: {$method}@{$url}", $response, $this->iden);
         if (!$parseResponse) {
             return $response;
         }
 //        var_dump($response);die;
-        return static::parseResponse($curl, $dataType, $response);
+        return static::parseResponse($curl, $dataType, $response, $resTitle, $this->iden);
 
     }
 
@@ -125,11 +132,12 @@ abstract class LogisticsAbstract
         return $xml;
     }
 
-    protected static function parseResponse($curl, $dataType, $response)
+    protected static function parseResponse($curl, $dataType, $response, $resTitle, $dir = '')
     {
         switch ($curl->responseCode) {
             case 'timeout':
-                throw new CurlException('curl:请求错误');
+                Logs::warning($resTitle, "CURL请求超时", $response, $dir);
+                throw new CurlException('curl:请求超时');
                 break;
             case 200:
                 switch (strtolower($dataType)) {
@@ -145,11 +153,13 @@ abstract class LogisticsAbstract
                 }
                 break;
             case 401:
+                Logs::warning($resTitle, "CURL授权失败", $response, $dir);
                 throw new CurlException('curl: 授权失败');
                 break;
 
             case 404:
             default:
+                Logs::error($resTitle, "CURL请求失败", $response, $dir);
                 //404 Error logic here
                 throw new CurlException('curl: 请求失败');
                 break;
