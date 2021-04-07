@@ -73,11 +73,6 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function __construct(array $config)
     {
-        $config = [
-            'clientId' => '4671',
-            'clientAccount' => 'MGDZ',
-            'url' => 'http://open.btdair.com:8099/LogisticsService.svc?wsdl',
-        ];
         $this->checkKeyExist(['clientId', 'clientAccount', 'url'], $config);
         $this->config = $config;
         if (!empty($config['apiHeaders'])) {
@@ -199,15 +194,14 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
-
         // 结果
         $fieldData['flag'] = $response['flag'];
         $fieldData['info'] = $response['flag'] ? '' : ($response['info'] ?? '未知错误');
-        $fieldData['orderNo'] = $response['info']['aID'];//客户订单号
-        $fieldData['id'] = $response['info']['aID'];//客户内单号
+        $fieldData['orderNo'] = $response['flag'] ? $response['info']['aID'] : '';//客户订单号
+        $fieldData['id'] = $response['flag'] ? $response['info']['aID'] : '';//客户内单号
 
-        $fieldData['trackingNo'] = $response['info']['aRefID'] ?? '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $response['info']['aTrackingNumber'] ?? '';//尾程追踪号
+        $fieldData['trackingNo'] = $response['flag'] ? $response['info']['aRefID'] : '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $response['flag'] ? $response['info']['aTrackingNumber'] : '';//尾程追踪号
 
         //单号延迟返回时，重新获取
         if($response['flag'] && (empty($response['info']['aRefID']) || empty($response['info']['aTrackingNumber']))){
@@ -319,8 +313,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             return $this->retErrorResponseData($response['info'] ?? '未知错误');
         }
 
-
-        foreach ($response['info'] as $item) {
+        foreach ($response['info']['astring'] as $item) {
             $item_arr = [
                 'code' =>$item,
                 'name_en' =>$item,

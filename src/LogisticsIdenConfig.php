@@ -12,6 +12,8 @@ use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
+use smiler\logistics\Api\Kjyt\Kjyt;
+use smiler\logistics\Api\Kjyt\KjytLabel;
 use smiler\logistics\Api\ShiHang\ShiHang;
 use smiler\logistics\Api\TPost\TPost;
 use smiler\logistics\Api\WanbExpress\WanbExpress;
@@ -48,6 +50,9 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_T_POST => TPost::class,// 通邮
         LogisticsIdent::LS_IDENT_WAN_BANG_EXPRESS => WanbExpress::class,// 万邦
         LogisticsIdent::LS_IDENT_BTD_XMS => BtdXms::class,// 宝通达
+        LogisticsIdent::LS_IDENT_KUA_JING_YI_TONG => Kjyt::class,// 跨境易通
+        LogisticsIdent::LS_IDENT_KUA_JING_YI_TONG_LABEL => KjytLabel::class,// 跨境易通-打印面单标签
+
 
     ];
 

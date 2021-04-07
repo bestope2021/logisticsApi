@@ -38,4 +38,8 @@ class LogisticsIdent
     const LS_IDENT_WAN_BANG_EXPRESS = 'WanbExpress';
     // 宝通达
     const LS_IDENT_BTD_XMS = 'btdxms';
+    // 跨境易通
+    const LS_IDENT_KUA_JING_YI_TONG = 'kjyt';
+    const LS_IDENT_KUA_JING_YI_TONG_LABEL = 'kjytLabel';
+
 }
