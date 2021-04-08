@@ -118,7 +118,13 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
             throw new ManyProductException($this->iden_name . "一次最多支持提交" . self::ORDER_COUNT . "个包裹");
         }
 
+        $syOrderNo = [];
+
         foreach ($params as $item) {
+
+            // 处理号
+            $syOrderNo[$item['customerOrderNo'] ?? ''] = $item['syOrderNo'] ?? '';
+
             $productList = [];
             foreach ($item['productList'] as $value) {
                 $productList[] = [
@@ -198,7 +204,8 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
             ];
         }
 
-        $response = $this->request(__FUNCTION__, $ls[0]);
+        $pars = $ls[0] ?? [];
+        $response = $this->request(__FUNCTION__, $pars);
 
         $reqRes = $this->getReqResData();
 //        $this->dd($response);
@@ -208,15 +215,34 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         $fieldMap = FieldMap::createOrder();
 
         // 结果
+        $data = $response['Data'] ?? [];
         $flag = $response['Succeeded'] == true;
         $info = '';
+        $errorCode = $response['Error']['Code'] ?? '0x000';
         if (!$flag) {
-            $info = $response['Error']['Error'] ?? '0x000' . '.' . $response['Error']['Message'] ?? '未知错误';
+            $info = ($errorCode ?? '0x000') . '.' . ($response['Error']['Message'] ?? '未知错误');
         }
+
+        // 重复订单号
+        if($errorCode == '0x100005' || $errorCode == 0x100005){
+            $detail = $this->getTrackNumber($syOrderNo[$pars['ReferenceId']], false);
+            if($detail){
+                $flag = true;
+                $info = '';
+                $data = [
+                    'ProcessCode' => $detail['ProcessCode'] ?? '',
+                    'IndexNumber' => $detail['IndexNumber'] ?? '',
+                    'ReferenceId' => $detail['ReferenceId'] ?? '',
+                    'TrackingNumber' => $detail['FinalTrackingNumber'] ?? '',
+                    'IsVirtualTrackingNumber' => true,
+                    'IsRemoteArea' => false,
+                    'Status' => 'Confirmed',
+                ];
+            }
+        }
+
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $info;
-
-        $data = $response['Data'] ?? [];
 
         $fieldData['ProcessCode'] = $data['ProcessCode'] ?? '';// 包裹处理号：第三方单号
         $fieldData['ReferenceId'] = $data['ReferenceId'] ?? '';// 客户订单号
@@ -226,10 +252,10 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         // 如果为 true，请先打单发货，待我司操作之后才会分配最终的派送单号。您需要视平台标记发货方式而定，有选择性地调用 获取包裹 接口来查询包裹真实派送单号。一般只有美国USPS渠道才会出现此情况。如果为false，可忽略。
         $fieldData['IsVirtualTrackingNumber'] = $data['IsVirtualTrackingNumber'] ?? false;// 是否为虚拟跟踪号
 
-        // 重新获取追踪号
-        if ($flag && empty($fieldData['TrackingNumber'])) {
-            $fieldData['TrackingNumber'] = $this->getTrackNumber($fieldData['ProcessCode']);
-        }
+//        // 重新获取追踪号
+//        if ($flag && empty($fieldData['TrackingNumber'])) {
+//            $fieldData['TrackingNumber'] = $this->getTrackNumber($fieldData['ProcessCode']);
+//        }
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
@@ -297,10 +323,15 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     /**
      * 获取跟踪号
      * @param $reference_no
+     * @param bool $isOnly 是否仅返回追踪号
      * @return array|mixed
      */
-    public function getTrackNumber(string $processCode)
+    public function getTrackNumber(string $processCode, $isOnly = true)
     {
+        if(empty($processCode)){
+            return '';
+        }
+
         $extUrlParams = [$processCode];
 
         $response = $this->request(__FUNCTION__, [], self::METHOD_GET, $extUrlParams);
@@ -312,7 +343,13 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
             return '';
         }
 
-        return $response['Data']['FinalTrackingNumber'] ?? '';
+        if($isOnly){
+            $ret = $response['Data']['FinalTrackingNumber'] ?? '';
+        }else{
+            $ret = $response['Data'];
+        }
+
+        return $ret;
     }
 
     /**
