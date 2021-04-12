@@ -27,7 +27,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * 一次最多查询多少个物流商
      */
     const QUERY_TRACK_COUNT = 1;
-    public $iden = 'bxxms';
+    public $iden = 'btdxms';
     public $iden_name = '宝通达物流';
     
     // 定义请求方式
@@ -400,10 +400,6 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
-
-        if (!is_resource($response)) {
-            return $this->retErrorResponseData($response);
-        }
         $item = [];
 
         $item['flag'] = true;
