@@ -126,7 +126,12 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
             $syOrderNo[$item['customerOrderNo'] ?? ''] = $item['syOrderNo'] ?? '';
 
             $productList = [];
+            $totalValueCode = 'USD';
+            $totalValueValue = 0;
             foreach ($item['productList'] as $value) {
+                $quantity = (int)($value['quantity'] ?? 1);
+                $declarePrice = (float)($value['declarePrice'] ?? 0);
+                $currencyCode = $value['currencyCode'] ?? $totalValueCode;
                 $productList[] = [
                     'GoodsId' => $value['productSku'] ?? '',// N:产品 SKU;Length <= 100
                     'GoodsTitle' => $value['declareCnName'] ?? '',// Y:货物描述
@@ -135,8 +140,8 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
                     'Quantity' => (int)($value['quantity'] ?? ''),// Y:件数
                     'WeightInKg' => $value['declareWeight'] ?? '',// Y:单件重量(KG)
                     'DeclaredValue' => [
-                        'Code' => $value['currencyCode'] ?? 'USD',// Y:货币类型	USD, GBP, CNY
-                        'Value' => (float)($value['declarePrice'] ?? ''), // Y:单价金额
+                        'Code' => $currencyCode,// Y:货币类型	USD, GBP, CNY
+                        'Value' => $declarePrice, // Y:单价金额
                     ],
                     'HSCode' => $value['hsCode'] ?? '',// N:海关编码
                     'CaseCode' => $value['invoiceRemark'] ?? '', // N:配货信息
@@ -149,6 +154,8 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
                     'UsageCn' => $value['productPurpose'] ?? '', // N:用途（中文）
                     'UsageEn' => '', // N:用途（英文）
                 ];
+                $totalValueCode = $currencyCode;
+                $totalValueValue += ($quantity * $declarePrice);
             }
             $ls[] = [
                 'ReferenceId' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
@@ -156,9 +163,9 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
                 'ShippingMethod' => $item['shippingMethodCode'] ?? 'REGPOST',// Y:发货产品服务代码
                 'TrackingNumber' => $item['trackingNumber'] ?? '',// N:预分配挂号
                 'WeightInKg' => (float)($item['predictionWeight'] ?? ''),// Y:包裹总重量（单位：kg）
-                'TotalValue' => [// 包裹总金额
-                    'Code' => 'USD',// Y:货币类型
-                    'Value' => (float)($item['packageSalesAmount'] ?? ''),// Y:金额
+                'TotalValue' => [// 包裹申报金额(20210413); 包裹总金额
+                    'Code' => $totalValueCode,// Y:货币类型
+                    'Value' => (float)$totalValueValue,// Y:金额
                 ],
                 'TotalVolume' => [// 包裹尺寸
                     'Length' => (float)($item['packageLength'] ?? ''),// N:长（单位：cm）
@@ -252,10 +259,10 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         // 如果为 true，请先打单发货，待我司操作之后才会分配最终的派送单号。您需要视平台标记发货方式而定，有选择性地调用 获取包裹 接口来查询包裹真实派送单号。一般只有美国USPS渠道才会出现此情况。如果为false，可忽略。
         $fieldData['IsVirtualTrackingNumber'] = $data['IsVirtualTrackingNumber'] ?? false;// 是否为虚拟跟踪号
 
-//        // 重新获取追踪号
-//        if ($flag && empty($fieldData['TrackingNumber'])) {
-//            $fieldData['TrackingNumber'] = $this->getTrackNumber($fieldData['ProcessCode']);
-//        }
+        // 重新获取追踪号
+        if ($flag && empty($fieldData['TrackingNumber'])) {
+            $fieldData['TrackingNumber'] = $this->getTrackNumber($fieldData['ProcessCode']);
+        }
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
