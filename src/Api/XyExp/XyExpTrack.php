@@ -101,24 +101,8 @@ class XyExpTrack extends LogisticsAbstract implements TrackLogisticsInterface
         return $response;
     }
 
-    public static function parseResponse($curl, $dataType, $response)
+    public static function parseResponse($curl, $dataType, $response, $resTitle = '', $dir = '')
     {
-        switch ($curl->responseCode) {
-            case 'timeout':
-                throw new CurlException('curl:请求错误');
-                break;
-            case 200:
-                $return = static::xmlToArray($response);
-                break;
-            case 401:
-                throw new CurlException('curl: 授权失败');
-                break;
-            case 404:
-            default:
-                //404 Error logic here
-                throw new CurlException('curl: 请求失败');
-                break;
-        }
-        return $return;
+        return parent::parseResponse($curl, 'xml', $response, $resTitle, $dir);
     }
 }

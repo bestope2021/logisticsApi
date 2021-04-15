@@ -132,7 +132,7 @@ abstract class LogisticsAbstract
         return $xml;
     }
 
-    protected static function parseResponse($curl, $dataType, $response, $resTitle, $dir = '')
+    protected static function parseResponse($curl, $dataType, $response, $resTitle = '', $dir = '')
     {
         switch ($curl->responseCode) {
             case 'timeout':
