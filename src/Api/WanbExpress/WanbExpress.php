@@ -36,6 +36,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     // 定义请求方式
     const METHOD_GET = 'GET';
     const METHOD_POST = 'POST';
+    const METHOD_DELETE = 'DELETE';
 
     // 定义API是否授权
     static $isApiAuth = true;
@@ -62,6 +63,8 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         'getTrackNumber' => 'api/parcels/%s',// GET:获取跟踪号 => %s:{processCode}
         'queryTrack' => 'api/trackPoints?trackingNumber=%s', // GET:轨迹查询 => %s:{trackingNumber}
         'getShippingMethod' => 'api/services',// GET:获取产品服务信息
+        'searchOrder' => 'api/parcels?referenceId=%s',// 搜索包裹 => %s:{referenceId}客户订单号
+        'deleteOrder' => 'api/parcels/%s',// 删除订单 => %s:{processCode}
     ];
 
     /**
@@ -226,26 +229,41 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         $flag = $response['Succeeded'] == true;
         $info = '';
         $errorCode = $response['Error']['Code'] ?? '0x000';
-        if (!$flag) {
-            $info = ($errorCode ?? '0x000') . '.' . ($response['Error']['Message'] ?? '未知错误');
-        }
 
         // 重复订单号
         if($errorCode == '0x100005' || $errorCode == 0x100005){
-            $detail = $this->getTrackNumber($syOrderNo[$pars['ReferenceId']], false);
+            // 根据客户订单号查询处理号
+            $detail = $this->searchOrder($pars['ReferenceId'], false);
+            // 存在
             if($detail){
-                $flag = true;
-                $info = '';
-                $data = [
-                    'ProcessCode' => $detail['ProcessCode'] ?? '',
-                    'IndexNumber' => $detail['IndexNumber'] ?? '',
-                    'ReferenceId' => $detail['ReferenceId'] ?? '',
-                    'TrackingNumber' => $detail['FinalTrackingNumber'] ?? '',
-                    'IsVirtualTrackingNumber' => true,
-                    'IsRemoteArea' => false,
-                    'Status' => 'Confirmed',
-                ];
+                $shCode = $detail['ShippingMethod']['Code'] ?? '';
+                if($pars['ShippingMethod'] == $shCode){
+                    $flag = true;
+                    $info = '';
+                    $data = [
+                        'ProcessCode' => $detail['ProcessCode'] ?? '',
+                        'IndexNumber' => $detail['IndexNumber'] ?? '',
+                        'ReferenceId' => $detail['ReferenceId'] ?? '',
+                        'TrackingNumber' => $detail['FinalTrackingNumber'] ?? '',
+                        'IsVirtualTrackingNumber' => true,
+                        'IsRemoteArea' => false,
+                        'Status' => 'Confirmed',
+                    ];
+                }else{
+                    // 进行删除操作
+                    $delFlag = $this->deleteOrder($detail['ProcessCode']);
+                    if($delFlag){
+                        $response = $this->request(__FUNCTION__, $pars);
+                        // 结果
+                        $data = $response['Data'] ?? [];
+                        $flag = $response['Succeeded'] == true;
+                    }
+                }
             }
+        }
+
+        if (!$flag) {
+            $info = ($errorCode ?? '0x000') . '.' . ($response['Error']['Message'] ?? '未知错误');
         }
 
         $fieldData['flag'] = $flag ? true : false;
@@ -360,6 +378,52 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     }
 
     /**
+     * 查询订单
+     * @param string $referenceId
+     * @param bool $isOnly
+     * @return array|bool|mixed|string
+     */
+    public function searchOrder(string $referenceId = '', $isOnly = true){
+        if(empty($referenceId)){
+            return false;
+        }
+
+        $extUrlParams = [$referenceId];
+
+        $response = $this->request(__FUNCTION__, [], self::METHOD_GET, $extUrlParams);
+
+
+        // 结果
+        $flag = $response['Succeeded'] == true;
+
+        if(!$flag){
+            return [];
+        }
+
+        $data = $response['Data'] ?? [];
+
+        if(!$flag){
+            return [];
+        }
+
+        // 结果
+        $flag = $data['TotalItemCount'] == 1;
+
+        if(!$flag){
+            return [];
+        }
+
+        $Elements = $data['Elements'][0] ?? [];
+        if($isOnly){
+            $ret = $Elements['ProcessCode'] ?? '';
+        }else{
+            $ret = $Elements;
+        }
+
+        return $ret;
+    }
+
+    /**
      * 获取物流商运输方式
      * @return mixed
      *
@@ -393,12 +457,24 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
 
     /**
      * 删除订单
-     * @param string $order_code
+     * @param string $processCode
      * @return mixed|void
      */
-    public function deleteOrder(string $order_code)
+    public function deleteOrder(string $processCode)
     {
-        $this->throwNotSupport(__FUNCTION__);
+
+        if(empty($processCode)){
+            return false;
+        }
+
+        $extUrlParams = [$processCode];
+
+        $response = $this->request(__FUNCTION__, [], self::METHOD_DELETE, $extUrlParams);
+
+        // 结果
+        $flag = $response['Succeeded'] == true;
+
+        return $flag;
     }
 
     /**
