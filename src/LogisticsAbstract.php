@@ -93,7 +93,7 @@ abstract class LogisticsAbstract
         $reqTitle = "第三方请求: {$title}";
         $resTitle = "第三方响应: {$title}";
         Logs::info($reqTitle, "请求头", $header, $this->iden);
-        Logs::info($reqTitle, "请求方式@URL: {$method}@{$url}", $params, $this->iden);
+        Logs::info($reqTitle, "请求方式@URL: {$method}@{$url}", $params ?? [], $this->iden);
         $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->setOption(CURLOPT_TIMEOUT, 180)->$method($url);
         Logs::info($resTitle, "请求方式@URL: {$method}@{$url}", $response, $this->iden);
         if (!$parseResponse) {
