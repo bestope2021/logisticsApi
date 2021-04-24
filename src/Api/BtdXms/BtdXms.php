@@ -1,8 +1,8 @@
 <?php
 /**
  *
- * User: blaine
- * Date: 3/1/21
+ * User: Ghh.Guan
+ * Date: 4/2/21
  */
 
 namespace smiler\logistics\Api\BtdXms;

@@ -2,13 +2,13 @@
 /**
  *
  * User: Ghh.Guan
- * Date: 4/13/21
+ * Date: 4/21/21
  */
 
-namespace smiler\logistics\Api\Kjyt;
+namespace smiler\logistics\Api\Miaoxin;
 
 
-use smiler\logistics\Api\Kjyt\FieldMap;
+use smiler\logistics\Api\Miaoxin\FieldMap;
 use smiler\logistics\Common\BaseLogisticsInterface;
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\TrackLogisticsInterface;
@@ -20,15 +20,14 @@ use smiler\logistics\Exception\ResponseException;
 use smiler\logistics\LogisticsAbstract;
 
 /**
- * Class Kjyt 跨境易通
- * @link http://www.sz56t.com:8090/pages/viewpage.action?pageId=3473454
- * @package smiler\logistics\Api\Kjyt
+ * Class Miaoxin 淼信
+ * @package smiler\logistics\Api\Miaoxin
  */
-class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface
+class Miaoxin extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface
 {
-    public $iden = 'kjyt';
+    public $iden = 'miaoxin';
 
-    public $iden_name = '跨境易通';
+    public $iden_name = '淼信';
 
     /**
      * 一次最多创建多少个包裹
@@ -64,7 +63,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
     ];
 
     /**
-     * Kjyt constructor.
+     * Miaoxin constructor.
      * @param array $config
      */
     public function __construct(array $config)

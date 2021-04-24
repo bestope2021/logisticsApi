@@ -2,10 +2,10 @@
 /**
  *
  * User: Ghh.Guan
- * Date: 4/2/21
+ * Date: 4/21/21
  */
 
-namespace smiler\logistics\Api\BtdXms;
+namespace smiler\logistics\Api\LeTian;
 
 
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
@@ -14,7 +14,7 @@ use smiler\logistics\Common\LsSdkFieldMapInterface;
 /**
  * 字段映射
  * Class FieldMap
- * @package smiler\logistics\Api\BtdXms
+ * @package smiler\logistics\Api\LeTian
  */
 class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 {
@@ -49,9 +49,9 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
         $field = [
             'flag',// 处理状态： true 成功，false 失败
             'info',// 提示信息
-            'order_no',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+            'trackingNo',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
             'label_path_type',// 面单路径类型
-            'lable_file',// 面单路径URL
+            'url',// 面单路径URL
             'label_path_plat',// 平台路径
             'lable_content_type',// 面单类型
         ];
@@ -98,8 +98,8 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
     {
         $field = [
             'code',// 运输方式代码
-            'name_en',// 运输方式英文
-            'name_cn',// 运输方式中文
+            'name',// 运输方式英文
+            'name',// 运输方式中文
             'shipping_method_type',// 运输方式类型
             'remark',// 备注
         ];
