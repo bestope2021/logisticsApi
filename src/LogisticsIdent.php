@@ -41,5 +41,14 @@ class LogisticsIdent
     // 跨境易通
     const LS_IDENT_KUA_JING_YI_TONG = 'kjyt';
     const LS_IDENT_KUA_JING_YI_TONG_LABEL = 'kjytLabel';
+    //深圳DHL
+    const LS_IDENT_SHENZHEN_DHL = 'szdhl';
+    // 淼信
+    const LS_IDENT_MIAOXIN = 'miaoxin';
+    const LS_IDENT_MIAOXIN_LABEL = 'miaoxinLabel';
+    // 乐天
+    const LS_IDENT_LETIAN_XMS = 'letian';
+    // 东莞邮政
+    const LS_IDENT_DONGGUAN_POST = 'dgpost';
 
 }

@@ -2,10 +2,10 @@
 /**
  *
  * User: Ghh.Guan
- * Date: 4/13/21
+ * Date: 4/21/21
  */
 
-namespace smiler\logistics\Api\Kjyt;
+namespace smiler\logistics\Api\Miaoxin;
 
 
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
@@ -15,15 +15,15 @@ use smiler\logistics\LogisticsAbstract;
 
 
 /**
- * Class KjytLabel
- * @package smiler\logistics\Api\Kjyt
- * 跨境易通面单标签
+ * Class MiaoxinLabel
+ * @package smiler\logistics\Api\Miaoxin
+ * 淼信面单标签
  */
-class KjytLabel extends LogisticsAbstract implements PackageLabelLogisticsInterface
+class MiaoxinLabel extends LogisticsAbstract implements PackageLabelLogisticsInterface
 {
-    public $iden = 'kjytLabel';
+    public $iden = 'miaoxinLabel';
 
-    public $iden_name = '跨境易通面单标签';
+    public $iden_name = '淼信面单标签';
 
     /**
      * curl 请求数据类型
@@ -37,7 +37,7 @@ class KjytLabel extends LogisticsAbstract implements PackageLabelLogisticsInterf
         'getPackagesLabel' => 'order/FastRpt/PDF_NEW.aspx'
     ];
     /**
-     * Kjyt constructor.
+     * Miaoxin constructor.
      * @param array $config
      */
     public function __construct(array $config)
