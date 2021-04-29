@@ -181,9 +181,9 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['reason'].':'.$response['msg'] ?? '未知错误');
 
-        $fieldData['orderNo'] = $ls[0]['orderNo'];
+        $fieldData['orderNo'] = $ls[0]['logistics_order_no'] ?? '';
         $fieldData['trackingNo'] = $response['waybillNo'] ?? '';
-        $fieldData['id'] = $ls[0]['orderNo'] ?? '';
+        $fieldData['id'] = $response['waybillNo'] ?? '';
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 //        $this->dd($response, $ret, $reqRes);
