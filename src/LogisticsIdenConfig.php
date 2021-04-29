@@ -10,7 +10,7 @@ namespace smiler\logistics;
 
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
-//use smiler\logistics\Api\DgPost\DgPost;
+use smiler\logistics\Api\DgPost\DgPost;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
 use smiler\logistics\Api\Kjyt\Kjyt;
@@ -18,6 +18,8 @@ use smiler\logistics\Api\Kjyt\KjytLabel;
 use smiler\logistics\Api\LeTian\LeTian;
 use smiler\logistics\Api\Miaoxin\Miaoxin;
 use smiler\logistics\Api\Miaoxin\MiaoxinLabel;
+use smiler\logistics\Api\ShangMeng\ShangMeng;
+use smiler\logistics\Api\ShangMeng\ShangMengTrack;
 use smiler\logistics\Api\ShiHang\ShiHang;
 //use smiler\logistics\Api\SzDhl\SzDhl;
 use smiler\logistics\Api\TPost\TPost;
@@ -61,7 +63,9 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_MIAOXIN => Miaoxin::class,// 淼信
         LogisticsIdent::LS_IDENT_MIAOXIN_LABEL => MiaoxinLabel::class,// 淼信-打印面单标签
         LogisticsIdent::LS_IDENT_LETIAN_XMS => LeTian::class,// 乐天
-        //LogisticsIdent::LS_IDENT_DONGGUAN_POST => DgPost::class,// 东莞邮政
+        LogisticsIdent::LS_IDENT_DONGGUAN_POST => DgPost::class,// 东莞邮政
+        LogisticsIdent::LS_IDENT_SHANG_MENG => ShangMeng::class,//商盟
+        LogisticsIdent::LS_IDENT_SHANG_MENG_TRACK => ShangMengTrack::class,// 商盟-轨迹查询
 
     ];
 
