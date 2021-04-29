@@ -55,14 +55,6 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function __construct(array $config)
     {
-        $config = [
-            'ecCompanyId' => '1100038745021',
-            'MD5Key' => 'bcybz1eu1i8a5dec',
-            'token' => '549q31q5Q60BJgX6',
-            'wh_Code' => '52355602',
-            'url' => 'https://my.ems.com.cn/pcpErp-web/a/pcp/',
-            'trackUrl' => 'http://211.156.195.237/querypush-pcpw/mailTrackProtocolPortal/',
-        ];
         $this->checkKeyExist(['ecCompanyId','wh_Code', 'url', 'MD5Key', 'trackUrl'], $config);
         $this->config = $config;
         if (!empty($config['apiHeaders'])) {
