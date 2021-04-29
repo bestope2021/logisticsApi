@@ -81,17 +81,16 @@ class ShangMeng extends LogisticsAbstract implements BaseLogisticsInterface, Pac
             $productList = [];
             $weight = 0;
             foreach ($item['productList'] as $value) {
-                $productList[] = [
+                $productList['CustomsInfo'][] = [
                     'ProductName_EN' => $value['declareEnName'] ?? '',// Y:申报英文名称Length <= 50
                     'ProductName_CN' => $value['declareCnName'] ?? '',// Y:申报中文名称Length <= 50
                     'DeclareQuantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                     'DeclarePrice' => (float)($value['declarePrice'] ?? ''), //Y:单价
                     'CustomsCode' => $value['hsCode'] ?? '',// N:海关编码
-                    'invoice_weight' => $value['declareWeight'] ?? '',// Y:总量;Length <= 50 KG
                     'CustomsNote' => '', //N:报关备注
-                    'ProductInfo' => '', //N:商品信息
+                    'ProductInfo' => $value['invoiceRemark'] ?? '', //N:商品信息
                     'ProductSKU' => $value['productSku'] ?? '',// Y:产品 SKU;Length <= 100,
-                    'ProductURL' => '', //N:商品链接
+                    'ProductURL' => $value['productUrl'] ?? '', //N:商品链接
                     'ProductPicURL' => '', //N:商品图片链接
                 ];
                 $weight += $value['declareWeight'] ?? 0;
@@ -214,6 +213,40 @@ class ShangMeng extends LogisticsAbstract implements BaseLogisticsInterface, Pac
     public function updateOrderStatus(array $params)
     {
         $this->throwNotSupport(__FUNCTION__);
+    }
+
+    /**
+     * array转XML
+     * @param $array
+     * @param string $root
+     * @return string
+     */
+    protected static function arrayToXml($array, $root = 'xml', $encoding = 'utf-8')
+    {
+        $xml = "<{$root}>";
+        $xml .= self::arrayToXmlInc($array);
+        $xml .= "</{$root}>";
+        return $xml;
+    }
+
+    protected static function arrayToXmlInc($array)
+    {
+        $xml = '';
+        foreach ($array as $key => $val) {
+            if(empty($val)) continue;
+            if(is_array($val)) {
+                if(is_numeric($key)){
+                    $xml .= static::arrayToXmlInc($val);
+                }else{
+                    $xml .= "<$key>";
+                    $xml .= static::arrayToXmlInc($val);
+                    $xml .= "</$key>";
+                }
+            }else{
+                $xml .= "<$key>$val</$key>";
+            }
+        }
+        return $xml;
     }
 
     /**
