@@ -48,6 +48,11 @@ class ShangMengTrack extends LogisticsAbstract implements TrackLogisticsInterfac
      */
     public function __construct(array $config)
     {
+        $config = [
+            'url' => 'http://api.aprche.net/OpenWebService.asmx/',
+            'appKey' => '36972B9499F346708D46EC1F103629FF',
+            'appSecret' => '8552B8E834B946A1BBF3DA84BF432181',
+        ];
         $this->checkKeyExist(['appKey', 'url', 'appSecret'], $config);
         $this->config = $config;
         $this->config['ToKenCategory'] = $config['ToKenCategory'] ?? 7;
@@ -61,8 +66,7 @@ class ShangMengTrack extends LogisticsAbstract implements TrackLogisticsInterfac
      */
     protected static function arrayToXml($array, $root = 'xml', $encoding = 'utf-8')
     {
-        $xml
-            = "<{$root}>";
+        $xml = "<{$root}>";
         $xml .= self::arrayToXmlInc($array);
         $xml .= "</{$root}>";
         return $xml;

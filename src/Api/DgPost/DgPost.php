@@ -96,7 +96,7 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             foreach ($item['productList'] as $index => $value) {
                 $contents_total_weight += $value['quantity'] * $value['declareWeight'];
                 $contents_total_value += $value['quantity'] * $value['declarePrice'];
-                if($value['isElectricity'] == 1 && !$isElectricity) $isElectricity = true;
+                if(isset($value['isElectricity']) && $value['isElectricity'] == 1 && !$isElectricity) $isElectricity = true;
                 $productList[] = [
                     'cargo_no' => $value['productNo'] ?? '', //商品id
                     'cargo_name' => $value['declareCnName'] ?? '', //报关品名（中文）
