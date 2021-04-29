@@ -50,5 +50,8 @@ class LogisticsIdent
     const LS_IDENT_LETIAN_XMS = 'letian';
     // 东莞邮政
     const LS_IDENT_DONGGUAN_POST = 'dgpost';
+    // 商盟
+    const LS_IDENT_SHANG_MENG = 'shangmeng';
+    const LS_IDENT_SHANG_MENG_TRACK = 'shangmengTrack';
 
 }
