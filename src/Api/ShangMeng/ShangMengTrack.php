@@ -48,11 +48,6 @@ class ShangMengTrack extends LogisticsAbstract implements TrackLogisticsInterfac
      */
     public function __construct(array $config)
     {
-        $config = [
-            'url' => 'http://api.aprche.net/OpenWebService.asmx/',
-            'appKey' => '36972B9499F346708D46EC1F103629FF',
-            'appSecret' => '8552B8E834B946A1BBF3DA84BF432181',
-        ];
         $this->checkKeyExist(['appKey', 'url', 'appSecret'], $config);
         $this->config = $config;
         $this->config['ToKenCategory'] = $config['ToKenCategory'] ?? 7;
@@ -72,6 +67,26 @@ class ShangMengTrack extends LogisticsAbstract implements TrackLogisticsInterfac
         return $xml;
     }
 
+    protected static function arrayToXmlInc($array)
+    {
+        $xml = '';
+        foreach ($array as $key => $val) {
+            if(empty($val)) continue;
+            if(is_array($val)) {
+                if(is_numeric($key)){
+                    $xml .= static::arrayToXmlInc($val);
+                }else{
+                    $xml .= "<$key>";
+                    $xml .= static::arrayToXmlInc($val);
+                    $xml .= "</$key>";
+                }
+            }else{
+                $xml .= "<$key>$val</$key>";
+            }
+        }
+        return $xml;
+    }
+
     public function queryTrack($trackNumber)
     {
         $data = [
@@ -80,7 +95,7 @@ class ShangMengTrack extends LogisticsAbstract implements TrackLogisticsInterfac
                 'AppSecret' => $this->config['appSecret'],
                 'Language' => 'CN', //语言只支持中文和英文 传参请以CN、EN 标识
                 'ServiceNumberList' => [
-                    'ServiceNumber' => $trackNumber['trackNumber']
+                    'ServiceNumber' => implode(',', $this->toArray($trackNumber))
                 ]
             ],'TrackInfoService')
         ];
