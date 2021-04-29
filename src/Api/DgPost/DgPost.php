@@ -55,14 +55,6 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function __construct(array $config)
     {
-        $config = [
-            'ecCompanyId' => '1100038745021',
-            'MD5Key' => 'bcybz1eu1i8a5dec',
-            'token' => '549q31q5Q60BJgX6',
-            'wh_Code' => '52355602',
-            'url' => 'https://my.ems.com.cn/pcpErp-web/a/pcp/',
-            'trackUrl' => 'http://211.156.195.237/querypush-pcpw/mailTrackProtocolPortal/',
-        ];
         $this->checkKeyExist(['ecCompanyId','wh_Code', 'url', 'MD5Key', 'trackUrl'], $config);
         $this->config = $config;
         if (!empty($config['apiHeaders'])) {
@@ -189,9 +181,9 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['reason'].':'.$response['msg'] ?? '未知错误');
 
-        $fieldData['orderNo'] = $ls[0]['orderNo'];
+        $fieldData['orderNo'] = $ls[0]['logistics_order_no'] ?? '';
         $fieldData['trackingNo'] = $response['waybillNo'] ?? '';
-        $fieldData['id'] = $ls[0]['orderNo'] ?? '';
+        $fieldData['id'] = $response['waybillNo'] ?? '';
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 //        $this->dd($response, $ret, $reqRes);
