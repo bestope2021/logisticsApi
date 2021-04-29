@@ -280,7 +280,7 @@ class ShangMeng extends LogisticsAbstract implements BaseLogisticsInterface, Pac
                 'FaceSingleId' => $params['label_id'] ?? 'GB_New_Label', //N:面单编号(若有绑定默认面单可不填)
                 'FreightWayId' => $params['shippingMethodCode'] ?? 'c3e20b64-1cff-4df1-8652-8defc835d48a',
                 'ServiceNumberList' => [
-                    'ServiceNumber' => $this->toArray($params['trackNumber'])
+                    'ServiceNumber' => implode(',', $this->toArray($params['trackNumber']))
                 ]
             ], 'WaybillPrintService')
         ];

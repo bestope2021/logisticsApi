@@ -350,7 +350,7 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
         }
 
-        $msgBody = json_encode(['traceNo' => $trackNumber['trackNumber']]);
+        $msgBody = json_encode(['traceNo' => $trackNumber]);
         $dataDigest = $this->getSign($msgBody,$this->config['token']);
         $msgBody = urlencode($msgBody);
         $data = [
@@ -390,7 +390,7 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $data['responseState'] = $flag;
         $data['errorDesc'] = $response['errorDesc'];
         $data['sPaths'] = $ls;
-        $data['trackNumber'] = $trackNumber['trackNumber'];
+        $data['trackNumber'] = $trackNumber;
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 
         return $this->retSuccessResponseData($fieldData);
