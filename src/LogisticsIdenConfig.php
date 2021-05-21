@@ -11,6 +11,7 @@ namespace smiler\logistics;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\CNE\Cne;
+use smiler\logistics\Api\DgDhl\DgDhl;
 use smiler\logistics\Api\DgPost\DgPost;
 use smiler\logistics\Api\FourPX\FourPX;
 use smiler\logistics\Api\HeiMao\HeiMao;
@@ -23,7 +24,7 @@ use smiler\logistics\Api\Miaoxin\MiaoxinLabel;
 use smiler\logistics\Api\ShangMeng\ShangMeng;
 use smiler\logistics\Api\ShangMeng\ShangMengTrack;
 use smiler\logistics\Api\ShiHang\ShiHang;
-//use smiler\logistics\Api\SzDhl\SzDhl;
+use smiler\logistics\Api\SzDhl\SzDhl;
 use smiler\logistics\Api\TPost\TPost;
 use smiler\logistics\Api\WanbExpress\WanbExpress;
 use smiler\logistics\Api\Wts\Wts;
@@ -61,7 +62,8 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_BTD_XMS => BtdXms::class,// 宝通达
         LogisticsIdent::LS_IDENT_KUA_JING_YI_TONG => Kjyt::class,// 跨境易通
         LogisticsIdent::LS_IDENT_KUA_JING_YI_TONG_LABEL => KjytLabel::class,// 跨境易通-打印面单标签
-        //LogisticsIdent::LS_IDENT_SHENZHEN_DHL => SzDhl::class,// 深圳DHL
+        LogisticsIdent::LS_IDENT_SHENZHEN_DHL => SzDhl::class,// 深圳DHL
+        LogisticsIdent::LS_IDENT_DONGGUAN_DHL => DgDhl::class,// 东莞DHL
         LogisticsIdent::LS_IDENT_MIAOXIN => Miaoxin::class,// 淼信
         LogisticsIdent::LS_IDENT_MIAOXIN_LABEL => MiaoxinLabel::class,// 淼信-打印面单标签
         LogisticsIdent::LS_IDENT_LETIAN_XMS => LeTian::class,// 乐天
