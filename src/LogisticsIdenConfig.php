@@ -10,8 +10,10 @@ namespace smiler\logistics;
 
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
+use smiler\logistics\Api\CNE\Cne;
 use smiler\logistics\Api\DgDhl\DgDhl;
 use smiler\logistics\Api\DgPost\DgPost;
+use smiler\logistics\Api\FourPX\FourPX;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
 use smiler\logistics\Api\Kjyt\Kjyt;
@@ -68,7 +70,8 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_DONGGUAN_POST => DgPost::class,// 东莞邮政
         LogisticsIdent::LS_IDENT_SHANG_MENG => ShangMeng::class,//商盟
         LogisticsIdent::LS_IDENT_SHANG_MENG_TRACK => ShangMengTrack::class,// 商盟-轨迹查询
-
+        LogisticsIdent::LS_IDENT_CNE => Cne::class,// 递一国际
+        LogisticsIdent::LS_IDENT_4PX => FourPX::class,// 递四方4PX
     ];
 
     /**
