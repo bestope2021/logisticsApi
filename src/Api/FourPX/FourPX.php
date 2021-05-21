@@ -140,6 +140,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'DS000045' => '客户信息不完整要配置xms',
         'DS000046' => '此票证的标签不存在',
         'DS000047' => '此订单不是svip标签',
+        'DS000056' => '重复下单',// todo: 下单时判断重复处理业务逻辑即可
         '' => '未知错误',
         0 => '失败',
         1 => '成功',
