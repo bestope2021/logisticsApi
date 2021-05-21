@@ -34,6 +34,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'frt_channel_hawbcode',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
+            'extended',// 扩展参数
         ];
 
         return self::getFieldMap(self::getCreateOrderFields(), $field);
@@ -51,7 +52,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'info',// 提示信息
             'trackingNo',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
             'label_path_type',// 面单路径类型
-            'url',// 面单路径URL
+            'lable_file',// 面单路径URL
             'label_path_plat',// 平台路径
             'lable_content_type',// 面单类型
         ];

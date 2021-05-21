@@ -41,6 +41,10 @@ class ResponseDataConst
     const LSA_FRT_TRACKING_NUM = 'frtTrackingNumber';// 尾程追踪号
     const LSA_PRE_FREIGHT = 'predictionFreight';// 预估费用
     const LSA_EFFECTIVE_DAY = 'effectiveDays';// 跟踪号有效期天数[默认15天]
+    const P_EXTENDED = 'extended ';// 扩展参数|array
+    const P_LABEL_CUSTOM_PATH = 'customLabel';// 报关标签链接|base64
+    const P_LABEL_PACKAGE_PATH = 'packageLabel';// 配货标签链接|base64
+    const P_LABEL_INVOICE_PATH = 'invoiceLabel';// DHL发票链接|base64
 
     // 轨迹
     const LSA_ORDER_STATUS = 'status';// 订单状态（货态）

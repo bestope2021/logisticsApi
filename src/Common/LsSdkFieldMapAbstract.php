@@ -65,6 +65,7 @@ abstract class LsSdkFieldMapAbstract
             ResponseDataConst::LSA_FRT_TRACKING_NUM,// 尾程追踪号
             ResponseDataConst::LSA_PRE_FREIGHT,// 预估费用
             ResponseDataConst::LSA_EFFECTIVE_DAY,// 跟踪号有效期天数
+            ResponseDataConst::P_EXTENDED,// 扩展参数
         ];
     }
 

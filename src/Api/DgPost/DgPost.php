@@ -333,7 +333,7 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $response['flag'] = $flag;
         $response['trackingNo'] = $params['trackNumber'][0] ?? '';
         $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
-        $response['lable_content_type'] = base64_encode(pack('H*', $response['data'])) ?? 1;
+        $response['lable_file'] = base64_encode(pack('H*', $response['data'])) ?? 1;
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
 //        $this->dd($fieldData);
         return $this->retSuccessResponseData($fieldData);

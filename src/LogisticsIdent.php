@@ -43,6 +43,8 @@ class LogisticsIdent
     const LS_IDENT_KUA_JING_YI_TONG_LABEL = 'kjytLabel';
     //深圳DHL
     const LS_IDENT_SHENZHEN_DHL = 'szdhl';
+    //东莞DHL
+    const LS_IDENT_DONGGUAN_DHL = 'dgdhl';
     // 淼信
     const LS_IDENT_MIAOXIN = 'miaoxin';
     const LS_IDENT_MIAOXIN_LABEL = 'miaoxinLabel';
