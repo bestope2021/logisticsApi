@@ -30,6 +30,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'frtTrackingNumber',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
+            'extended',// 扩展参数
         ];
 
         return self::getFieldMap(self::getCreateOrderFields(), $field);
