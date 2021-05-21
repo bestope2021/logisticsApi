@@ -39,6 +39,7 @@ class ResponseDataConst
     const LSA_ORDER_NUM_TP = 'syOrderNo';// 第三方订单号|运单号
     const LSA_TRACKING_NUM = 'trackingNumber';// 追踪号
     const LSA_FRT_TRACKING_NUM = 'frtTrackingNumber';// 尾程追踪号
+    const LSA_TRANSFER_NUM = 'transferNumber';// 物流转单号
     const LSA_PRE_FREIGHT = 'predictionFreight';// 预估费用
     const LSA_EFFECTIVE_DAY = 'effectiveDays';// 跟踪号有效期天数[默认15天]
 

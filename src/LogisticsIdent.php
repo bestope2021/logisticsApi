@@ -53,5 +53,9 @@ class LogisticsIdent
     // 商盟
     const LS_IDENT_SHANG_MENG = 'shangmeng';
     const LS_IDENT_SHANG_MENG_TRACK = 'shangmengTrack';
+    // 递一国际
+    const LS_IDENT_CNE = 'cne';
+    // 递四方4PX
+    const LS_IDENT_4PX = '4px';
 
 }
