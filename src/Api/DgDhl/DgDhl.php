@@ -174,7 +174,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'AddressLine3' => $item['recipientStreet2'] ?? '',// 收件地址栏3
                 'City' => $item['recipientCity'] ?? '',//收件人城市
                 'Division' => $item['recipientState'] ?? '',//收件人州名称
-                'DivisionCode' => $item['recipientStateCode'] ?? 'AK',//收件人州代码(仅对美国)
+                'DivisionCode' => $item['recipientState'] ?? 'AK',//收件人州代码(仅对美国)
                 'Suburb' => $item['recipientSuburb'] ?? '',//收件人郊区信息
                 'PostalCode' => $item['recipientPostCode'] ?? '',//收件人邮编
                 'CountryCode' => $item['recipientCountryCode'] ?? '',//收件人国家代码
