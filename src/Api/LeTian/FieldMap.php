@@ -55,6 +55,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'url',// 面单路径URL
             'label_path_plat',// 平台路径
             'lable_content_type',// 面单类型
+            'extended',// 扩展参数
         ];
 
         return self::getFieldMap(self::getPackagesLabelFields(), $field);
@@ -103,6 +104,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'name',// 运输方式中文
             'shipping_method_type',// 运输方式类型
             'remark',// 备注
+            'extended',// 扩展参数
         ];
 
         return self::getFieldMap(self::getShippingMethodFields(), $field);

@@ -35,23 +35,24 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     const METHOD_DELETE = 'DELETE';
 
     // 定义API是否授权
-    static $isApiAuth = true;
+    /**
+     * 成功标识
+     */
+    const SUCCESS_IDENT = 1;
 
     // 定义标识
+    static $isApiAuth = true;
     public $iden = '4PX';
     public $iden_name = '递四方4PX';
-
     /**
      * curl 请求数据类型
      * @var string
      */
     public $dataType = 'json';
-
     public $apiHeaders = [
         'Content-Type' => 'application/json; charset=UTF-8',
         'Accept' => '*/*',// application/json
     ];
-
     public $interface = [
         'createOrder' => 'ds.xms.order.create', // POST:创建订单
         'getShippingMethod' => 'ds.xms.logistics_product.getlist',// POST:获取产品服务信息
@@ -61,6 +62,9 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'deleteOrder' => 'ds.xms.order.cancel',// POST:删除订单
     ];
 
+    /*
+     * 定义sign
+     */
     /**
      * 定义版本号
      * @var string[]
@@ -73,24 +77,12 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'searchOrder' => '1.1.0',// POST:搜索订单
         'deleteOrder' => '1.0.0',// POST:删除订单
     ];
-
-    /*
-     * 定义sign
-     */
     protected $_sign = '';
-
     /**
      * 定义URL连接参数
      * @var string
      */
     protected $_urlExtStr = '';
-
-    /**
-     * 成功标识
-     */
-    const SUCCESS_IDENT = 1;
-
-
     /**
      * 定义请求错误码
      * @var string[]
@@ -303,7 +295,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'currency' => $totalValueCode,// Y:币别（按照ISO标准三字码，目前只支持USD）
                     'include_battery' => $isElectricity,// Y:是否含电池（Y/N）
                     'product_list' => $productList, // Y货物列表（投保、查验、货物丢失作为参考依据）
-                    'declare_product_info' => $declareProductList ??[],// Y:海关申报列表信息(每个包裹的申报信息，方式1：填写申报产品代码和申报数量；方式2：填写其他详细申报信息)
+                    'declare_product_info' => $declareProductList ?? [],// Y:海关申报列表信息(每个包裹的申报信息，方式1：填写申报产品代码和申报数量；方式2：填写其他详细申报信息)
                 ],
 
                 'is_insure' => 'N',// Y:是否投保(Y、N)
@@ -389,76 +381,6 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     }
 
     /**
-     * 查询订单
-     * @param string $request_no
-     * @param bool $isOnly
-     * @return array|bool|mixed|string
-     */
-    public function searchOrder(string $request_no = '', $isOnly = true){
-        if(empty($request_no)){
-            return false;
-        }
-
-        $dt = [
-            'request_no' => $request_no,
-            'start_time_of_create_consignment' => null,
-            'end_time_of_create_consignment' => null,
-            'consignment_status' => null,
-        ];
-
-        $response = $this->request(__FUNCTION__, $dt);
-
-
-        // 结果
-        $flag = $response['result'] == self::SUCCESS_IDENT;
-
-        if(!$flag){
-            return [];
-        }
-
-        $data = $data['data'][0] ?? [];
-
-        $ret = [
-            'ref_no' => $data['consignment_info']['ref_no'] ?? $request_no,//客户单号/客户参考号
-            'ds_consignment_no' => $data['consignment_info']['ds_consignment_no'] ?? '',//直发委托单号
-            '4px_tracking_no' => $data['consignment_info']['4px_tracking_no'] ?? '',//4PX跟踪号
-            'logistics_channel_no' => $data['consignment_info']['logistics_channel_no'] ?? '',//物流渠道号码。如果结果返回为空字符，表示暂时没有物流渠道号码，请稍后主动调用查询直发委托单接口查询
-            'logistics_channel_name' => $data['consignment_info']['logistics_channel_name'] ?? '',//服务商名称
-            'label_barcode' => $data['consignment_info']['label_barcode'] ?? '',//标签条码号
-            'oda_result_sign' => $data['consignment_info']['oda_result_sign'] ?? '',//ODA标识(偏远地址：Y 非偏远地址：N)
-            'consignment_status' => $data['consignment_info']['consignment_status'] ?? '',//委托单状态（草稿：D；已预报：P；已交接/已交货：V；库内作业中：H；已出库：C；已关闭：X；）
-            'get_no_mode' => $data['consignment_info']['get_no_mode'] ?? '',//获取末端服务商单号的方式(创建订单时取号：C；仓库作业时取号：U)
-            'get_no_exmsg' => $data['consignment_info']['get_no_exmsg'] ?? '',//获取服务商单号抛的异常信息（若取号失败/取号异常，此字段将服务商的报错内容，同时logistics_channel_no字段将为空）
-        ];
-
-        return $ret;
-    }
-
-    /**
-     * 删除订单
-     * @param string $processCode
-     * @return mixed|void
-     */
-    public function deleteOrder(string $request_no)
-    {
-        if(empty($request_no)){
-            return false;
-        }
-
-        $dt = [
-            'request_no' => $request_no,
-            'cancel_reason' => '取消订单或需要重新下单',
-        ];
-
-        $response = $this->request(__FUNCTION__, $dt);
-
-        // 结果
-        $flag = $response['result'] == self::SUCCESS_IDENT;
-
-        return $flag;
-    }
-
-    /**
      * 发起请求
      * @param string $function 方法
      * @param array $data 数据
@@ -513,6 +435,77 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     }
 
     /**
+     * 查询订单
+     * @param string $request_no
+     * @param bool $isOnly
+     * @return array|bool|mixed|string
+     */
+    public function searchOrder(string $request_no = '', $isOnly = true)
+    {
+        if (empty($request_no)) {
+            return false;
+        }
+
+        $dt = [
+            'request_no' => $request_no,
+            'start_time_of_create_consignment' => null,
+            'end_time_of_create_consignment' => null,
+            'consignment_status' => null,
+        ];
+
+        $response = $this->request(__FUNCTION__, $dt);
+
+
+        // 结果
+        $flag = $response['result'] == self::SUCCESS_IDENT;
+
+        if (!$flag) {
+            return [];
+        }
+
+        $data = $data['data'][0] ?? [];
+
+        $ret = [
+            'ref_no' => $data['consignment_info']['ref_no'] ?? $request_no,//客户单号/客户参考号
+            'ds_consignment_no' => $data['consignment_info']['ds_consignment_no'] ?? '',//直发委托单号
+            '4px_tracking_no' => $data['consignment_info']['4px_tracking_no'] ?? '',//4PX跟踪号
+            'logistics_channel_no' => $data['consignment_info']['logistics_channel_no'] ?? '',//物流渠道号码。如果结果返回为空字符，表示暂时没有物流渠道号码，请稍后主动调用查询直发委托单接口查询
+            'logistics_channel_name' => $data['consignment_info']['logistics_channel_name'] ?? '',//服务商名称
+            'label_barcode' => $data['consignment_info']['label_barcode'] ?? '',//标签条码号
+            'oda_result_sign' => $data['consignment_info']['oda_result_sign'] ?? '',//ODA标识(偏远地址：Y 非偏远地址：N)
+            'consignment_status' => $data['consignment_info']['consignment_status'] ?? '',//委托单状态（草稿：D；已预报：P；已交接/已交货：V；库内作业中：H；已出库：C；已关闭：X；）
+            'get_no_mode' => $data['consignment_info']['get_no_mode'] ?? '',//获取末端服务商单号的方式(创建订单时取号：C；仓库作业时取号：U)
+            'get_no_exmsg' => $data['consignment_info']['get_no_exmsg'] ?? '',//获取服务商单号抛的异常信息（若取号失败/取号异常，此字段将服务商的报错内容，同时logistics_channel_no字段将为空）
+        ];
+
+        return $ret;
+    }
+
+    /**
+     * 删除订单
+     * @param string $processCode
+     * @return mixed|void
+     */
+    public function deleteOrder(string $request_no)
+    {
+        if (empty($request_no)) {
+            return false;
+        }
+
+        $dt = [
+            'request_no' => $request_no,
+            'cancel_reason' => '取消订单或需要重新下单',
+        ];
+
+        $response = $this->request(__FUNCTION__, $dt);
+
+        // 结果
+        $flag = $response['result'] == self::SUCCESS_IDENT;
+
+        return $flag;
+    }
+
+    /**
      * 获取订单标签
      * @return mixed
      */
@@ -546,9 +539,13 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $item['order_no'] = $request_no;
         $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
         $item['label_file'] = $data['label_url_info']['logistics_label'] ?? '';// 面单链接
-        $item['custom_file'] = $data['label_url_info']['custom_label'] ?? '';// 报关标签链接
-        $item['package_file'] = $data['label_url_info']['package_label'] ?? '';// 配货标签链接
-        $item['invoice_file'] = $data['label_url_info']['invoice_label'] ?? '';// DHL发票链接
+
+        $item['extended'] = $flag ? [
+            ResponseDataConst::LSA_LABEL_CUSTOM_PATH => $data['label_url_info']['custom_label'] ?? '',// 报关标签链接
+            ResponseDataConst::LSA_LABEL_PACKAGE_PATH => $data['label_url_info']['package_label'] ?? '',// 配货标签链接
+            ResponseDataConst::LSA_LABEL_INVOICE_PATH => $data['label_url_info']['invoice_label'] ?? '',// DHL发票链接
+        ] : [];//扩展参数
+
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
     }
@@ -593,7 +590,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $status = '';
             $content = '';
             foreach ($data['details'] as $key => $val) {
-                if($key == 0){
+                if ($key == 0) {
                     $status = $val['businessLinkCode'];
                     $content = $val['trackingContent'];
                 }

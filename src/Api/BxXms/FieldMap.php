@@ -35,6 +35,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'frt_channel_hawbcode',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
+            'extended',// 扩展参数
         ];
 
         return self::getFieldMap(self::getCreateOrderFields(), $field);
@@ -104,6 +105,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'name',// 运输方式中文
             'shipping_method_type',// 运输方式类型
             'remark',// 备注
+            'extended',// 扩展参数
         ];
 
         return self::getFieldMap(self::getShippingMethodFields(), $field);

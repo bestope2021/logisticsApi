@@ -65,7 +65,7 @@ abstract class LsSdkFieldMapAbstract
             ResponseDataConst::LSA_FRT_TRACKING_NUM,// 尾程追踪号
             ResponseDataConst::LSA_PRE_FREIGHT,// 预估费用
             ResponseDataConst::LSA_EFFECTIVE_DAY,// 跟踪号有效期天数
-            ResponseDataConst::P_EXTENDED,// 扩展参数
+            ResponseDataConst::LSA_EXTENDED,// 扩展参数
         ];
     }
 
@@ -84,6 +84,7 @@ abstract class LsSdkFieldMapAbstract
             ResponseDataConst::LSA_LABEL_PATH,// 面单路径URL
             ResponseDataConst::LSA_LABEL_PATH_LOCAL,// 平台路径
             ResponseDataConst::LSA_LABEL_CONTENT_TYPE,// 面单类型
+            ResponseDataConst::LSA_EXTENDED,// 扩展参数
         ];
     }
 
@@ -131,6 +132,7 @@ abstract class LsSdkFieldMapAbstract
             ResponseDataConst::LSA_SHIP_METHOD_CN_NAME,// 运输方式中文
             ResponseDataConst::LSA_SHIP_METHOD_TYPE,// 运输方式类型
             ResponseDataConst::LSA_SHIP_METHOD_REMARK,// 备注
+            ResponseDataConst::LSA_EXTENDED,// 扩展参数
         ];
     }
 

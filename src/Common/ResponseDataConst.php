@@ -42,10 +42,7 @@ class ResponseDataConst
     const LSA_TRANSFER_NUM = 'transferNumber';// 物流转单号
     const LSA_PRE_FREIGHT = 'predictionFreight';// 预估费用
     const LSA_EFFECTIVE_DAY = 'effectiveDays';// 跟踪号有效期天数[默认15天]
-    const P_EXTENDED = 'extended ';// 扩展参数|array
-    const P_LABEL_CUSTOM_PATH = 'customLabel';// 报关标签链接|base64
-    const P_LABEL_PACKAGE_PATH = 'packageLabel';// 配货标签链接|base64
-    const P_LABEL_INVOICE_PATH = 'invoiceLabel';// DHL发票链接|base64
+    const LSA_EXTENDED = 'extended ';// 扩展参数|array
 
     // 轨迹
     const LSA_ORDER_STATUS = 'status';// 订单状态（货态）
@@ -59,6 +56,9 @@ class ResponseDataConst
     const LSA_LABEL_DATA = 'labelData';// 面单变量数据
     const LSA_LABEL_PATH_LOCAL = 'labelPathPlat';// 平台路径
     const LSA_LABEL_PATH = 'labelPath';// 面单路径URL|base64
+    const LSA_LABEL_CUSTOM_PATH = 'customLabel';// 报关标签链接|base64
+    const LSA_LABEL_PACKAGE_PATH = 'packageLabel';// 配货标签链接|base64
+    const LSA_LABEL_INVOICE_PATH = 'invoiceLabel';// DHL发票链接|base64
     const LSA_LABEL_BASE64_PREFIX = 'data:image/jpg;base64,';// base64图片编码前缀
     const LSA_LABEL_TYPE = 'labelType';// 面单路径URL|base64  类型
     const LSA_LABEL_PATH_TYPE_PDF = 'pdf';// 面单路径URL|base64  类型
