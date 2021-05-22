@@ -268,7 +268,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     'PhoneNumber' => $item['senderPhone'] ?? '',//发件人电话
                     //'Email' => $item['senderEmail'] ?? '',//发件人邮箱
                 ],//发件人信息
-                'RegistrationNumbers' => $item['senderTaxNumberIssuerCountryCode'] ? $shipperRegistrationNumbers : '',
+                'RegistrationNumbers' => $dhl['sender_tax_number_type'] ? $shipperRegistrationNumbers : '',
                 'BusinessPartyTypeCode' => $dhl['sender_business_type'] ?? '',//发件人类别
             ];
 

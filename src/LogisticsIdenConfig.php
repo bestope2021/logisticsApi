@@ -25,6 +25,7 @@ use smiler\logistics\Api\ShangMeng\ShangMeng;
 use smiler\logistics\Api\ShangMeng\ShangMengTrack;
 use smiler\logistics\Api\ShiHang\ShiHang;
 use smiler\logistics\Api\SzDhl\SzDhl;
+use smiler\logistics\Api\TianMu\TianMu;
 use smiler\logistics\Api\TPost\TPost;
 use smiler\logistics\Api\WanbExpress\WanbExpress;
 use smiler\logistics\Api\Wts\Wts;
@@ -72,6 +73,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_SHANG_MENG_TRACK => ShangMengTrack::class,// 商盟-轨迹查询
         LogisticsIdent::LS_IDENT_CNE => Cne::class,// 递一国际
         LogisticsIdent::LS_IDENT_4PX => FourPX::class,// 递四方4PX
+        LogisticsIdent::LS_IDENT_TIANMU => TianMu::class,// 天木头程
     ];
 
     /**

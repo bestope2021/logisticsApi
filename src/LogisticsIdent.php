@@ -59,5 +59,7 @@ class LogisticsIdent
     const LS_IDENT_CNE = 'cne';
     // 递四方4PX
     const LS_IDENT_4PX = '4px';
+    // 天木头程
+    const LS_IDENT_TIANMU = 'tianmu';
 
 }
