@@ -373,6 +373,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'Label' => $label,
                 'DGs' => $dgs,
             ];
+            $customerOrderNo = $item['customerOrderNo'] ?? '';
         }
         $response = $this->request(__FUNCTION__, $ls[0]);
         // 处理结果
@@ -387,7 +388,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['Response']['Status']['Condition']['ConditionCode'] ?'ConditionCode:'.$response['Response']['Status']['Condition']['ConditionCode'].' ConditionData:'.$response['Response']['Status']['Condition']['ConditionData']: '未知错误');
 
-        $fieldData['orderNo'] = $ls[0]['orderNo'];//客户订单号
+        $fieldData['orderNo'] = $customerOrderNo;//客户订单号
         $fieldData['trackingNo'] = $flag ? $response['AirwayBillNumber'] : '';//空运单号
         $fieldData['id'] = $flag ? $response['AirwayBillNumber'] : '';//第三方id，用空运单号代替
         $fieldData['frt_channel_hawbcode'] = $flag ? $response['AirwayBillNumber'] : '';//尾程追踪号
