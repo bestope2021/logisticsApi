@@ -253,25 +253,16 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function getShippingMethod()
     {
+        $response = $this->request(__FUNCTION__);
 
-        $res = $this->request(__FUNCTION__);
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-
-//        $this->dd($res);
-        if (!isset($res['data'])) {
-            return $this->retErrorResponseData($res['errorInfo'] ?? '未知错误');
+        if ($response['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
-        foreach ($res['data'] as $item) {
-            $item_arr = [
-                'code' =>$item['businessCode'],
-                'name_en' =>$item['businessName'],
-                'name_cn' =>$item['businessName'],
-                'shipping_method_type' =>$item['businessName'],
-                'remark' =>$item['businessName'],
-            ];
-            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item_arr, $fieldMap);
+        foreach ($response['data'] as $item) {
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
         return $this->retSuccessResponseData($fieldData);
     }
