@@ -103,6 +103,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'cnname',// 运输方式中文
             'shipping_method_type',// 运输方式类型
             'note',// 备注
+            'extended',// 扩展参数
         ];
 
         return self::getFieldMap(self::getShippingMethodFields(), $field);
