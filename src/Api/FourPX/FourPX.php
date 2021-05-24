@@ -66,6 +66,8 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'queryTrack' => 'tr.order.tracking.get', // POST:包裹单个跟踪接口
         'searchOrder' => 'ds.xms.order.get',// POST:搜索订单
         'deleteOrder' => 'ds.xms.order.cancel',// POST:删除订单
+        'createBag' => 'ds.xms.bag.create',// POST:直发授权-完成装袋
+        'getBagLabel' => 'ds.xms.bag_label.get',// POST:直发授权-袋标签
     ];
 
     /*
@@ -82,6 +84,8 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'queryTrack' => '1.0.0', // POST:包裹单个跟踪接口
         'searchOrder' => '1.1.0',// POST:搜索订单
         'deleteOrder' => '1.0.0',// POST:删除订单
+        'createBag' => '1.0.0',// POST:直发授权-完成装袋
+        'getBagLabel' => '2.0.0',// POST:直发授权-袋标签
     ];
     protected $_sign = '';
     /**
@@ -374,18 +378,18 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $errorCode = $response['errors'][0]['error_code'] ?? '';
 
         // 重复订单号
-        if($errorCode == self::ORDER_REPEAT){
+        if ($errorCode == self::ORDER_REPEAT) {
             // 根据客户订单号查询处理号
             $detail = $this->searchOrder($pars['ref_no']);
             // 存在
-            if($detail){
+            if ($detail) {
                 $shCode = $detail['logistics_product_code'] ?? '';
-                if($shCode == ($pars['logistics_service_info']['logistics_product_code'] ?? '')){
+                if ($shCode == ($pars['logistics_service_info']['logistics_product_code'] ?? '')) {
                     $data = $detail;
-                }else{
+                } else {
                     // 进行删除操作
                     $delFlag = $this->deleteOrder($pars['ref_no']);
-                    if($delFlag){
+                    if ($delFlag) {
                         $response = $this->request(__FUNCTION__, $pars);
                         // 结果
                         $resultCode = $response['result'] ?? '';
@@ -726,4 +730,112 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $this->throwNotSupport(__FUNCTION__);
     }
+
+    /**
+     * 完成装袋
+     * @param array $params
+     * @return array
+     */
+    public function createBag($params = [])
+    {
+        $dt = [
+            'request_id' => $this->getRand(),// Y:随机值，用于一次请求的幂等，无业务语义
+            'bag_code' => $params['bagCode'] ?? '',// N:袋子号
+            'partition' => $params['partition'] ?? '',// N:装袋分区代码
+            'finish_bagging_time' => $params['finishBaggingTime'] ?? '',// Y:完成装袋时间(东8)
+            'pieces' => $params['pieces'] ?? '',// Y:袋子里单票数量
+            'bag_weight' => $params['bagWeight'] ?? '',// Y:袋子重量（单位:g）
+        ];
+
+        $orderList = $params['orderList'] ?? [];// Y:订单列表
+        if (!empty($orderList)) {
+            $list = [];
+            foreach ($orderList as $item) {
+                $list[] = [
+                    'order_no' => $item['orderNo'] ?? '',// Y:单号
+                    'weight' => $item['weight'] ?? '',// Y:订单重量（单位:g）
+                ];
+
+            }
+            $dt['order_list'] = $list;
+        }
+
+        $response = $this->request(__FUNCTION__, $dt);
+
+        $resultCode = $response['result'] ?? '';
+        $flag = ($resultCode == self::SUCCESS_IDENT);
+        $data = $response['data'] ?? [];
+
+        $errorCode = $response['errors'] ?? [];
+
+        if ($data) {
+            $retData = [
+                'requestId' => $data['request_id'] ?? '',// 请求唯一识别号
+                'bagCode' => $data['bag_code'] ?? '',// 袋子号
+                'bagLabelURL' => $data['bag_label_url'] ?? '',// 袋标签，下载地址
+                'bagLabelType' => 'pdf',// 袋标签类型，默认为PDF文件链接
+            ];
+        }
+
+        // 异常
+        if (!empty($errorCode)) {
+            $errors = [];
+            foreach ($errorCode as $item) {
+                $errors[] = '订单号:' . $item['referenceCode'] . ':' . $item['errorMsg'];
+            }
+            $errorInfo = join('; ', $errors);
+        }
+
+        // 结果
+        if (!$flag) {
+            return $this->retErrorResponseData($errorInfo ?? ($response['msg'] ?? '未知错误'));
+        }
+
+        return $this->retSuccessResponseData($retData ?? []);
+    }
+
+    /**
+     * 生成唯一标识
+     * @return string
+     */
+    protected function getRand()
+    {
+        return uniqid('bst' . $this->iden, true);
+    }
+
+    /**
+     * 袋标签
+     * @param array $params
+     * @return array
+     */
+    public function getBagLabel($params = [])
+    {
+        $dt = [
+            'requestId' => $this->getRand(),// Y: 随机值，用于一次请求的幂等，无业务语义
+            'referenceCode' => $params['selectNo'] ?? '',// Y:袋子号或单号
+        ];
+        $response = $this->request(__FUNCTION__, $dt);
+
+        $resultCode = $response['result'] ?? '';
+        $flag = ($resultCode == self::SUCCESS_IDENT);
+        $errorCode = $response['errors'][0]['error_code'] ?? '';
+        $data = $response['data'] ?? [];
+
+        if ($data) {
+            $retData = [
+                'requestId' => $data['requestId'] ?? '',// 请求唯一识别号
+                'selectNo' => $data['bagCode'] ?? '',// 袋子号或单号
+                'bagLabelURL' => $data['bagLabelURL'] ?? '',// 袋标签，下载地址
+                'bagLabelType' => 'pdf',// 袋标签类型，默认为PDF文件链接
+            ];
+        }
+
+        // 结果
+        if (!$flag) {
+            return $this->retErrorResponseData($this->errorCode[$errorCode]);
+        }
+
+        return $this->retSuccessResponseData($retData ?? []);
+    }
+
 }
