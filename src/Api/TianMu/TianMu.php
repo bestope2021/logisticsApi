@@ -142,7 +142,7 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
             $order_info = [
                 'reference_no' => $item['customerOrderNo'] ?? '',//客户参考号
-                'shipping_method' => $item['shippingMethodCode'] ?? 'MGHJPB',//客户参考号
+                'shipping_method' => $item['shippingMethodCode'] ?? 'MGHJPB',//运输方式
                 'cargotype' => 'W',//货物类型 W：包裹 D：文件B：袋子
                 'order_status' => 'P',//订单状态 P：已预报 (默认) D：草稿 (如果创建草稿订单，则需要再调用submitforecast【提交预报】接口)
                 'mail_cargo_type' => 4,//包裹申报种类 1：Gif礼品 2：CommercialSample 商品货样 3：Document 文件 4：Other 其他默认4
@@ -262,6 +262,7 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
         foreach ($response['data'] as $item) {
+            unset($item['note']);
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
         return $this->retSuccessResponseData($fieldData);
