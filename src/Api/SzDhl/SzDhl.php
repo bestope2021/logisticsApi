@@ -182,11 +182,11 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'Contact' => [
                     'PersonName' => $item['recipientName'] ?? '',//收件人姓名
                     'PhoneNumber' => str_replace("+","",$item['recipientPhone'] ?? ''),//收件人电话
-                    /*'MobilePhoneNumber' => $item['recipientMobile'] ?? '',//收件人手机
-                    'Email' => $item['recipientEmail'] ?? '',//收件人邮箱*/
+                    'MobilePhoneNumber' => $item['recipientMobile'] ?? '',//收件人手机
+                    'Email' => $item['recipientEmail'] ?? '',//收件人邮箱
                 ],
-                'RegistrationNumbers' => $dhl['recipient_tax_number_type'] ? $registrationNumbers : '',
-                    'BusinessPartyTypeCode' => $dhl['recipient_business_type'] ?? '',//收件人类别
+                'RegistrationNumbers' => $item['recipientTaxNumber'] ? $registrationNumbers : '',
+                'BusinessPartyTypeCode' => $dhl['recipient_business_type'] ?? '',//收件人类别
             ];
             $declaredValue = 0;
             $declaredCurrency = 'CNY';
@@ -266,9 +266,9 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'Contact' => [
                     'PersonName' => $item['senderName'] ?? '',//发件人姓名
                     'PhoneNumber' => $item['senderPhone'] ?? '',//发件人电话
-                    //'Email' => $item['senderEmail'] ?? '',//发件人邮箱
+                    'Email' => $item['senderEmail'] ?? '',//发件人邮箱
                 ],//发件人信息
-                'RegistrationNumbers' => $dhl['sender_tax_number_type'] ? $shipperRegistrationNumbers : '',
+                'RegistrationNumbers' => $item['senderTaxNumber'] ? $shipperRegistrationNumbers : '',
                 'BusinessPartyTypeCode' => $dhl['sender_business_type'] ?? '',//发件人类别
             ];
 
