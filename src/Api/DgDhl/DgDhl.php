@@ -185,7 +185,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     'MobilePhoneNumber' => $item['recipientMobile'] ?? '',//收件人手机
                     'Email' => $item['recipientEmail'] ?? '',//收件人邮箱
                 ],
-                'RegistrationNumbers' => $item['recipientTaxNumber'] ? $registrationNumbers : '',
+                'RegistrationNumbers' => isset($item['recipientTaxNumber']) && !empty($item['recipientTaxNumber']) ? $registrationNumbers : '',
                 'BusinessPartyTypeCode' => $dhl['recipient_business_type'] ?? '',//收件人类别
             ];
             $declaredValue = 0;
@@ -213,7 +213,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                         'Quantity' => (int)($value['quantity'] ?? ''),//单项商品的数量
                         'QuantityUnit' => 'PCS',//数量单位,
                         'Description' => $value['declareEnName'],//单项商品的英文描述,
-                        'Value' => (float)($value['declarePrice'] ?? ''),//商品单价,
+                        'Value' => (float)(round($value['declarePrice'],2) ?? 0.00),//商品单价,
                         'Weight' => [
                             'Weight' => $value['netWeight'] * $value['quantity'] / 1000 ?? '',//净重
                             'WeightUnit' => 'K',//重量单位,K:千克,L:磅
@@ -268,7 +268,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     'PhoneNumber' => $item['senderPhone'] ?? '',//发件人电话
                     'Email' => $item['senderEmail'] ?? '',//发件人邮箱
                 ],//发件人信息
-                'RegistrationNumbers' => $item['senderTaxNumber'] ? $shipperRegistrationNumbers : '',
+                'RegistrationNumbers' => isset($item['senderTaxNumber']) && !empty($item['senderTaxNumber']) ? $shipperRegistrationNumbers : '',
                 'BusinessPartyTypeCode' => $dhl['sender_business_type'] ?? '',//发件人类别
             ];
 
@@ -286,7 +286,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             }
 
             $dutiable = [
-                'DeclaredValue' => $declaredValue,//申报总价值
+                'DeclaredValue' => (float)(round($declaredValue,2) ?? 0.00),//申报总价值
                 'DeclaredCurrency' => $declaredCurrency,//货币单位
                 'ShipperEIN' => $item['senderTaxNumber'] ?? '',//发件人增值税号
                 'ConsigneeEIN' => $item['recipientTaxNumber'] ?? '',//收件人增值税号
