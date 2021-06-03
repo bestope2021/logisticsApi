@@ -295,7 +295,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
 
             //其他费用节点
             $otherCharges = [];
-            if (isset($dhl['other_charge_type'])) {
+            if (isset($dhl['other_charge_type']) && !empty($dhl['other_charge_type'])) {
                 $otherCharges[] = [
                     'OtherCharge' => [
                         'OtherChargeValue' => $dhl['other_charge_value'],//费用金额
