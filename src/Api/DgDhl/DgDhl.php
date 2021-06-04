@@ -376,8 +376,11 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             $customerOrderNo = $item['customerOrderNo'] ?? '';
         }
         $response = $this->request(__FUNCTION__, $ls[0]);
-        // 处理结果
-        $reqRes = $this->getReqResData();
+        // 处理结果,返回数据太多，不做保存
+        $reqRes = [
+            ResponseDataConst::LSA_CURL_REQ_DATA => $this->req_data,
+            ResponseDataConst::LSA_CURL_RES_DATA => []
+        ];
 
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
