@@ -43,6 +43,7 @@ class ResponseDataConst
     const LSA_PRE_FREIGHT = 'predictionFreight';// 预估费用
     const LSA_EFFECTIVE_DAY = 'effectiveDays';// 跟踪号有效期天数[默认15天]
     const LSA_EXTENDED = 'extended';// 扩展参数|array
+    const LSA_IS_LABEL = 'isLabel';// 是否存在面单接口[默认存在，存在可以不设]
 
     // 轨迹
     const LSA_ORDER_STATUS = 'status';// 订单状态（货态）

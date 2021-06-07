@@ -401,6 +401,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             ResponseDataConst::LSA_LABEL_TYPE => ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF,//文件类型
             ResponseDataConst::LSA_LABEL_PATH => $flag ? $response['LabelImage']['OutputImage'] : '',//面单
             ResponseDataConst::LSA_LABEL_INVOICE_PATH => $response['LabelImage']['MultiLabels']['MultiLabel']['DocImageVal']?? '',//发票
+            ResponseDataConst::LSA_IS_LABEL => 0,//是否存在面单接口[默认存在，存在可以不设]
         ] : [];//扩展参数
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
