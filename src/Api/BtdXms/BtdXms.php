@@ -175,11 +175,11 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'a:UnitPrice' => (float)($value['customsDeclarationPrice'] ?? ''), //单价（报关价值）
                 ];
             }
-
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
             $order_info['a:Products'] = $productList;//产品信息,多个产品信息建议不要超过5个
             $order_info['a:Province'] = $item['recipientState'] ?? '';//收件人省州
             $order_info['a:ShippingWay'] = $item['shippingMethodCode'] ?? 'FedEx';//渠道
-            $order_info['a:Street'] = $item['recipientStreet'] ?? '';//街道
+            $order_info['a:Street'] = $address ?? '';//街道
             $order_info['a:TaxID'] = $item['senderTaxNumber'] ?? '';//税号
             $order_info['a:TrackingNumber'] = '';//物流单号
 
@@ -218,16 +218,25 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
     /**
      * 获取跟踪号
-     * @param $reference_no
+     * @param $processCode
+     * @param $is_ret
      * @return array
      */
-    public function getTrackNumber(string $processCode)
+    public function getTrackNumber(string $processCode,$is_ret=false)
     {
         $param = ['number' => $processCode];
 
         $response = $this->request(__FUNCTION__, $param);
 
         $response = $this->resultsVerify($response,__FUNCTION__);
+
+        if($is_ret){
+            $data = [
+                'trackingNumber' => $trackNumber['info']['aRefID'] ?? '',//追踪号
+                'frtTrackingNumber' => $trackNumber['info']['aTrackingNumber'] ?? '',//尾程追踪号
+            ];
+            $this->retSuccessResponseData($data);
+        }
 
         return $response;
     }

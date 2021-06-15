@@ -120,6 +120,7 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                     'cxOrigin' => $value['originCountry'] ?? 'CN', // N:原产地国家代码
                 ];
             }
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
             $ls[] = [
                 'cRNo' => $item['customerOrderNo'] ?? '',// Y:参考号,0-30 字符。(传用户系统订单号，只允许数字和字母，中划线，其他符号不接受）
                 'nItemType' => $item['nItemType'] ?? '1',// Y:快件类型，默认为1。取值为：0(文件),1(包裹),2(防水袋)
@@ -141,7 +142,7 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'cRCountry' => $item['recipientCountryCode'] ?? '', //Y:收件国家【必须为英文】,0-126 字符
                 'cRProvince' => $item['recipientState'] ?? '', //N:收件人州/省
                 'cRCity' => $item['recipientCity'] ?? '', //Y:收件城市,3-126 字符
-                'cRAddr' => $item['recipientStreet'] ?? '',// Y:收件地址,5-254 字符
+                'cRAddr' => $address ?? '',// Y:收件地址,5-254 字符
                 'cRPostcode' => $item['recipientPostCode'] ?? '', //Y:收件邮编,0-15 字符
                 'cRPhone' => $item['recipientPhone'] ?? ($item['recipientMobile'] ?? ''), //N:收件电话,0-63 字符
                 'cREMail' => $item['recipientEmail'] ?? '',// N:收件电邮,0-63 字符

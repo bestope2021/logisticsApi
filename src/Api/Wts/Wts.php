@@ -150,6 +150,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 $weight += $value['declareWeight'];
             }
 
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
             $ls[] = [
                 "buyerid" => $item['buyer_id'] ?? '',
                 'order_piece' => 1, //件数，小包默认1，快递需真实填写
@@ -158,7 +159,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'trade_type' => 'ZYXT', //SUMAI 速脉ERP  QQZS 全球助手 WDJL 网店精灵 IEBAY365 IEBAY365 STOMS 赛兔OMS TTERP 通途ERP MGDZ 芒果店长 LRERP 懒人erp SUMOOL 速猫ERP GLBPAY 上海九赢 DXM 店小秘 ZYXT 客户自用系统/其他不在列表中的均使用该代码
                 'consignee_name' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 64 '',// Y:收件人姓名Length <= 64
                 'consignee_companyname' => $item['recipientCompany'] ?? '', //N:收件人公司名
-                'consignee_address' => $item['recipientStreet'] ?? '',// Y:收件人街道
+                'consignee_address' => $address ?? '',// Y:收件人街道
                 'consignee_telephone' => $item['recipientPhone'] ?? '', //N:收件人电话
                 'country' => $item['recipientCountryCode'] ?? '',// Y:收件人国家二字代码，可用值参见 6.1。Lenth = 2
                 'consignee_state' => $item['recipientState'] ?? '', //N:收件人省

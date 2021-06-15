@@ -119,6 +119,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
             $ls[] = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
@@ -156,7 +157,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'consignee_province' => $item['recipientState'] ?? '', //N:收件人省
                     'consignee_city' => $item['recipientCity'] ?? '', //N:收件人城市
                     'consignee_district' => '', //N:收件人区/县
-                    'consignee_street' => $item['recipientStreet'] ?? '',// Y:收件人街道
+                    'consignee_street' => $address ?? '',// Y:收件人街道
                     'consignee_postcode' => $item['recipientPostCode'] ?? '', //N:收件人邮编
                     'consignee_doorplate' => '', //N:收件人门牌号
                     'consignee_areacode' => '', //N:收件人区域代码

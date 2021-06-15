@@ -121,7 +121,7 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'address' => $item['senderAddress'] ?? '',//发件人详细地址
                 'linker' => $item['senderName'] ?? '',//发件人联系人
             ];
-
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
             //收件人节点
             $receiver = [
                 'name' => $item['recipientName'] ?? '',//收件人姓名
@@ -131,7 +131,7 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'nation' => $item['recipientCountryCode'] ?? '',//采用万国邮联国家代码 2 位
                 'province' => $item['recipientState'] ?? '',//收件人所在省（洲）
                 'city' => $item['recipientCity'] ?? '',//收件人所在城市
-                'address' => $item['recipientStreet'] ?? '',//收件人详细地址
+                'address' => $address ?? '',//收件人详细地址
                 'linker' => $item['recipientName'] ?? '',//收件人联系人
             ];
 

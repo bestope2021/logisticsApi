@@ -234,6 +234,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $totalValueCode = $currencyCode;
                 $totalValueValue += ($quantity * $declarePrice);
             }
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
             $ls[] = [
                 '4px_tracking_no' => $item['trackingNumber'] ?? '',// N:4PX跟踪号（预分配号段的客户可传此值）
                 'ref_no' => $item['customerOrderNo'] ?? '',// Y:参考号（客户自有系统的单号，如客户单号）
@@ -341,7 +342,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'state' => $item['recipientState'] ?? '',// N:州/省
                     'city' => $item['recipientCity'] ?? '',// N:城市
                     'district' => '',// N:区、县
-                    'street' => $item['recipientStreet'] ?? '',// N:街道/详细地址
+                    'street' => $address ?? '',// N:街道/详细地址
                     'house_number' => '',// N:门牌号
                 ],
 
