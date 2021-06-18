@@ -135,6 +135,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                     'Name' => $item['recipientName'] ?? '',// Y:收件人姓名
                     'Phone' => $item['recipientPhone'] ?? '', //N:收件人电话
                     'Mobile' => $item['recipientPhone'] ?? '', //N:收件人手机 todo 收货人-座机，手机。美国专线至少填一项
+                    'Email' => $item['recipientEmail'] ?? '', //Y:收货人-邮箱
                     'Company' => $item['recipientCompany'] ?? '', //N:收件人公司名
                     'Country' => $item['recipientCountryCode'] ?? '', //Y:收件人国家二字代码
                     'Postcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
