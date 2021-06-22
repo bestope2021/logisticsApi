@@ -146,6 +146,7 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'cRPostcode' => $item['recipientPostCode'] ?? '', //Y:收件邮编,0-15 字符
                 'cRPhone' => $item['recipientPhone'] ?? ($item['recipientMobile'] ?? ''), //N:收件电话,0-63 字符
                 'cREMail' => $item['recipientEmail'] ?? '',// N:收件电邮,0-63 字符
+                'iossCode' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
 
                 // 发件人信息
                 'cSender' => $item['senderName'] ?? '', //N:发件人,0-30 字符。

@@ -191,8 +191,10 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
                     'Address' => $item['senderFullAddress'] ?? '',// N:发件人完整地址Length <= 200
                     'Postcode' => $item['senderPostCode'] ?? '',// N:发件人邮编Length <= 32
                     'ContactInfo' => $item['senderPhone'] ?? ($item['senderPhone'] ?? ($item['senderEmail'] ?? '')), // N:联系信息(邮箱 或者 电话)
-                    'VatNo' => $item['senderTaxNumber'] ?? '', //N:税号，英国脱欧后，进入英国货物需要提供此值
-                    'EORI' => $item['senderPhone'] ?? '', //N:B2B类型以及B2C的高价值包裹必须提供EORI，如贵司暂无EORI，请联系我司业务人员辅助申请EORI
+                    'Taxations' => [
+                        'TaxType' => 'IOSS',//IOSS: 欧盟2021税改后，进入欧盟货物需要提供 IOSS
+                        'Number' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
+                    ]
                 ],
                 'ShippingAddress' => [// 发件人信息
                     'Contacter' => $item['recipientName'] ?? '',// Y:收件人姓名

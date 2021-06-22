@@ -117,6 +117,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
                 'passportNumber' => $item['passportNumber'] ?? '',// 护照号
                 'pracelType' => intval($item['pracelType'] ?? 1),// 包裹类型（0、文件；1、包 裹;）默认 1：包裹
                 'taxId' => $item['recipientTaxNumber'] ?? '',// 收件人税号
+                'iossVatId' => $item['iossNumber'] ?? '',// IOSS 编号
                 'trackNo' => $item['trackingNumber'] ?? '',// N:追踪条码
                 'transportNo' => $item['transportNumber'] ?? '',// N:转单号
                 'weight' => (float)($item['predictionWeight'] ?? ''),// Y:预报重量（kg）

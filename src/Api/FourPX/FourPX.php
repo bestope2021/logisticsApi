@@ -245,6 +245,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
                 'vat_no' => '',// N:VAT税号(数字或字母)
                 'eori_no' => '',// N:IOR号码(数字或字母)
+                'ioss_no' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 'buyer_id' => '',// N:买家ID(数字或字母)
                 'sales_platform' => '',// N:销售平台
                 'trade_id' => '',// N:交易号ID(数字或字母)

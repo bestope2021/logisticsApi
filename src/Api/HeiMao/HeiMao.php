@@ -169,7 +169,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'consignee_certificatetype' => '',//N:证件类型代码  ID：身份证  PP：护照
                     'consignee_certificatecode' => $item['recipientIdentityNumber'] ?? '',// N:证件号码
                     'consignee_credentials_period' => '', //N:证件有效期， 格式：2014-04-15
-                    'consignee_tariff' => '',  //N:税号
+                    'consignee_tariff' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 ],
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）

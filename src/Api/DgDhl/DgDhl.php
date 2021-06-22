@@ -247,7 +247,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             //发件人注册号/税号节点，暂定一个
             $shipperRegistrationNumbers[0] = [
                 'RegistrationNumber' => [
-                    'Number' => $item['senderTaxNumber'] ?? '',//发件人注册号/税号
+                    'Number' => ($dhl['sender_tax_number_type'] == 'SDT')?$item['iossNumber']:$item['senderTaxNumber'],//发件人注册号/税号
                     'NumberTypeCode' => $dhl['sender_tax_number_type'] ?? '',//发件人注册号/税号类别
                     'NumberIssuerCountryCode' => $dhl['tax_numberIssuer_country_code'] ?? 'CN',//发件人注册号/税号所属国国家代码
                 ]
@@ -268,7 +268,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     'PhoneNumber' => $item['senderPhone'] ?? '',//发件人电话
                     'Email' => $item['senderEmail'] ?? '',//发件人邮箱
                 ],//发件人信息
-                'RegistrationNumbers' => isset($item['senderTaxNumber']) && !empty($item['senderTaxNumber']) ? $shipperRegistrationNumbers : '',
+                'RegistrationNumbers' => (isset($item['senderTaxNumber']) && !empty($item['senderTaxNumber']) || $dhl['sender_tax_number_type'] == 'SDT') ? $shipperRegistrationNumbers : '',
                 'BusinessPartyTypeCode' => $dhl['sender_business_type'] ?? '',//发件人类别
             ];
 

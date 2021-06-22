@@ -179,6 +179,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'consignee_credentials_period' => '', //N:证件有效期， 格式：2014-04-15
                     'consignee_doorplate' => '', //收件人门牌号（注意：除一些特殊专线产品要求单独上传门牌号外，门牌号直接放地址里面即可无需单独放到此字段）
                     'consignee_taxno' => $item['recipientTaxNumber'] ?? '',// N:收件人个人税号Length<=32
+                    'IOSS' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 ],
                 'Shipper' => [
                     //发件人信息
