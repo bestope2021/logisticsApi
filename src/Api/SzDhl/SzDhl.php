@@ -95,6 +95,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $xml .= self::$xmlHeader[$root];
         $xml .= static::arrayToXmlInc($array);
         $xml .= self::$xmlFoot[$root];
+        //file_put_contents('1.xml',$xml);die;
         return $xml;
     }
 
@@ -123,7 +124,10 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $xml = preg_replace('/\<AddressLine1\>.*\<\/AddressLine1\>/i','',$xml);
         $xml = preg_replace('/\<AddressLine2\>.*\<\/AddressLine2\>/i','',$xml);
         $xml = preg_replace('/\<AddressLine3\>.*\<\/AddressLine3\>/i','',$xml);
-        parent::xmlToArray($xml);
+        //禁止引用外部xml实体
+        libxml_disable_entity_loader(true);
+        $data = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+        return $data;
     }
 
     //生成uuid唯一标识
@@ -548,23 +552,23 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         }
 
         // 处理结果
-        $fieldData = [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
         $data = isset($response['AWBInfo']['Status']['ShipmentInfo']['ShipmentEvent'])?$response['AWBInfo']['Status']['ShipmentInfo']['ShipmentEvent']:null;
 
         $ls = [];
         //ShipmentEvent如果是二维数组
-        foreach ($data as $key => $val) {
-            $info = [
-                'status' => $val['ServiceEvent']['EventCode'],
-                'pathInfo' => $val['ServiceEvent']['Description'],
-                'pathTime' => $val['Date'].' '.$val['Time'],
-                'pathAddr' => $val['ServiceArea']['ServiceAreaCode'].':'.$val['ServiceArea']['Description'],
-            ];
-            $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($info, $fieldMap2);
+        if(!empty($data)) {
+            foreach ($data as $key => $val) {
+                $info = [
+                    'status' => $val['ServiceEvent']['EventCode'],
+                    'pathInfo' => $val['ServiceEvent']['Description'],
+                    'pathTime' => $val['Date'] . ' ' . $val['Time'],
+                    'pathAddr' => $val['ServiceArea']['ServiceAreaCode'] . ':' . $val['ServiceArea']['Description'],
+                ];
+                $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($info, $fieldMap2);
+            }
         }
-
         //ShipmentEvent如果是一维数组
         /*$info = [
             'status' => $data['ServiceEvent']['EventCode'],
@@ -579,7 +583,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $data['status'] = $flag ? $response['AWBInfo']['Status']['ActionStatus']:'';
         $data['tno'] = $trackNumber;
         $data['sPaths'] = $ls;
-        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
+        $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 
         return $this->retSuccessResponseData($fieldData);
     }
