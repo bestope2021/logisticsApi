@@ -118,6 +118,14 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         return $xml;
     }
 
+    public static function xmlToArray($xml){
+        //过滤地址
+        $xml = preg_replace('/\<AddressLine1\>.*\<\/AddressLine1\>/i','',$xml);
+        $xml = preg_replace('/\<AddressLine2\>.*\<\/AddressLine2\>/i','',$xml);
+        $xml = preg_replace('/\<AddressLine3\>.*\<\/AddressLine3\>/i','',$xml);
+        parent::xmlToArray($xml);
+    }
+
     //生成uuid唯一标识
     public static function uuid($prefix = '')
     {
