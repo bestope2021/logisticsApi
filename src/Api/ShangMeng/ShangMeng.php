@@ -123,7 +123,7 @@ class ShangMeng extends LogisticsAbstract implements BaseLogisticsInterface, Pac
                 'BuyerCounty' => '', //N:买家区县
                 'BuyerAddress' => $item['recipientStreet'] ?? '',// Y:收件人街道
                 'BuyerAddress1' => $item['recipientStreet1'] ?? '',// Y:收件人街道
-                'BuyerTaxNo' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
+                'BuyerTaxNo' => $item['iossNumber'] ?? $item['recipientTaxNumber'],// 欧盟税号（ioss税号）
                 'SellerCode' => '', //N:卖家平台 ID
                 'SellerCompany' => $item['senderCompany'] ?? '', //N:寄件人公司名
                 'SellerFullName' => $item['senderName'] ?? '', //N:发件人姓名

@@ -243,7 +243,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 'duty_type' => $item['dutyType'] ?? 'P',// Y:税费费用承担方式(可选值：U、P); DDU由收件人支付关税：U; DDP 由寄件方支付关税：P; （如果物流产品只提供其中一种，则以4PX提供的为准）
                 'cargo_type' => '5',// N:货物类型（礼品：1;文件：2;商品货样:3;其它：5；默认值：5）
 
-                'vat_no' => '',// N:VAT税号(数字或字母)
+                'vat_no' => $item['recipientTaxNumber'] ?? '',// N:VAT税号(数字或字母)
                 'eori_no' => '',// N:IOR号码(数字或字母)
                 'ioss_no' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 'buyer_id' => '',// N:买家ID(数字或字母)

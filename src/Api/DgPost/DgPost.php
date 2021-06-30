@@ -153,9 +153,9 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'declare_curr_code' => 'USD',//申报币制代码,固定填 USD
                 'forecastshut' => isset($item['tariffPrepay']) && $item['tariffPrepay'] > 0?1:0,//预报关：0-无预报关信息1-有预报关信息
                 'mail_sign' => 2,//9610 标识,1:是 2：否；目前填 2：否
-                's_tax_id' => $item['iossNumber'] ?? '',//寄件人税号, VAT 识别账号
+                's_tax_id' => $item['iossNumber'] ?? $item['recipientTaxNumber'],//寄件人税号, VAT 识别账号
                 'platform_type' => 0,//0:其他 1:速卖通 (目前支持速卖通平台通过平台主订单号查询预缴增值税方式和 VAT 识别账号，其他平台需要通过接口字段传预缴增值税方式和VAT 识别账号) 空值默认 0
-                'prepayment_of_vat' => 0,//0/1/2 (0: IOSS 1: no-IOSS 2: other)
+                'prepayment_of_vat' => $item['iossNumber'] ?0:2,//0/1/2 (0: IOSS 1: no-IOSS 2: other)
                 'sender' => $sender,//发件人信息
                 'receiver' => $receiver,//收件人信息
                 'items' => $productList,//商品信息

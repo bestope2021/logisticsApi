@@ -192,8 +192,8 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
                     'Postcode' => $item['senderPostCode'] ?? '',// N:发件人邮编Length <= 32
                     'ContactInfo' => $item['senderPhone'] ?? ($item['senderPhone'] ?? ($item['senderEmail'] ?? '')), // N:联系信息(邮箱 或者 电话)
                     'Taxations' => [[
-                        'TaxType' => 'IOSS',//IOSS: 欧盟2021税改后，进入欧盟货物需要提供 IOSS
-                        'Number' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
+                        'TaxType' => $item['iossNumber'] ?'IOSS':'VatNo',//IOSS: 欧盟2021税改后，进入欧盟货物需要提供 IOSS
+                        'Number' => $item['iossNumber'] ?? $item['recipientTaxNumber'],// 欧盟税号（ioss税号）
                     ]]
                 ],
                 'ShippingAddress' => [// 发件人信息

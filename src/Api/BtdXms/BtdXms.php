@@ -180,7 +180,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             $order_info['a:Province'] = $item['recipientState'] ?? '';//收件人省州
             $order_info['a:ShippingWay'] = $item['shippingMethodCode'] ?? 'FedEx';//渠道
             $order_info['a:Street'] = $address ?? '';//街道
-            $order_info['a:TaxID'] = $item['iossNumber'] ?? '';// 欧盟税号（ioss税号）
+            $order_info['a:TaxID'] = $item['iossNumber'] ?? $item['senderTaxNumber'];// 欧盟税号（ioss税号）
             $order_info['a:TrackingNumber'] = '';//物流单号
 
             $ls[]['order'] = $order_info;

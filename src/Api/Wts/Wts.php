@@ -168,7 +168,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'consignee_postcode' => $item['recipientPostCode'] ?? '', //N:收件人邮编
                 "consignee_passportno" => $item['recipientIdentityNumber'] ?? '', //收件护照号，选填
                 'consignee_email' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
-                'consignee_taxno' => '', //税号
+                'consignee_taxno' => $item['recipientTaxNumber'] ?? '', //税号
                 'consignee_doorno' => '', //门牌号
                 'shipper_taxnotype' => 'IOSS', //税号类型，可选值IOSS,NO-IOSS,OTHER
                 'shipper_taxno' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
