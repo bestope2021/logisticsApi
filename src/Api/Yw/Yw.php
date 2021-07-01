@@ -128,7 +128,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                 'MRP' => '', //N:申报建议零售价
                 'ExpiryDate' => '', //N:产品使用到期日
                 'Sender' => [
-                    'TaxNumber' => $item['iossNumber'] ?? $item['recipientTaxNumber'], //寄件人税号（VOEC No/ VAT No）。todo 若下单英国，请提供店铺VAT税号，税号规则为GB+9位数字
+                    'TaxNumber' => !empty($item['iossNumber']) ?$item['iossNumber']: $item['recipientTaxNumber'], //寄件人税号（VOEC No/ VAT No）。todo 若下单英国，请提供店铺VAT税号，税号规则为GB+9位数字
                 ],
                 'Receiver' => [ //收件人信息
                     'Userid' => $this->config['userId'], //客户号
