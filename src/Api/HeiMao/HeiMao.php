@@ -120,7 +120,14 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $order_weight += $value['declareWeight'];
             }
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
-            $ls[] = [
+            $extra_service = [];
+            if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
+                $extra_service = [
+                    'extra_servicecode' => 'IOSS',//额外服务类型代码
+                    'extra_servicevalue' => $item['iossNumber'],//额外服务值
+                ];
+            }
+            $data = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'US0022',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
@@ -169,11 +176,13 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'consignee_certificatetype' => '',//N:证件类型代码  ID：身份证  PP：护照
                     'consignee_certificatecode' => $item['recipientIdentityNumber'] ?? '',// N:证件号码
                     'consignee_credentials_period' => '', //N:证件有效期， 格式：2014-04-15
-                    'consignee_tariff' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
+                    'consignee_tariff' => $item['recipientTaxNumber'] ?? '',// 收件人税号
                 ],
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
+            if(!empty($extra_service)) $data['extra_service'] = $extra_service;
+            $ls[] = $data;
         }
 
         $response = $this->request(__FUNCTION__, $ls[0]);
