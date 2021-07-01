@@ -169,7 +169,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
                 'consignee_email' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
                 'consignee_taxno' => $item['recipientTaxNumber'] ?? '', //税号
                 'consignee_doorno' => '', //门牌号
-                'shipper_taxnotype' => 'IOSS', //税号类型，可选值IOSS,NO-IOSS,OTHER
+                'shipper_taxnotype' => (isset($item['iossNumber'])&&!empty($item['iossNumber']))?'IOSS':'OTHER', //税号类型，可选值IOSS,NO-IOSS,OTHER
                 'shipper_taxno' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 'customer_id' => $this->config['customer_id'],
                 'customer_userid' => $this->config['customer_userid'],
