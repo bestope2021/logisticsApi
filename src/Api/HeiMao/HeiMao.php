@@ -123,7 +123,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $extra_service = [];
             if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
                 $extra_service = [
-                    'extra_servicecode' => 'IOSS',//额外服务类型代码
+                    'extra_servicecode' => 'IO',//额外服务类型代码
                     'extra_servicevalue' => $item['iossNumber'],//额外服务值
                 ];
             }

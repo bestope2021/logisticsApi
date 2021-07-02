@@ -101,6 +101,13 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             throw new ManyProductException($this->iden_name . "一次最多支持提交" . self::ORDER_COUNT . "个包裹");
         }
 
+        if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
+            $extra_service = [
+                'extra_servicecode' => 'IO',//额外服务类型代码
+                'extra_servicevalue' => $item['iossNumber'],//额外服务值
+            ];
+        }
+
         foreach ($params as $item) {
             $productList = [];
             $order_weight = 0;
@@ -124,7 +131,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 $order_weight += $value['declareWeight'];
             }
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
-            $ls[] = [
+            $data = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'US0022',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
@@ -173,11 +180,13 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                     'consignee_certificatetype' => '',//N:证件类型代码  ID：身份证  PP：护照
                     'consignee_certificatecode' => $item['recipientIdentityNumber'] ?? '',// N:证件号码
                     'consignee_credentials_period' => '', //N:证件有效期， 格式：2014-04-15
-                    'consignee_tariff' => !empty($item['iossNumber']) ?$item['iossNumber']: $item['recipientTaxNumber'],// 欧盟税号（ioss税号）
+                    'consignee_tariff' => $item['recipientTaxNumber'],// 收件人税号
                 ],
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
+            if(!empty($extra_service)) $data['extra_service'] = $extra_service;
+            $ls[] = $data;
         }
         $response = $this->request(__FUNCTION__, $ls[0]);
 

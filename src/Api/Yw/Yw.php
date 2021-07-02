@@ -143,7 +143,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                     'City' => $item['recipientCity'] ?? '', //N:收件人城市
                     'Address1' => $item['recipientStreet'] ?? '',// Y:收件人街道
                     'Address2' => $item['recipientStreet1'] ?? '', //收货人-地址2
-                    'NationalId' => $item['recipientIdentityNumber'] ?? '',// N:护照ID，税号。（国家为巴西时 此属性必填）
+                    'NationalId' => $item['recipientTaxNumber'] ?? '',// N:护照ID，税号。（国家为巴西时 此属性必填）
                 ],
 
                 'GoodsName' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）

@@ -133,8 +133,8 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'iItem' => 1,// Y:件数，默认1,此为单个订单包裹数量，非SKU 数量
                 'nPayWay' => ($item['payWay'] ?? 1),// Y:付款方式，默认为1。取值为：0(月结),1(现付),2(到付)
                 'cAddrFrom' => FieldMap::platformMap($item['platformSource'] ?? ''),  //Y:订单对应平台
-                'cRTaxCode' => '',// N:进口清关VAT税号-境外海关清关（更新）
-                'cSTaxCode' => '',// N:出口清关税号-中国海关出口清关（新增）
+                'cRTaxCode' => $item['recipientTaxNumber']??'',// N:进口清关VAT税号-境外海关清关（更新）
+                'cSTaxCode' => $item['recipientTaxNumber']??'',// N:出口清关税号-中国海关出口清关（新增）
                 'cMemo' => $item['remark'] ?? '', //N:包裹备注
                 // 收件人信息
                 'cReceiver' => $item['recipientName'] ?? '',// Y:收件人,3-63 字符
