@@ -119,13 +119,9 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
     }
 
     public static function xmlToArray($xml){
-        //过滤地址
-        $xml = preg_replace('/\<AddressLine1\>.*\<\/AddressLine1\>/i','',$xml);
-        $xml = preg_replace('/\<AddressLine2\>.*\<\/AddressLine2\>/i','',$xml);
-        $xml = preg_replace('/\<AddressLine3\>.*\<\/AddressLine3\>/i','',$xml);
         //禁止引用外部xml实体
         libxml_disable_entity_loader(true);
-        $data = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
+        $data = json_decode(json_encode(simplexml_load_string(utf8_encode($xml), 'SimpleXMLElement', LIBXML_NOCDATA)), true);
         return $data;
     }
 
