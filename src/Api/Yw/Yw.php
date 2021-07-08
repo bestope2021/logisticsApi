@@ -159,7 +159,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
         $tmpArr = $response['CreatedExpress'];
         $tmpArr['flag']= $response['CallSuccess'] != 'false' ? true : false;
         $tmpArr['info']= $response['Response']['ReasonMessage'] ?? '';
-        $tmpArr['YanwenNumber']= $response['Epcode'] ?? '';
+        $tmpArr['YanwenNumber']= $response['CreatedExpress']['Epcode'] ?? '';
         $fieldMap = FieldMap::createOrder();
         $arr = array_merge($reqRes, LsSdkFieldMapAbstract::getResponseData2MapData($tmpArr, $fieldMap));
         return $this->retSuccessResponseData($arr);
