@@ -47,6 +47,73 @@ abstract class LogisticsAbstract
      */
     protected $config = [];
 
+    /**新的请求接口
+     * @param string $method
+     * @param string $url
+     * @param array $data
+     * @param string $dataType
+     * @param array $header
+     * @param string $encoding
+     * @param string $root
+     * @param bool $parseResponse
+     * @return mixed
+     * @throws CurlException
+     */
+    final public function sendCurlNew($method = 'post', $url = '', $data = [], $dataType = 'json', $header = [], $encoding = 'utf-8', $root = 'xml', $parseResponse = true)
+    {
+        $curl = new Curl();
+        $method = strtolower($method);
+        switch ($method) {
+            case 'get':
+                $params = is_array($data) ? $data : [];
+                $http = $curl->setGetParams($params);
+                break;
+
+            case 'delete':
+                $http = $curl;
+                break;
+
+            case 'post':
+            default:
+                switch (strtolower($dataType)) {
+                    case 'form':
+                        $params = is_array($data) ? $data : [];
+                        $http = $curl->setPostParams($params);
+                        break;
+
+                    case 'xml':
+                        $params = static::arrayToXml($data, $root, $encoding);// 转xml格式
+                        $http = $curl->setRawPostData($params);
+                        break;
+
+                    case 'json':
+                    default:
+                        if(!empty($header['isEncoded'])){
+                            $params=urlencode($header['body']);
+                        }else{
+                            $params=$header['body'];
+                        }
+
+
+                        $http = $curl->setRequestBody(http_build_query($header));
+                        unset($header['body']);
+                        break;
+                }
+                break;
+        }
+
+        $title = Logs::getTitle();
+        $reqTitle = "第三方请求: {$title}";
+        $resTitle = "第三方响应: {$title}";
+        Logs::info($reqTitle, "请求头", $header, $this->iden);
+        Logs::info($reqTitle, "请求方式@URL: {$method}@{$url}", $params ?? [], $this->iden);
+        $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->setOption(CURLOPT_TIMEOUT, 180)->$method($url);
+        Logs::info($resTitle, "请求方式@URL: {$method}@{$url}", $response, $this->iden);
+        if (!$parseResponse) {
+            return $response;
+        }
+        return static::parseResponse($curl, $dataType, $response, $resTitle, $this->iden);
+    }
 
     /**
      * 统一发送请求
@@ -88,7 +155,7 @@ abstract class LogisticsAbstract
                 break;
 
         }
-//        var_dump($url, $header, $params);
+
         $title = Logs::getTitle();
         $reqTitle = "第三方请求: {$title}";
         $resTitle = "第三方响应: {$title}";
@@ -99,7 +166,7 @@ abstract class LogisticsAbstract
         if (!$parseResponse) {
             return $response;
         }
-//        var_dump($response);die;
+
         return static::parseResponse($curl, $dataType, $response, $resTitle, $this->iden);
 
     }

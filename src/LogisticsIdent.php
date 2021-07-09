@@ -61,5 +61,8 @@ class LogisticsIdent
     const LS_IDENT_4PX = '4px';
     // 天木头程
     const LS_IDENT_TIANMU = 'tianmu';
-
+    // 骏兴头程
+    const LS_IDENT_JUNXING = 'junxing';
+    // 巴通
+    const LS_IDENT_BA_TONG = 'batong';
 }

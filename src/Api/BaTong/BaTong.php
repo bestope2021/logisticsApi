@@ -2,13 +2,12 @@
 /**
  *
  * User: blaine
- * Date: 2/23/21
+ * Date: 2/22/21
  */
 
-namespace smiler\logistics\Api\ShiHang;
+namespace smiler\logistics\Api\BaTong;
 
 
-use smiler\logistics\Api\ShiHang\FieldMap;
 use smiler\logistics\Common\BaseLogisticsInterface;
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
@@ -19,17 +18,13 @@ use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
 /**
- * 世航国际物流
- * @link http://shgj.rtb56.com/usercenter/manager/api_document.aspx#createorder
- * Class ShiHang
- * @package smiler\logistics\Api\ShiHang
+ * 巴通物流
+ * @link http://szdbf.rtb56.com/usercenter/manager/api_document.aspx
+ * Class BaTong
+ * @package smiler\logistics\Api\BaTong
  */
-class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
+class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
 {
-    public $iden = "shihang";
-
-    public $iden_name = "世航国际物流";
-
     /**
      * 一次最多提交多少个包裹
      */
@@ -38,6 +33,8 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
      * 一次最多查询多少个跟踪号
      */
     const QUERY_TRACK_COUNT = 1;
+    public $iden = 'batong';
+    public $iden_name = '巴通物流';
     /**
      * curl 请求数据类型
      * @var string
@@ -100,13 +97,6 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             throw new ManyProductException($this->iden_name . "一次最多支持提交" . self::ORDER_COUNT . "个包裹");
         }
 
-        if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
-            $extra_service = [
-                'extra_servicecode' => 'IO',//额外服务类型代码
-                'extra_servicevalue' => $item['iossNumber'],//额外服务值
-            ];
-        }
-
         foreach ($params as $item) {
             $productList = [];
             $order_weight = 0;
@@ -130,6 +120,13 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 $order_weight += $value['declareWeight'];
             }
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $extra_service = [];
+            if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
+                $extra_service = [
+                    'extra_servicecode' => 'IO',//额外服务类型代码
+                    'extra_servicevalue' => $item['iossNumber'],//额外服务值
+                ];
+            }
             $data = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
@@ -179,7 +176,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                     'consignee_certificatetype' => '',//N:证件类型代码  ID：身份证  PP：护照
                     'consignee_certificatecode' => $item['recipientIdentityNumber'] ?? '',// N:证件号码
                     'consignee_credentials_period' => '', //N:证件有效期， 格式：2014-04-15
-                    'consignee_tariff' => $item['recipientTaxNumber'],// 收件人税号
+                    'consignee_tariff' => $item['recipientTaxNumber'] ?? '',// 收件人税号
                 ],
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
@@ -187,6 +184,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             if(!empty($extra_service)) $data['extra_service'] = $extra_service;
             $ls[] = $data;
         }
+
         $response = $this->request(__FUNCTION__, $ls[0]);
 
         $reqRes = $this->getReqResData();
@@ -209,12 +207,13 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 $fieldData['flag'] = false;
                 $fieldData['info'] = $trackNumberResponse['cnmessage'];
             }
-            $fieldData['channel_hawbcode'] = !empty($trackNumberResponse['data']['channel_hawbcode']) ?$trackNumberResponse['data']['channel_hawbcode'] :  $response['data']['shipping_method_no'];
+            $fieldData['channel_hawbcode'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
         }
 
         $fieldData['order_id'] = $response['data']['order_id'] ?? '';
         $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
         $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
+        $fieldData['channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
@@ -381,6 +380,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 'config_code' => '1', //标签纸张配置代码1：标签纸-地址标签2：标签纸-地址标签+报关单3：标签纸-地址标签+配货单4：标签纸-地址标签+报关单+配货单5：A4纸-地址标签6：A4纸-地址标签+报关单7：A4纸-地址标签+配货单8：A4纸-地址标签+报关单+配货单
             ];
         }
+
         $response = $this->request(__FUNCTION__, $data);
 
         // 处理结果
@@ -390,6 +390,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
+
         foreach ($response['data'] as $item) {
             $item['flag'] = true;
             $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;

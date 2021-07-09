@@ -8,6 +8,7 @@
 namespace smiler\logistics;
 
 
+use smiler\logistics\Api\BaTong\BaTong;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\CNE\Cne;
@@ -34,6 +35,7 @@ use smiler\logistics\Api\XyExp\XyExp;
 use smiler\logistics\Api\XyExp\XyExpTrack;
 use smiler\logistics\Api\Yw\Yw;
 use smiler\logistics\Api\Yw\YwTrack;
+use smiler\logistics\Api\JunXing\JunXing;
 
 /**
  * Class LogisticsApiIdenConfig
@@ -74,6 +76,8 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_CNE => Cne::class,// 递一国际
         LogisticsIdent::LS_IDENT_4PX => FourPX::class,// 递四方4PX
         LogisticsIdent::LS_IDENT_TIANMU => TianMu::class,// 天木头程
+        LogisticsIdent::LS_IDENT_JUNXING => JunXing::class,// 骏兴头程
+        LogisticsIdent::LS_IDENT_BA_TONG => BaTong::class,// 巴通
     ];
 
     /**
