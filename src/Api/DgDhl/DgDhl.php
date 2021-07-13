@@ -66,6 +66,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
 
     //需要在包裹信息节点里设置危险代码
     public $detailDgList = [
+        'HV' => 'Lithium ion batteries in compliance with Pl967 ll(less than 2 batteries or 4 cells)',
         'A123' => 'THE substance is not subject to IATA DGR according to special provision A123',
         'A67' => 'THE substance is not restricted to IATA DGR according to special provision A67',
         'A12' => 'Not restricted according to IATA DGR A12',
