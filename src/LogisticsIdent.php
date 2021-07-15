@@ -65,4 +65,6 @@ class LogisticsIdent
     const LS_IDENT_JUNXING = 'junxing';
     // 巴通
     const LS_IDENT_BA_TONG = 'batong';
+    // 出口易
+    const LS_IDENT_BHEO = 'ChuKou1';
 }

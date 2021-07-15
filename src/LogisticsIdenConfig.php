@@ -9,6 +9,7 @@ namespace smiler\logistics;
 
 
 use smiler\logistics\Api\BaTong\BaTong;
+use smiler\logistics\Api\Bheo\Bheo;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\CNE\Cne;
@@ -78,6 +79,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_TIANMU => TianMu::class,// 天木头程
         LogisticsIdent::LS_IDENT_JUNXING => JunXing::class,// 骏兴头程
         LogisticsIdent::LS_IDENT_BA_TONG => BaTong::class,// 巴通
+        LogisticsIdent::LS_IDENT_BHEO =>Bheo::class,// 出口易
     ];
 
     /**
