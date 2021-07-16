@@ -39,7 +39,9 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
      * 一次最多删除多少个跟踪号
      */
     const DEL_TRACK_COUNT = 200;
+
     public $iden = 'junxing';
+
     public $iden_name = '骏兴头程物流';
     /**
      * curl 请求数据类型
@@ -69,7 +71,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
      */
     public function __construct(array $config)
     {
-        //$this->checkKeyExist(['appToken', 'url', 'appKey'], $config);
+        $this->checkKeyExist(['appId', 'appSecret'], $config);
         $this->config = $config;
     }
 
@@ -106,22 +108,8 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
                     'cargoNameCn' => $value['declareCnName'] ?? '',// Y:申报英文名称Length <= 50
                     'cargoNameEn' => $value['declareEnName'] ?? '',// N:申报中文名称Length <= 50
                     'declareQty' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
-//                    'customsCode' => $value['hsCode'] ?? '',// N:海关编码
                     'unitPrice' => round((float)($value['declarePrice'] ?? ''), 3), //Y:申报单价
                     'currency' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
-//                    'weight' => $value['netWeight'] ?? '',// 净重
-//                    'unit' => 'PCE', //N:单位  MTR：米  PCE：件 SET：套 默认PCE
-//                    'pcs' => 1, //N:外包装件数,默认1
-//                    'roughWeight'=>round((float)($value['grossWeight']??''),3),//毛重
-//                    'countryOrigin'=> $value['originCountry'] ?? '', //商品产地,//原产地
-//                    'include' => '', //货物包含
-//                    'remark'=>'',//申报备注
-//                    'purpose'=>'',//用途
-//                    'texture' => '', //N:申报材质
-//                    'brand'=>'',//品牌
-//                    'cargoUrl' => $value['productUrl'] ?? '',// N:销售地址
-//                    'sku' => $value['productSku']??'', //SKU信息
-//                    'cartonNo' => '', //箱号
                 ];
                 $OrderSingInfoVOs[] = [
                     'length' => round((float)($value['length'] ?? ''), 3),//长度
