@@ -88,10 +88,10 @@ abstract class LogisticsAbstract
 
                     case 'json':
                     default:
-                        if(!empty($header['isEncoded'])){
-                            $params=urlencode($header['body']);
-                        }else{
-                            $params=$header['body'];
+                        if (!empty($header['isEncoded'])) {
+                            $params = urlencode($header['body']);
+                        } else {
+                            $params = $header['body'];
                         }
 
 
@@ -166,7 +166,6 @@ abstract class LogisticsAbstract
         if (!$parseResponse) {
             return $response;
         }
-
         return static::parseResponse($curl, $dataType, $response, $resTitle, $this->iden);
 
     }
@@ -225,6 +224,19 @@ abstract class LogisticsAbstract
                 break;
 
             case 404:
+            case 500:
+                switch (strtolower($dataType)) {
+                    case 'xml':
+                        $return = static::xmlToArray($response);
+                        break;
+
+                    case 'form':
+                    case 'json':
+                    default:
+                        $return = json_decode($response, true);
+                        break;
+                }
+                break;//仅针对出口易的错误返回json格式，且状态码是500
             default:
                 Logs::error($resTitle, "CURL请求失败", $response, $dir);
                 //404 Error logic here
