@@ -33,7 +33,9 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      * 一次最多查询多少个跟踪号
      */
     const QUERY_TRACK_COUNT = 1;
+
     public $iden = 'batong';
+
     public $iden_name = '巴通物流';
     /**
      * curl 请求数据类型
@@ -119,9 +121,9 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $extra_service = [];
-            if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
+            if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [
                     'extra_servicecode' => 'IO',//额外服务类型代码
                     'extra_servicevalue' => $item['iossNumber'],//额外服务值
@@ -181,14 +183,14 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
-            if(!empty($extra_service)) $data['extra_service'] = $extra_service;
+            if (!empty($extra_service)) $data['extra_service'] = $extra_service;
             $ls[] = $data;
         }
 
         $response = $this->request(__FUNCTION__, $ls[0]);
 
         $reqRes = $this->getReqResData();
-//        $this->dd($response);
+
 
         // 处理结果
         $fieldData = [];
@@ -210,7 +212,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $fieldData['channel_hawbcode'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
         }
 
-        $fieldData['order_id'] = $response['data']['channel_hawbcode'] ?? $response['data']['order_id'];
+        $fieldData['order_id'] = $response['data']['channel_hawbcode'] ?? ($response['data']['order_id'] ?? '');
         $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
         $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
         $fieldData['channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
