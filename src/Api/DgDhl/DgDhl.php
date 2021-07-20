@@ -343,6 +343,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 if(!empty($dhl['dg'])) {
                     $dg_list = explode(',',$dhl['dg']);
                     foreach ($dg_list as $dg) {
+                        if(!in_array($dg,array_keys($this->specialServiceDgList))) continue;
                         $special_tmp['SpecialServiceType'] = $dg;//DHL特殊/增值服务代码
                         $specialService[] = ['SpecialService' => $special_tmp];
                     }

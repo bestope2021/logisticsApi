@@ -109,4 +109,21 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 
         return self::getFieldMap(self::getShippingMethodFields(), $field);
     }
+
+    /**
+     * 获取追踪号
+     * @param mixed ...$vars
+     * @return mixed
+     */
+    public static function getTrackNumber(...$vars)
+    {
+        $field = [
+            'flag',// 处理状态： true 成功，false 失败
+            'info',// 提示信息
+            'trackingNo',// 追踪号
+            'frt_channel_hawbcode',// 尾程追踪号
+        ];
+
+        return self::getFieldMap(self::getTrackNumberFields(), $field);
+    }
 }
