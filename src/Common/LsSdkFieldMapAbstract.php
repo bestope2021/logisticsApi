@@ -136,5 +136,18 @@ abstract class LsSdkFieldMapAbstract
         ];
     }
 
-
+    /**
+     * 必须字段 - 获取追踪号
+     * 可扩展
+     * @return array
+     */
+    final static function getTrackNumberFields(): array
+    {
+        return [
+            ResponseDataConst::LSA_FLAG,// 处理状态： true 成功，false 失败
+            ResponseDataConst::LSA_TIP_MESSAGE,// 提示信息
+            ResponseDataConst::LSA_TRACKING_NUM,// 追踪号
+            ResponseDataConst::LSA_FRT_TRACKING_NUM,// 尾程追踪号
+        ];
+    }
 }
