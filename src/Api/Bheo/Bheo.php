@@ -403,7 +403,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         }
         $res = $response;
         foreach ($res as $item) {
-            $item['code'] = strtoupper(LogisticsIdent::LS_IDENT_BHEO);//全大写
+            $item['code'] = $item['ServiceCode'];//strtoupper(LogisticsIdent::LS_IDENT_BHEO);//全大写
             $item['fieldCode'] = $item['ServiceCode'];
             $item['fieldName'] = $item['ServiceName'];
             $item['shipping_method_type'] = $item['IsTracking'];
