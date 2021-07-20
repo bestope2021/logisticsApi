@@ -96,7 +96,6 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $xml .= self::$xmlHeader[$root];
         $xml .= static::arrayToXmlInc($array);
         $xml .= self::$xmlFoot[$root];
-        //file_put_contents('1.xml',$xml);die;
         return $xml;
     }
 
@@ -121,10 +120,6 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
     }
 
     public static function xmlToArray($xml){
-        //过滤地址
-        $xml = preg_replace('/\<AddressLine1\>.*\<\/AddressLine1\>/i','',$xml);
-        $xml = preg_replace('/\<AddressLine2\>.*\<\/AddressLine2\>/i','',$xml);
-        $xml = preg_replace('/\<AddressLine3\>.*\<\/AddressLine3\>/i','',$xml);
         //禁止引用外部xml实体
         libxml_disable_entity_loader(true);
         $data = json_decode(json_encode(simplexml_load_string(utf8_encode($xml), 'SimpleXMLElement', LIBXML_NOCDATA)), true);
@@ -348,6 +343,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 if(!empty($dhl['dg'])) {
                     $dg_list = explode(',',$dhl['dg']);
                     foreach ($dg_list as $dg) {
+                        if(!in_array($dg,array_keys($this->specialServiceDgList))) continue;
                         $special_tmp['SpecialServiceType'] = $dg;//DHL特殊/增值服务代码
                         $specialService[] = ['SpecialService' => $special_tmp];
                     }
@@ -570,6 +566,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($info, $fieldMap2);
             }
         }
+
         //ShipmentEvent如果是一维数组
         /*$info = [
             'status' => $data['ServiceEvent']['EventCode'],

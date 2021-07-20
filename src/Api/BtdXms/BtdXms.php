@@ -207,8 +207,8 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         if($response['flag'] && (empty($response['info']['aRefID']) || empty($response['info']['aTrackingNumber']))){
             $trackNumber = $this->getTrackNumber($response['info']['aID']);
             if($trackNumber['flag']){
-                $fieldData['trackingNo'] = $trackNumber['info']['aRefID'] ?? '';//追踪号
-                $fieldData['frt_channel_hawbcode'] = $trackNumber['info']['aTrackingNumber'] ?? '';//尾程追踪号
+                $fieldData['trackingNo'] = $trackNumber['trackingNumber']?? '';//追踪号
+                $fieldData['frt_channel_hawbcode'] = $trackNumber['frtTrackingNumber'] ?? '';//尾程追踪号
             }
         }
 
@@ -225,20 +225,18 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function getTrackNumber(string $processCode,$is_ret=false)
     {
         $param = ['number' => $processCode];
-
         $response = $this->request(__FUNCTION__, $param);
 
+        $fieldData = [];
+        $fieldMap = FieldMap::getTrackNumber();
         $response = $this->resultsVerify($response,__FUNCTION__);
-
-        if($is_ret){
-            $data = [
-                'trackingNumber' => $trackNumber['info']['aRefID'] ?? '',//追踪号
-                'frtTrackingNumber' => $trackNumber['info']['aTrackingNumber'] ?? '',//尾程追踪号
-            ];
-            $this->retSuccessResponseData($data);
-        }
-
-        return $response;
+        $fieldData['flag'] = $response['flag'];
+        $fieldData['info'] = $response['flag'] ? '' : ($response['info'] ?? '未知错误');
+        $fieldData['trackingNo'] = $response['flag'] ? $response['info']['aRefID'] : '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $response['flag'] ? $response['info']['aTrackingNumber'] : '';//尾程追踪号
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
+        if($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+        return $ret;
     }
 
     public function request($function, $data = [] ,$method = self::METHOD_POST)
