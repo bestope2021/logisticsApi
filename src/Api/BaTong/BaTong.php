@@ -19,7 +19,7 @@ use smiler\logistics\LogisticsAbstract;
 
 /**
  * 巴通物流
- * @link http://szdbf.rtb56.com/usercenter/manager/api_document.aspx
+ * @link http://btgyl.rtb56.com/webservice/PublicService.asmx/ServiceInterfaceUTF8
  * Class BaTong
  * @package smiler\logistics\Api\BaTong
  */
@@ -283,6 +283,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         foreach ($response['data'] as $item) {
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
+
         return $this->retSuccessResponseData($fieldData);
     }
 

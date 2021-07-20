@@ -446,7 +446,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
         $data['Checkpoints'] = $ls;
-        $data['flag'] = !empty($response[0]) ? true : false;
+        $data['flag'] = isset($data) ? true : false;
         $data['message'] = '获取成功';
         $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
         return $this->retSuccessResponseData($fieldData);
