@@ -62,10 +62,17 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
     }
     public static function createSign(&$str_arr){
         $app_secret=$str_arr['appSecret'];
-        //ksort($str_arr);//按键名升序排列
+        //ksort($str_arr);//按键名升序排列，不能排序
         unset($str_arr['appSecret']);
-        //json格式化body
-        $str_arr['body']=json_encode($str_arr['body'],JSON_UNESCAPED_UNICODE);
+
+        if(empty($str_arr['body'])){
+            //强制转对象
+            $str_arr['body']=json_encode($str_arr['body'],JSON_FORCE_OBJECT);
+        }else{
+            //json格式化body
+            $str_arr['body']=json_encode($str_arr['body'],JSON_UNESCAPED_UNICODE);
+        }
+
         $b = '';
         foreach($str_arr as $key=>$value){
             $b.=$value;

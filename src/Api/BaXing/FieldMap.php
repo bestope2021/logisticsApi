@@ -101,7 +101,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
     {
         $field = [
             'code',// 运输方式代码
-            'name',// 运输方式英文
+            'code',// 运输方式英文
             'name',// 运输方式中文
             'shipping_method_type',// 运输方式类型
             'remark',// 备注

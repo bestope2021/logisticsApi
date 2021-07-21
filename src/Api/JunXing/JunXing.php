@@ -482,20 +482,19 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldMap = FieldMap::shippingMethod();//字段映射
         $response = $this->getTransport(__FUNCTION__, []);
         if (!empty($response['result_code'])) {
-            $this->retErrorResponseData();
+            $this->retErrorResponseData($response['message']??'骏兴头程物流商获取运输方式接口异常，获取失败！');
         }
         if ((empty($response['result_code'])) && (!empty($response['body']))) {
-            //$res = iconv('GBK', 'utf-8', $res);
             $res = json_decode($response['body'], true);
             foreach ($res as $item) {
-                $item['code'] = strtoupper(LogisticsIdent::LS_IDENT_JUNXING);//全大写
+                $item['code'] = $item['fieldCode'];//strtoupper(LogisticsIdent::LS_IDENT_JUNXING);//全大写
                 $item['shipping_method_type'] = '';
                 $item['remark'] = LogisticsIdent::LS_IDENT_JUNXING;
                 $item['extended'] = $item['isCustomerBinding'] == true ? '是绑定到客户' : '不是绑定到客户';
                 $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
             }
         }
-
+      
         return $this->retSuccessResponseData($fieldData);
     }
 

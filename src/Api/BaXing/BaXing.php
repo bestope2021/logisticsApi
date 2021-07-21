@@ -44,7 +44,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public $interface = [
         'createOrder' => 'createAndAuditOrder', // 创建并预报订单 todo 如果调用创建订单需要预报
 
-        'deleteOrder' => 'deleteOrder', //删除订单。发货后的订单不可删除。
+        'deleteOrder' => 'removeorder', //删除订单。发货后的订单不可删除。
 
         'queryTrack' => 'getTrack', //轨迹查询
 
