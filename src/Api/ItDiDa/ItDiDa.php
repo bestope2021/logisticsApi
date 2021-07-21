@@ -416,7 +416,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             return $this->retErrorResponseData('易抵达物流商发生未知错误，获取失败！');
         }
         foreach ($response['data'] as $item) {
-            $item['code']=$item['logisticsModeName'];
+            $item['code']=$item['channelName'];
             $item['enname']=$item['channelName'];
             $item['cnname']=$item['channelName'];
             $item['shipping_method_type']=$item['logisticsModeCode'];
