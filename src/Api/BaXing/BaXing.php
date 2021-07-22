@@ -42,6 +42,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public $order_track = [];
 
     public $interface = [
+
         'createOrder' => 'createAndAuditOrder', // 创建并预报订单 todo 如果调用创建订单需要预报
 
         'deleteOrder' => 'removeorder', //删除订单。发货后的订单不可删除。
@@ -52,7 +53,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'getPackagesLabel' => 'printOrder', // 【打印标签|面单
 
-        'operationPackages' => 'updateorder',// 核实提交订单重量
+        'operationPackages' => 'updateWeight',// 核实提交订单重量
     ];
 
     /**
@@ -183,14 +184,52 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['message'] ?? '未知错误');
+        // 获取追踪号,如果延迟的话
+        if ($flag && empty($response['data']['frt_channel_hawbcode'])) {
+            $trackNumberResponse = $this->getTrackNumber($response['data']['orderNo']);
+            if($trackNumberResponse['flag']){
+                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber']?? '';//追踪号
+                $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
+            }
+        }
         $fieldData['orderNo'] = $response['data']['orderNo'];
         $fieldData['trackingNo'] = $response['data']['trackingNumber'] ?? '';
+        $fieldData['frt_channel_hawbcode'] =$flag ? ($trackNumberResponse['frtTrackingNumber']??'') : '';//尾程追踪号
         $fieldData['id'] = $response['data']['serialNum'] ?? $response['data']['orderNo'];
         $this->order_track = $flag ? [$response['data']['trackingNumber'] => $ls[0]['orderNo']] : [];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
+    /**
+     * 修改订单重量
+     * @param array $params
+     * @return mixed|void
+     */
+    public function operationPackages($params)
+    {
+        $data = [
+            'orderNo' => $params['ProcessCode'] ?? '',
+            'weight' => $params['weight'] ?? '',
+            'key'=>'updateWeight',
+        ];
+        $response = $this->request(__FUNCTION__, $data);
+        if (empty($response)) {
+            return $this->retErrorResponseData('修改订单重量异常');
+        }
+        // 结果
+        if (empty($response['code'])) {
+            return $this->retErrorResponseData($response['message'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData([]);
+    }
+
+
+    /**
+     * @param string $function
+     * @param array $data
+     * @return mixed
+     */
     public function request($function, $data = [])
     {
         $this->req_data = $data;
@@ -239,14 +278,23 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * @param $reference_no
      * @return array|mixed
      */
-    public function getTrackNumber(string $reference_no)
+    public function getTrackNumber(string $processCode, $is_ret = false)
     {
         $params = [
-            'orderNo' => $reference_no, //客户参考号
+            'orderNo' => $processCode, //客户参考号
             'key'=>'lastnum',
         ];
-        $res = $this->request(__FUNCTION__, $params);
-        return $res;
+        $response = $this->request(__FUNCTION__, $params);
+        $fieldData = [];
+        $fieldMap = FieldMap::getTrackNumber();
+        $flag = $response['message'] == 'Success';
+        $fieldData['flag'] = $flag ? true : false;
+        $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? '未知错误'));
+        $fieldData['trackingNo'] = $flag ? $response['data']['trackingNumber'] : '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $flag ? $response['data']['lastnum'] : '';//尾程追踪号
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
+        if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+        return $ret;
     }
     /**
      * 获取物流商运输方式
@@ -274,19 +322,6 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $this->retSuccessResponseData($fieldData);
     }
 
-    /**客户通过updateWeight API提交订单核重，与仓库操作的实重进行对比是否超重量差异值。注意：一定要在仓库操作前推送，否则将不接收客户推送的核重。
-     * 修改重量
-     * @return mixed
-     */
-    public function operationPackages(array $pars = [])
-    {
-        $data = [
-            'orderNo' => $pars['orderNo'],
-            'weight' => $pars['weight'],
-            'key' => 'updateWeight',
-        ];
-        $this->request(__FUNCTION__, $data);
-    }
 
     /**
      * 取消订单，删除订单

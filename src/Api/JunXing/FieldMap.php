@@ -31,8 +31,8 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'info',// 提示信息
             'refrence_no',// 客户订单号
             'order_id',// 第三方订单号
-            'shipping_method_no',// 追踪号
-            'channel_hawbcode',// 尾程追踪号
+            'trackingNo',// 追踪号
+            'frt_channel_hawbcode',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
             'extended',// 扩展参数
@@ -149,4 +149,22 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 
         return self::getFieldMap(self::getShippingMethodFields(), $field);
     }
+
+    /**
+     * 获取追踪号
+     * @param mixed ...$vars
+     * @return mixed
+     */
+    public static function getTrackNumber(...$vars)
+    {
+        $field = [
+            'flag',// 处理状态： true 成功，false 失败
+            'info',// 提示信息
+            'trackingNo',// 追踪号
+            'frt_channel_hawbcode',// 尾程追踪号
+        ];
+
+        return self::getFieldMap(self::getTrackNumberFields(), $field);
+    }
+
 }

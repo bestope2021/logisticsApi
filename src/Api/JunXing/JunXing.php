@@ -195,18 +195,16 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         // 获取追踪号
         if ($flag && !empty($resBody)) {
             $trackNumberResponse = $this->getTrackNumber($resBody['waybillNo']);
-            if (!empty($trackNumberResponse['result_code'])) {
-                $fieldData['flag'] = false;
-                $fieldData['info'] = $trackNumberResponse['message'];
+            if($trackNumberResponse['flag']){
+                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber']?? '';//追踪号
+                $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
             }
-            $trackNumber = empty($trackNumberResponse['result_code']) ? json_decode($trackNumberResponse['body'], true) : '';
-            $fieldData['channel_hawbcode'] = empty($trackNumber['transNo']) ? $resBody['waybillNo'] : $trackNumber['transNo'];
         }
 
         $fieldData['order_id'] = $ls[0]['refNo'] ?? '';
         $fieldData['refrence_no'] = $ls[0]['refNo'] ?? '';//$resBody['waybillNo']
-        $fieldData['shipping_method_no'] = $resBody['waybillNo'] ?? '';//追踪号
-        $fieldData['channel_hawbcode'] = $trackNumber['transNo'] ?? '';//转单号
+        $fieldData['trackingNo'] = $resBody['waybillNo'] ?? '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $trackNumber['transNo'] ?? '';//转单号
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
@@ -242,6 +240,31 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $response = $this->sendCurlNew('post', $this->config['trace_number_url'], $data, $this->dataType, $apiHeaders);
         $this->res_data = $response;
         return $response;
+    }
+    /**
+     * 获取跟踪号
+     * @param $processCode
+     * @param $is_ret
+     * @return array
+     */
+    public function getTrackNumber(string $processCode, $is_ret = false)
+    {
+        $params = [
+            'queryNos' => $processCode,// $reference_no, //查询号码【一般是运单号码；也支持参考编号】
+            'queryType' => 1,//查询类型【1是运单号；2是客户单单号即参考编号】
+        ];
+        $response = $this->getTraceNum(__FUNCTION__, $params);
+        $fieldData = [];
+        $fieldMap = FieldMap::getTrackNumber();
+        $flag = empty($response['result_code']) ? 1 : 0;
+        $trackNumber = $flag ? json_decode($response['body'], true) : '';
+        $fieldData['flag'] = $flag ? true : false;
+        $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? '未知错误'));
+        $fieldData['trackingNo'] = $flag ? $processCode : '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $flag ? $trackNumber['transNo'] : '';//尾程追踪号
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
+        if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+        return $ret;
     }
 
     /**删除订单，最多200个订单
@@ -393,21 +416,6 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
 
     }
 
-
-    /**获取跟踪号，todo 有些渠道生成订单号不能立刻获取跟踪号
-     * @param string $reference_no
-     * @return mixed
-     */
-    public function getTrackNumber(string $reference_no)
-    {
-        $params = [
-            'queryNos' => $reference_no,// $reference_no, //查询号码【一般是运单号码；也支持参考编号】
-            'queryType' => 1,//查询类型【1是运单号；2是客户单单号即参考编号】
-        ];
-        $res = $this->getTraceNum(__FUNCTION__, $params);
-        return $res;
-    }
-
     /**
      * 删除订单
      *{"body": "{\"hasError\":true,\"successWayBillNos\":[\"21212121qqq\",\"rwe212121\",\"rerw1212131\",\"ewrerw12212121\",\"test1254000\",\"212121qwqwq\"],\"errorWayBillNoMaps\":{\"test20200911aa\":\"该运单在oms中不存在，请仔细检查！\"}}","message": "请求成功","result_code": 0}
@@ -494,7 +502,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
                 $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
             }
         }
-      
+
         return $this->retSuccessResponseData($fieldData);
     }
 

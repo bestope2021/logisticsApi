@@ -8,6 +8,7 @@
 namespace smiler\logistics\Api\BaTong;
 
 
+use smiler\logistics\Api\BaTong\FieldMap;
 use smiler\logistics\Common\BaseLogisticsInterface;
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\PackageLabelLogisticsInterface;
@@ -46,6 +47,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public $apiHeaders = [];
 
     public $interface = [
+
         'createOrder' => 'createorder', // 【创建订单】
 
         'submitOrder' => 'submitforecast', //提交预报(先创建草稿状态的订单才需要再调用此接口提交预报)
@@ -56,7 +58,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         'getPackagesLabel' => 'getnewlabel', // 【打印标签|面单】
 
-        'getTrackNumber' => 'gettrackingnumber',//获取跟踪号
+        'getTrackNumber' => 'lastnum',//获取跟踪号
 
         'queryTrack' => 'gettrack', //轨迹查询
 
@@ -202,20 +204,19 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
 
-        // 获取追踪号
+        // 获取追踪号,如果延迟的话
         if ($flag && empty($response['data']['channel_hawbcode'])) {
             $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
-            if ($trackNumberResponse['success'] != 1) {
-                $fieldData['flag'] = false;
-                $fieldData['info'] = $trackNumberResponse['cnmessage'];
+            if($trackNumberResponse['flag']){
+                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber']?? '';//追踪号
+                $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
             }
-            $fieldData['channel_hawbcode'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
         }
 
         $fieldData['order_id'] = $response['data']['channel_hawbcode'] ?? ($response['data']['order_id'] ?? '');
         $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
-        $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
-        $fieldData['channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
+        $fieldData['trackingNo'] = $response['data']['shipping_method_no'] ?? '';
+        $fieldData['frt_channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
@@ -223,6 +224,11 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
     }
 
+    /**统一封装请求
+     * @param string $function
+     * @param array $data
+     * @return mixed
+     */
     public function request($function, $data = [])
     {
         $data = $this->buildParams($function, $data);
@@ -252,18 +258,27 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     }
 
     /**
-     * 获取跟踪号，todo 有些渠道生成订单号不能立刻获取跟踪号
-     * @param $reference_no
-     * @return array|mixed
+     * 获取跟踪号
+     * @param $processCode
+     * @param $is_ret
+     * @return array
      */
-    public function getTrackNumber(string $reference_no)
+    public function getTrackNumber(string $processCode, $is_ret = false)
     {
-        $params = [
-            'reference_no' => $reference_no //客户参考号
-        ];
-        $res = $this->request(__FUNCTION__, $params);
-        return $res;
+        $param = ['reference_no' => $processCode];
+        $response = $this->request(__FUNCTION__, $param);
+        $fieldData = [];
+        $fieldMap = FieldMap::getTrackNumber();
+        $flag = $response['success'] == 1;
+        $fieldData['flag'] = $flag ? true : false;
+        $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? '未知错误'));
+        $fieldData['trackingNo'] = $flag ? $response['data']['shipping_method_no'] : '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $flag ? $response['data']['channel_hawbcode'] : '';//尾程追踪号
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
+        if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+        return $ret;
     }
+
 
     /**
      * 获取物流商运输方式
@@ -295,11 +310,18 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public function operationPackages($params)
     {
         $data = [
-            'reference_no' => $params['order_id'] ?? '',
+            'reference_no' => $params['ProcessCode'] ?? '',
             'order_weight' => $params['weight'] ?? '',
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        if (empty($response)) {
+            return $this->retErrorResponseData('修改订单重量异常');
+        }
+        // 结果
+        if ($response['success'] != true) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData([]);
     }
 
     /**
