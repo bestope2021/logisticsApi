@@ -164,6 +164,7 @@ abstract class LogisticsAbstract
         Logs::info($reqTitle, "请求方式@URL: {$method}@{$url}", $params ?? [], $this->iden);
         $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->setOption(CURLOPT_TIMEOUT, 180)->$method($url);
         Logs::info($resTitle, "请求方式@URL: {$method}@{$url}", $response, $this->iden);
+
         if (!$parseResponse) {
             return $response;
         }
@@ -225,6 +226,19 @@ abstract class LogisticsAbstract
                 break;
 
             case 404:
+            case 400:
+                switch (strtolower($dataType)) {
+                    case 'xml':
+                        $return = static::xmlToArray($response);
+                        break;
+
+                    case 'form':
+                    case 'json':
+                    default:
+                        $return = json_decode($response, true);
+                        break;
+                }
+                break;//仅针对出口易的错误返回json格式，且状态码是400
             case 500:
                 switch (strtolower($dataType)) {
                     case 'xml':

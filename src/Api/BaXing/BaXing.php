@@ -52,7 +52,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'getPackagesLabel' => 'printOrder', // 【打印标签|面单
 
-        'operationPackages' => 'operationPackages',// 核实提交订单重量
+        'operationPackages' => 'updateorder',// 核实提交订单重量
     ];
 
     /**
