@@ -133,6 +133,7 @@ abstract class LogisticsAbstract
                 $http = $curl;
                 break;
 
+            case 'put':
             case 'post':
             default:
                 switch (strtolower($dataType)) {

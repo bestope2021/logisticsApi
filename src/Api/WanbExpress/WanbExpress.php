@@ -36,6 +36,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     // 定义请求方式
     const METHOD_GET = 'GET';
     const METHOD_POST = 'POST';
+    const METHOD_PUT = 'PUT';
     const METHOD_DELETE = 'DELETE';
 
     // 定义API是否授权
@@ -62,6 +63,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         'getPackagesLabel' => 'api/parcels/%s/label', // GET:打印标签|面单 => %s:{processCode}
         'getTrackNumber' => 'api/parcels/%s',// GET:获取跟踪号 => %s:{processCode}
         'queryTrack' => 'api/trackPoints?trackingNumber=%s', // GET:轨迹查询 => %s:{trackingNumber}
+        'operationPackages' => 'api/parcels/%s/customerWeight', // PUT:修改包裹预报重量 => %s:{processCode}
         'getShippingMethod' => 'api/services',// GET:获取产品服务信息
         'searchOrder' => 'api/parcels?referenceId=%s',// 搜索包裹 => %s:{referenceId}客户订单号
         'deleteOrder' => 'api/parcels/%s',// 删除订单 => %s:{processCode}
@@ -454,7 +456,21 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
      */
     public function operationPackages($params)
     {
-        $this->throwNotSupport(__FUNCTION__);
+        $extUrlParams = [$params['ProcessCode']];
+        $data = [
+            'WeightInKg' => $params['weight'],//预报重量(单位:KG)
+            'AutoConfirm' => true,//是否在修改完预报重量后自动确认交运，默认为 false此值设置为true，则无须再次调用确认交运包裹接口
+        ];
+
+        $response = $this->request(__FUNCTION__, $data, self::METHOD_PUT, $extUrlParams);
+        if (empty($response)) {
+            return $this->retErrorResponseData('修改订单重量异常');
+        }
+        // 结果
+        if ($response['Succeeded'] != true) {
+            return $this->retErrorResponseData($response['Error']['Error'] ?? '0x000' . '.' . $response['Error']['Message'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData([]);
     }
 
     /**
