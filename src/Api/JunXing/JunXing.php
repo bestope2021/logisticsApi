@@ -204,7 +204,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldData['order_id'] = $ls[0]['refNo'] ?? '';
         $fieldData['refrence_no'] = $ls[0]['refNo'] ?? '';//$resBody['waybillNo']
         $fieldData['trackingNo'] = $resBody['waybillNo'] ?? '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $trackNumber['transNo'] ?? '';//转单号
+        $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//转单号
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
