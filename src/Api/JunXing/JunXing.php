@@ -191,7 +191,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? ''));
         $resBody = empty($response['result_code']) ? json_decode($response['body'], true) : [];
-
+       
         // 获取追踪号
         if ($flag && !empty($resBody)) {
             $trackNumberResponse = $this->getTrackNumber($resBody['waybillNo']);
@@ -261,7 +261,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? '未知错误'));
         $fieldData['trackingNo'] = $flag ? $processCode : '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $flag ? $trackNumber['transNo'] : '';//尾程追踪号
+        $fieldData['frt_channel_hawbcode'] = $flag ? ($trackNumber['transNo']??'') : '';//尾程追踪号
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
         return $ret;
