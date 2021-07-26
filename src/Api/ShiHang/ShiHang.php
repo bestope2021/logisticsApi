@@ -100,13 +100,6 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             throw new ManyProductException($this->iden_name . "一次最多支持提交" . self::ORDER_COUNT . "个包裹");
         }
 
-        if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
-            $extra_service = [
-                'extra_servicecode' => 'IO',//额外服务类型代码
-                'extra_servicevalue' => $item['iossNumber'],//额外服务值
-            ];
-        }
-
         foreach ($params as $item) {
             $productList = [];
             $order_weight = 0;
@@ -184,6 +177,12 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
+            if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
+                $extra_service = [
+                    'extra_servicecode' => 'IO',//额外服务类型代码
+                    'extra_servicevalue' => $item['iossNumber'],//额外服务值
+                ];
+            }
             if(!empty($extra_service)) $data['extra_service'] = $extra_service;
             $ls[] = $data;
         }
