@@ -232,21 +232,8 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
                     'token' => $this->config['track_token'],
                     'Content-Type' => 'application/x-www-form-urlencoded;charset=UTF-8',
                 ];
-                $dataParam = [
-                    'sendID' => $this->config['sendID'],
-                    'proviceNo' => $data['traceNo'],//'LA331731697CN'
-                    'msgKind' => 'DGYZ_JDPT_TRACE',
-                    'serialNo' => $data['traceNo'],
-                    'sendDate' => date('YmdHis', time()),
-                    'receiveID' => 'JDPT',
-                    'batchNo' => $data['traceNo'],
-                    'dataType' => 1,
-                    'dataDigest' => base64_encode(md5(json_encode($data, JSON_UNESCAPED_UNICODE).$this->config['track_token'])),
-                    'msgBody' => urlencode(json_encode($data, JSON_UNESCAPED_UNICODE)),
-                ];
-                $queryStr = http_build_query($dataParam);
-                // $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_track_command'], $data, $this->dataType, $this->apiHeaders);
-                $response = $this->sendCurl('post', $this->config['get_track_url'].'?'.$queryStr, $dataParam['msgBody'],$this->dataType, $this->apiHeaders);
+                $queryStr='sendID='.$this->config['sendID'].'&proviceNo=99&msgKind=DGYZ_JDPT_TRACE&serialNo='.$data['traceNo'].'&sendDate='.date('YmdHis', time()).'&receiveID=JDPT&batchNo=999&dataType=1&dataDigest='.base64_encode(md5(json_encode($data, JSON_FORCE_OBJECT).$this->config['track_token'])).'&msgBody='.urlencode(json_encode($data, JSON_FORCE_OBJECT));
+                $response = $this->sendCurl('post', $this->config['get_track_url'].'?'.$queryStr, urlencode(json_encode($data, JSON_FORCE_OBJECT)),$this->dataType, $this->apiHeaders);
                 break;//获取轨迹
             case 'list':
                 unset($data['key']);unset($this->req_data['key']);
@@ -295,7 +282,7 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
     }
 
     /**
-     * 获取物流商运输方式trackInfoExt
+     * 获取物流商运输方式
      * @return mixed
      * [{"success":"true","transportWays":[{"autoFetchTrackingNo":"Y","code":"DHLV4-OT","name":"OTTO专线","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"},{"autoFetchTrackingNo":"Y","code":"DHL-ALL","name":"全欧特派","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"}]}]
      */
