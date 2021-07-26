@@ -71,4 +71,8 @@ class LogisticsIdent
     const LS_IDENT_ITDIDA = 'ITDIDA';
     // 八星小包
     const LS_IDENT_BaXing= 'baxing';
+    // 美通头程
+    const LS_IDENT_MeiTong= 'meitong';
+    // 东莞邮政小包直发
+    const LS_IDENT_DgYz= 'dgyz';
 }

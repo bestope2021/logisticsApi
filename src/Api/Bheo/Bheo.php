@@ -407,7 +407,6 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             $item['fieldCode'] = $item['ServiceCode'];
             $item['fieldName'] = $item['ServiceName'];
             $item['shipping_method_type'] = $item['IsTracking'];
-            $item['remark'] = LogisticsIdent::LS_IDENT_BHEO;
             $item['extended'] = $item['InService'] == true ? '可用' : '不可用';
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
