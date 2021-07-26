@@ -6,7 +6,7 @@
  * Email: <2166909366@qq.com>
  */
 
-namespace smiler\logistics\Api\MeiTong;
+namespace smiler\logistics\Api\DgYz;
 
 
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
@@ -73,19 +73,19 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             $field = [
                 'flag',// 处理状态： true 成功，false 失败
                 'info',// 提示信息
-                'shipment_id',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+                'trackingNo',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
                 'status',// 订单状态
-                'status',// 订单状态（货态）说明
+                'status_msg',// 订单状态（货态）说明
                 'traces',// 物流轨迹明细
             ];
         }
 
         if ($vars[0] == LsSdkFieldMapAbstract::QUERY_TRACK_TWO) {
             $field = [
-                'info',// 订单状态（货态）
-                'info',// 订单状态（货态）描述
-                'time',// 订单状态（货态）时间
-                'loaction',// 所在地
+                'opCode',// 订单状态（货态）
+                'opName',// 订单状态（货态）描述
+                'opTime',// 订单状态（货态）时间
+                'opDesc',// 所在地或者详情内容描述
             ];
         }
 
@@ -100,10 +100,10 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
     public static function shippingMethod(...$vars)
     {
         $field = [
-            'code',// 运输方式代码
-            'code',// 运输方式英文
-            'name',// 运输方式中文
-            'type',// 运输方式类型
+            'bizProductNo',// 运输方式代码
+            'bizProductNo',// 运输方式英文
+            'bizProductName',// 运输方式中文
+            'shipping_method_type',// 运输方式类型
             'remark',// 备注
             'extended',// 扩展参数
         ];

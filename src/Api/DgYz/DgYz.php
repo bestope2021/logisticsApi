@@ -5,7 +5,7 @@
  * Date: 3/1/21
  */
 
-namespace smiler\logistics\Api\BaXing;
+namespace smiler\logistics\Api\DgYz;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
@@ -17,7 +17,7 @@ use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
-class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
+class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
 {
     /**
      * 一次最多提交多少个包裹,5自定义
@@ -26,11 +26,11 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     /**
      * 一次最多查询多少个物流商
      */
-    const QUERY_TRACK_COUNT = 1000;
+    const QUERY_TRACK_COUNT = 30;
 
-    public $iden = 'baxing';
+    public $iden = 'dgyz';
 
-    public $iden_name = '八星小包物流';
+    public $iden_name = '东莞邮政直发小包';
     /**
      * curl 请求数据类型
      * @var string
@@ -43,30 +43,30 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
     public $interface = [
 
-        'createOrder' => 'createAndAuditOrder', // 创建并预报订单 todo 如果调用创建订单需要预报
+        'createOrder' => 'apply', // 创建申请邮件号（运单号） todo 如果调用创建订单需要预报
 
         'deleteOrder' => 'removeorder', //删除订单。发货后的订单不可删除。
 
-        'queryTrack' => 'getTrack', //轨迹查询
+        'queryTrack' => 'trackInfoExt', //轨迹查询
 
-        'getShippingMethod' => 'getTransportWayList', //获取配送方式
+        'getShippingMethod' => 'list', //获取配送方式
 
-        'getPackagesLabel' => 'printOrder', // 【打印标签|面单
+        'getPackagesLabel' => 'print', // 【打印标签|面单
 
         'operationPackages' => 'updateWeight',// 核实提交订单重量
     ];
 
     /**
-     * HuaHan constructor.
+     * DgYz constructor.
      * @param array $config
      */
     public function __construct(array $config)
     {
-        $this->checkKeyExist(['CODE', 'TOKEN', 'url'], $config);
+        $this->checkKeyExist(['token', 'url'], $config);
         $this->config = $config;
         $this->apiHeaders = [
-            'CODE' => $this->config['CODE'],
-            'TOKEN' => $this->config['TOKEN'],
+            'token' => $this->config['token'],
+            'Content-Type' => 'application/json;charset=UTF-8',
         ];
         if (!empty($config['apiHeaders'])) {
             $this->apiHeaders = array_merge($this->apiHeaders, $config['apiHeaders']);
@@ -110,64 +110,48 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         }
         foreach ($params as $item) {
             $productList = [];
+            $order_weight = 0;
             $isElectricity = 0;
-            $packages = [];
 
             foreach ($item['productList'] as $key => $value) {
-                if ($key == 0) {
-                    $productList[] = [
-                        'sku' => $value['productSku'] ?? '',
-                        'price' => (float)(round($value['declarePrice'], 2) ?? ''),
-                        'weight' => (float)(round($value['declareWeight'], 3) ?? ''),
-                        'quantity' => (int)($value['quantity'] ?? ''),
-                        'nameen' => $value['declareEnName'] ?? '',
-                        'namecn' => $value['declareCnName'] ?? '',
-                    ];
-                } else {
-                    break;
-                }
+                $productList[] = [
+                    'cargoNo' => $key + 1,
+                    'cargoCurrency' => 'USD',
+                    'unit' => '个',
+                    'cargoValue' => (float)(round($value['declarePrice'], 2) ?? ''),//【必填】申报单价，浮点型，保留两位小数
+                    'cargoWeight' => (int)((round($value['declareWeight'], 2) ?? '') * 1000),//【必填】重量（克），正整数
+                    'quantity' => (int)($value['quantity'] ?? ''),
+                    'cargoNameEn' => $value['declareEnName'] ?? '',
+                    'cargoName' => $value['declareCnName'] ?? '',
+                    'cargoOriginName' => $value['originCountry'] ?? '',
+                    'cargoQuantity' => $value['quantity'] ?? '',
+                    'cargoSeria' => $value['hsCode'] ?? '',
+                ];
+                $order_weight += $value['declareWeight'];
             }
-
-            $packages[] = [
-                'length' => (float)(round($item['packageLength'], 3) ?? ''),// N:包裹长度（单位：cm）
-                'width' => (float)(round($item['packageWidth'], 3) ?? ''),// N:包裹宽度（单位：cm）
-                'height' => (float)(round($item['packageHeight'], 3) ?? ''),// N:包裹高度（单位：cm）
-                'weight' => (float)(round($item['predictionWeight'], 3) ?? ''),//包裹重，重量KG (11,3)小数
-                'goods' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
-            ];
             $data = [
-                'orderNo' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
-                'hasBattery' => $isElectricity, //是否带电，1带电，0不带电，默认不带电
+                'logisticsOrderNo' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
                 //todo 调试写死
-                'productCode' => $item['shippingMethodCode'] ?? 'DHLV4-RSE',//产品代码,就是渠道代码
-                'Currency' => $item['packageCodCurrencyCode'] ?? 'USD', //N:币种
-                'iossNum' => $item['iossNumber'] ?? '',//IOSS号
-                'vatNum' => '',//VAT号
-                'consignee' => [
-                    'name' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 50 '',// Y:收件人姓名Length <= 50
-                    'company' => $item['recipientCompany'] ?? '', //N:收件人公司名称
-                    'phone' => $item['recipientPhone'] ?? '', //N:收件人电话
-                    'country' => $item['recipientCountryCode'] ?? '',//收件人国家
-                    'state' => $item['recipientState'] ?? '', //N:收件人省/州
-                    'city' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'address1' => $item['recipientStreet'] ?? ' ' ?? '',// Y:收件人街道1
-                    'address2' => $item['recipientStreet2'] ?? '',// N:收件人街道2
-                    'houseno' => '', //N:收件人门牌号/建筑物名称。
-                    'zipcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
+                'bizProductNo' => $item['shippingMethodCode'] ?? '001',//产品代码,就是渠道代码
+                'weight' => (int)($order_weight * 1000),//邮件重量（克），正整数
+                'batteryFlag' => $isElectricity, //是否有电池 0：无电池,1：有电池，默认 0，整数型
+                'taxNo' => $item['iossNumber'] ?? '',//【选填】收件人税号（巴西必填）
+                'senderTaxNo' => $item['senderTaxNumber'] ?? '',//【选填】寄件人税号，VAT 识别账号 6.11 新增
+                'prepaymentOfVat' => 0,//【选填】，预缴增值税方式，(0: IOSS 1: no-IOSS 2: other)，6.11 新增
+                'receiver' => [
+                    'receiverName' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 50 '',// Y:收件人姓名Length <= 50
+                    'receiverPhone' => $item['recipientPhone'] ?? '', //N:收件人电话
+                    'receiverMobile' => $item['recipientPhone'] ?? '',// 【必填】收件人手机（手机为准）
+                    'receiverNation' => $item['recipientCountryCode'] ?? '',//收件人国家
+                    'receiverProvince' => $item['recipientState'] ?? '', //N:收件人省/州
+                    'receiverCity' => $item['recipientCity'] ?? '', //N:收件人城市
+                    'receiverAddress' => $item['recipientStreet'] ?? ' ' ?? '',// Y:收件人街道1
+                    'receiverEmail' => $item['recipientEmail'] ?? '',// N:收件人邮箱
+                    'receiverPostCode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                 ],
-                'shipper' => [
-                    'name' => $item['senderName'] ?? '', //N:发件人姓名
-                    'company' => $item['senderCompany'] ?? '', // N:发件人公司名
-                    'phone' => $item['senderPhone'] ?? '', //N:发件人电话
-                    'address' => $item['senderFullAddress'] ?? '',// Y:发件人完整地址Length <= 200
-                    'province' => $item['senderState'] ?? '', // N:发件人省
-                    'city' => $item['senderCity'] ?? '',// Y:发件人城市Length<=50
-                    'zipcode' => $item['senderPostCode'] ?? '',// N:发件人邮编Length <= 32
-                    'country' => 'CN',// Y:发件人国家简码，默认CN, $item['senderCountryCode'] ??
-                ],
-                'packages' => $packages,
+                'items' => $productList,
             ];
-            $data['key'] = 'order';
+            $data['key'] = 'apply';
             $ls[] = $data;
         }
 
@@ -180,23 +164,23 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $flag = $response['message'] == 'Success';
+        $flag = $response['code'] == 0;
 
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['message'] ?? '未知错误');
+        $fieldData['info'] = $flag ? '' : ($response['msg'] ?? '未知错误');
         // 获取追踪号,如果延迟的话
         if ($flag && empty($response['data']['frt_channel_hawbcode'])) {
-            $trackNumberResponse = $this->getTrackNumber($response['data']['orderNo']);
+            $trackNumberResponse = $this->getTrackNumber($response['data']['trackingNo']);
             if ($trackNumberResponse['flag']) {
                 $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
                 $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
             }
         }
-        $fieldData['orderNo'] = $response['data']['orderNo'];
-        $fieldData['trackingNo'] = $response['data']['trackingNumber'] ?? '';
+        $fieldData['orderNo'] = $ls[0]['logisticsOrderNo'];
+        $fieldData['trackingNo'] = $response['data']['trackingNo'] ?? '';
         $fieldData['frt_channel_hawbcode'] = $flag ? ($trackNumberResponse['frtTrackingNumber'] ?? '') : '';//尾程追踪号
-        $fieldData['id'] = $response['data']['serialNum'] ?? $response['data']['orderNo'];
-        $this->order_track = $flag ? [$response['data']['trackingNumber'] => $ls[0]['orderNo']] : [];
+        $fieldData['id'] = $response['data']['serialNum'] ?? $ls[0]['logisticsOrderNo'];
+        $this->order_track = $flag ? [$response['data']['trackingNo'] => $ls[0]['logisticsOrderNo'], $ls[0]['logisticsOrderNo'] => $response['data']['trackingNo']] : [];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
@@ -234,45 +218,57 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $this->req_data = $data;
         switch ($this->req_data['key']) {
-            case 'order':
-                unset($data['key']);
-                unset($this->req_data['key']);
+            case 'apply':
+                unset($data['key']);unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['create_order_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//下单
-            case 'label':
-                unset($data['key']);
-                unset($this->req_data['key']);
-                $response = $this->sendCurl('get', $this->config['url'] . $this->config['get_label_command'] . '?orderNo=' . $data['orderNo'], [], $this->dataType, $this->apiHeaders);
+            case 'print':
+                unset($data['key']);unset($this->req_data['key']);
+                $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_label_command'], $data, $this->dataType, $this->apiHeaders, '', '', false);
                 break;//获取面单
-            case 'track':
-                unset($data['key']);
-                unset($this->req_data['key']);
-                $response = $this->sendCurl('get', $this->config['url'] . $this->config['get_track_command'] . '?orderNo=' . $data['orderNo'], [], $this->dataType, $this->apiHeaders);
+            case 'trackInfoExt':
+                unset($data['key']);unset($this->req_data['key']);
+                $this->apiHeaders = [
+                    'token' => $this->config['track_token'],
+                    'Content-Type' => 'application/x-www-form-urlencoded;charset=UTF-8',
+                ];
+                $dataParam = [
+                    'sendID' => $this->config['sendID'],
+                    'proviceNo' => $data['traceNo'],//'LA331731697CN'
+                    'msgKind' => 'DGYZ_JDPT_TRACE',
+                    'serialNo' => $data['traceNo'],
+                    'sendDate' => date('YmdHis', time()),
+                    'receiveID' => 'JDPT',
+                    'batchNo' => $data['traceNo'],
+                    'dataType' => 1,
+                    'dataDigest' => base64_encode(md5(json_encode($data, JSON_UNESCAPED_UNICODE).$this->config['track_token'])),
+                    'msgBody' => urlencode(json_encode($data, JSON_UNESCAPED_UNICODE)),
+                ];
+                $queryStr = http_build_query($dataParam);
+                // $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_track_command'], $data, $this->dataType, $this->apiHeaders);
+                $response = $this->sendCurl('post', $this->config['get_track_url'].'?'.$queryStr, $dataParam['msgBody'],$this->dataType, $this->apiHeaders);
                 break;//获取轨迹
-            case 'transport':
-                unset($data['key']);
-                unset($this->req_data['key']);
-                $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_method_command'], $data, $this->dataType, $this->apiHeaders);
+            case 'list':
+                unset($data['key']);unset($this->req_data['key']);
+                $response = $this->sendCurl('get', $this->config['get_method_url'], [], $this->dataType, $this->apiHeaders);
                 break;//获取运输方式
             case 'updateWeight':
-                unset($data['key']);
-                unset($this->req_data['key']);
+                unset($data['key']);unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['update_weight_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//客户通过updateWeight API提交订单核重，与仓库操作的实重进行对比是否超重量差异值。注意：一定要在仓库操作前推送，否则将不接收客户推送的核重。
             case 'lastnum':
-                unset($data['key']);
-                unset($this->req_data['key']);
-                $response = $this->sendCurl('get', $this->config['url'] . $this->config['last_num_command'], [], $this->dataType, $this->apiHeaders);
+                unset($data['key']);unset($this->req_data['key']);
+                $response = $this->sendCurl('get', $this->config['url'] . $this->req_data['orderNo'], [], $this->dataType, $this->apiHeaders);
                 break;//获取追踪号和转单号用的
             default:
-                unset($data['key']);
-                unset($this->req_data['key']);
+                unset($data['key']);unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['create_order_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//默认是下单
         }
         $this->res_data = $response;
         return $response;
     }
+
 
     /**
      * 获取跟踪号，todo 有些渠道生成订单号不能立刻获取跟踪号
@@ -288,10 +284,10 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $response = $this->request(__FUNCTION__, $params);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
-        $flag = $response['message'] == 'Success';
+        $flag = $response['code'] == 0;
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? '未知错误'));
-        $fieldData['trackingNo'] = $flag ? $response['data']['trackingNumber'] : '';//追踪号
+        $fieldData['info'] = $flag ? '' : ($response['msg'] ?? ($response['msg'] ?? '未知错误'));
+        $fieldData['trackingNo'] = $flag ? ($response['data']['trackingNo'] ?? '') : '';//追踪号
         $fieldData['frt_channel_hawbcode'] = $flag ? ($response['data']['lastnum'] ?? '') : '';//尾程追踪号
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
@@ -299,14 +295,14 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     }
 
     /**
-     * 获取物流商运输方式
+     * 获取物流商运输方式trackInfoExt
      * @return mixed
      * [{"success":"true","transportWays":[{"autoFetchTrackingNo":"Y","code":"DHLV4-OT","name":"OTTO专线","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"},{"autoFetchTrackingNo":"Y","code":"DHL-ALL","name":"全欧特派","trackingNoRuleMemo":[],"trackingNoRuleRegex":[],"used":"Y"}]}]
      */
     public function getShippingMethod()
     {
         $data = [
-            'key' => 'transport',
+            'key' => 'list',
         ];
         $res = $this->request(__FUNCTION__, $data);
 
@@ -315,12 +311,13 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldMap = FieldMap::shippingMethod();
 
 
-        if ($res['message'] != 'Success') {
-            return $this->retErrorResponseData($res['message'] ?? '未知错误');
+        if ($res['code'] != 0) {
+            return $this->retErrorResponseData($res['msg'] ?? '未知错误');
         }
-        foreach ($res['transportWays'] as $item) {
+        foreach ($res['data'] as $item) {
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
+
         return $this->retSuccessResponseData($fieldData);
     }
 
@@ -374,27 +371,25 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function getPackagesLabel($params = [])
     {
         $data = [
-            'orderNo' => $params['customerOrderNo'],
-            'key' => 'label',
+            'logisticsOrderNoList' => [[
+                'logisticsOrderNo' => $params['customerOrderNo'],
+            ]],
+            'printType' => '1',// --打印类型（默认热敏 1） 0：普通 A4 1：热敏
+            'printFormat' => 'pdf',//--标签类型（默认 pdf） pdf、html
+            'labelFormat' => 'label_100x100',//-- 标 签 类 型 （ label_100x100 、 label_100x150，默认 label_100x100）
+            'key' => 'print',
         ];
-        $response = $this->request(__FUNCTION__, $data);
+        $responses = $this->request(__FUNCTION__, $data);
 
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
 
-        // 结果
-        $flag = $response['message'] == 'Success';
-
-        if (!$flag) {
-            return $this->retErrorResponseData($response['message'] ?? '未知错误');
-        }
-
-        $response['flag'] = $flag;
-        $response['info'] = $response['message'] ?? '';
+        $response['flag'] = true;
+        $response['info'] = '';
         $response['trackingNo'] = $params['trackingNumber'] ?? '';
         $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
-        $response['url'] = $response['data']['label'] ?? '';
+        $response['url'] = base64_encode($responses) ?? '';
         $response['label_path_plat'] = '';//不要填写
         $response['lable_content_type'] = $params['label_content'] ?? 1;
 
@@ -404,34 +399,8 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     }
 
     /**
-     * 获取物流商轨迹
+     * 获取物流商轨迹,单独的接口获取轨迹
      * @return mixed
-     * {
-     *     "code": "1",
-     *     "data": {
-     *         "orderNo": "GL962889980",
-     *         "trackingNumber": "9214490237757389730787",
-     *         "events": [
-     *             {
-     *                 "event_code": "DL",
-     *                 "event_time": "2021-04-09 15:40:00",
-     *                 "event_content": "Delivered, In/At Mailbox",
-     *                 "event_loaction": "ILMACHESNEY PARK"
-     *             },
-     *             {
-     *                 "event_code": "OP",
-     *                 "event_time": "2021-04-09 06:10:00",
-     *                 "event_content": "Out for Delivery",
-     *                 "event_loaction": "ILMACHESNEY PARK"
-     *             },
-     *             {
-     *                 "event_code": "OP",
-     *                 "event_time": "2021-04-09 06:10:00",
-     *                 "event_content": "Out for Delivery, Expected Delivery by 9:00pm",
-     *                 "event_loaction": "ILMACHESNEY PARK"
-     *             }
-     *         ]
-     *     },
      */
     public function queryTrack($trackNumber)
     {
@@ -440,8 +409,8 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
         }
         $data = [
-            'orderNo' => $trackNumber,
-            'key' => 'track',
+            'traceNo' => $trackNumber,
+            'key' => 'trackInfoExt',
         ];
         $response = $this->request(__FUNCTION__, $data);
 
@@ -451,22 +420,25 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
 
         // 结果
-        $flag = $response['message'] == 'Success';
+        $flag = $response['responseState'] == true;
 
         if (!$flag) {
-            return $this->retErrorResponseData($response['message'] ?? '未知错误');
+            return $this->retErrorResponseData($response['errorDesc'] ?? '未知错误');
         }
 
-        $data = $response['data'];
-        $data['orderNo'] = $this->order_track[$trackNumber];
+        $data = $response;
 
         $ls = [];
-        foreach ($data['events'] as $key => $val) {
-            $data['status'] = $val['event_code'];
-            $data['trackingNumber'] = $val['event_content'];
-            $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+        if (!empty($data['responseItems'])) {
+            foreach ($data['responseItems'] as $key => $val) {
+                $data['trackingNo'] = $val['traceNo'];
+                $data['status'] = $val['opCode'] ?? '';
+                $data['status_msg'] = $val['opName'] ?? '';
+                $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+            }
         }
-        $data['events'] = $ls;
+
+        $data['traces'] = $ls;
 
         $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 

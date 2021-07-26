@@ -182,7 +182,6 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'consignee_credentials_period' => '', //N:证件有效期， 格式：2014-04-15
                     'consignee_tariff' => $item['recipientTaxNumber'] ?? '',// 收件人税号
                 ],
-
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
             if (!empty($extra_service)) $data['extra_service'] = $extra_service;
@@ -207,8 +206,8 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         // 获取追踪号,如果延迟的话
         if ($flag && empty($response['data']['channel_hawbcode'])) {
             $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
-            if($trackNumberResponse['flag']){
-                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber']?? '';//追踪号
+            if ($trackNumberResponse['flag']) {
+                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
                 $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
             }
         }
