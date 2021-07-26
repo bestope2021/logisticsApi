@@ -183,7 +183,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                     'extra_servicevalue' => $item['iossNumber'],//额外服务值
                 ];
             }
-            if(!empty($extra_service)) $data['extra_service'] = $extra_service;
+            if(!empty($extra_service)) $data['extra_service'][] = $extra_service;
             $ls[] = $data;
         }
         $response = $this->request(__FUNCTION__, $ls[0]);
