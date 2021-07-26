@@ -232,7 +232,7 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
                     'token' => $this->config['track_token'],
                     'Content-Type' => 'application/x-www-form-urlencoded;charset=UTF-8',
                 ];
-                $queryStr='sendID='.$this->config['sendID'].'&proviceNo=99&msgKind=DGYZ_JDPT_TRACE&serialNo='.$data['traceNo'].'&sendDate='.date('YmdHis', time()).'&receiveID=JDPT&batchNo=999&dataType=1&dataDigest='.base64_encode(md5(json_encode($data, JSON_FORCE_OBJECT).$this->config['track_token'])).'&msgBody='.urlencode(json_encode($data, JSON_FORCE_OBJECT));
+                $queryStr='sendID='.$this->config['sendID'].'&proviceNo=99&msgKind=XXX_JDPT_TRACE&serialNo=100000000001&sendDate='.date('YmdHis', time()).'&receiveID=JDPT&batchNo=999&dataType=1&dataDigest='.base64_encode(md5(json_encode($data, JSON_FORCE_OBJECT).$this->config['track_token'])).'&msgBody='.urlencode(json_encode($data, JSON_FORCE_OBJECT));
                 $response = $this->sendCurl('post', $this->config['get_track_url'].'?'.$queryStr, urlencode(json_encode($data, JSON_FORCE_OBJECT)),$this->dataType, $this->apiHeaders);
                 break;//获取轨迹
             case 'list':
