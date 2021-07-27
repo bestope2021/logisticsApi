@@ -164,7 +164,6 @@ abstract class LogisticsAbstract
         Logs::info($reqTitle, "请求方式@URL: {$method}@{$url}", $params ?? [], $this->iden);
         $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->setOption(CURLOPT_TIMEOUT, 180)->$method($url);
         Logs::info($resTitle, "请求方式@URL: {$method}@{$url}", $response, $this->iden);
-
         if (!$parseResponse) {
             return $response;
         }
@@ -220,6 +219,19 @@ abstract class LogisticsAbstract
                         break;
                 }
                 break;
+            case 201:
+                switch (strtolower($dataType)) {
+                    case 'xml':
+                        $return = static::xmlToArray($response);
+                        break;
+
+                    case 'form':
+                    case 'json':
+                    default:
+                        $return = json_decode($response, true);
+                        break;
+                }
+                break;//仅针对嘉里COD的成功返回，状态码为201
             case 401:
                 Logs::warning($resTitle, "CURL授权失败", $response, $dir);
                 throw new CurlException('curl: 授权失败');
@@ -231,27 +243,49 @@ abstract class LogisticsAbstract
                     case 'xml':
                         $return = static::xmlToArray($response);
                         break;
-
                     case 'form':
                     case 'json':
                     default:
                         $return = json_decode($response, true);
                         break;
                 }
-                break;//仅针对出口易的错误返回json格式，且状态码是400
+                break;//仅针对出口易和嘉里COD的错误返回json格式，且状态码是400
+            case 403:
+                switch (strtolower($dataType)) {
+                    case 'xml':
+                        $return = static::xmlToArray($response);
+                        break;
+                    case 'form':
+                    case 'json':
+                    default:
+                        $return = json_decode($response, true);
+                        break;
+                }
+                break;//仅针对嘉里COD的错误返回json格式，且状态码是403
+            case 409:
+                switch (strtolower($dataType)) {
+                    case 'xml':
+                        $return = static::xmlToArray($response);
+                        break;
+                    case 'form':
+                    case 'json':
+                    default:
+                        $return = json_decode($response, true);
+                        break;
+                }
+                break;//仅针对嘉里COD的错误返回json格式，且状态码是409
             case 500:
                 switch (strtolower($dataType)) {
                     case 'xml':
                         $return = static::xmlToArray($response);
                         break;
-
                     case 'form':
                     case 'json':
                     default:
                         $return = json_decode($response, true);
                         break;
                 }
-                break;//仅针对出口易的错误返回json格式，且状态码是500
+                break;//仅针对出口易和嘉里COD的错误返回json格式，且状态码是500
             default:
                 Logs::error($resTitle, "CURL请求失败", $response, $dir);
                 //404 Error logic here

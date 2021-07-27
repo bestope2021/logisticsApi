@@ -12,7 +12,6 @@ use smiler\logistics\Api\BaTong\BaTong;
 use smiler\logistics\Api\BaXing\BaXing;
 use smiler\logistics\Api\Bheo\Bheo;
 use smiler\logistics\Api\BtdXms\BtdXms;
-use smiler\logistics\Api\BxXms\BxXb;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\CNE\Cne;
 use smiler\logistics\Api\DgDhl\DgDhl;
@@ -22,6 +21,7 @@ use smiler\logistics\Api\FourPX\FourPX;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
 use smiler\logistics\Api\ItDiDa\ItDiDa;
+use smiler\logistics\Api\JiaLiCod\JiaLiCod;
 use smiler\logistics\Api\Kjyt\Kjyt;
 use smiler\logistics\Api\Kjyt\KjytLabel;
 use smiler\logistics\Api\LeTian\LeTian;
@@ -89,6 +89,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_BaXing => BaXing::class,// 八星头程
         LogisticsIdent::LS_IDENT_MeiTong => MeiTong::class,// 美通头程
         LogisticsIdent::LS_IDENT_DgYz => DgYz::class,// 东莞邮政小包直发
+        LogisticsIdent::LS_IDENT_JIALICOD => JiaLiCod::class,// 嘉里COD物流
     ];
 
     /**
