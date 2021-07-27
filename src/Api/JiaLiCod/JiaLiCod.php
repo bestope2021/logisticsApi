@@ -355,7 +355,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             ];//登录接口
         }elseif($this->req_data['key']=='orders'){
             $this->apiHeaders = [
-                'Authorization' => 'Bearer  ' . $this->loginToken,
+                'Authorization' => 'Bearer ' . $this->loginToken,
             ];//删除取消订单，未获取轨迹的订单
         }else{
             $this->apiHeaders = [
