@@ -51,6 +51,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
     //过期时间
     public $expireTime;
 
+
     public $interface = [
 
         'createOrder' => 'createorder', // 【创建订单】
@@ -291,7 +292,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                 'receiver'=>[
                     'name'=>$item['recipientName']??'',//必填 收件人姓名
                     'company'=>$item['recipientCompany']??'',//必填 收件人公司名
-                    'address'=>$address ?? '',//必填 收件人地址一
+                    'address'=>$address ?? '',//必填 收件人地址
                     'city'=>$item['recipientCity']??'',//必填 收件人城市
                     'province'=>$item['recipientState']??'',//非必填 收件人省
                     'country_code'=>$item['recipientCountryCode']??'',//必填 收件人国家, ISO 3166 标准
@@ -308,6 +309,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         $ls[0]['key'] = 'shipment/create';
         $response = $this->request(__FUNCTION__, $ls[0]);
 
+
         $reqRes = $this->getReqResData();
 
 
@@ -317,16 +319,14 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         // 结果
         $flag = $response['message'] =='success';
         if(!empty($response['data'])){
-            foreach ($response['data'] as $k=>$v){
-                $fieldData['flag'] = $flag ? true : false;
-                $fieldData['info'] = $flag ? '' : ($response['message'] ?? '');
-                $fieldData['order_id'] = $v['tracking_number'] ?? ($v['package_number'] ?? ($v['reference_number']??''));
-                $fieldData['refrence_no'] = $v['reference_number'] ?? '';
-                $fieldData['shipping_method_no'] = $v['tracking_number'] ?? '';
-                $fieldData['channel_hawbcode'] = $v['package_number'] ?? '';
-
-                $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-            }
+            $newdata=$response['data'];
+            $fieldData['flag'] = $flag ? true : false;
+            $fieldData['info'] = $flag ? '' : ($response['message'] ?? '');
+            $fieldData['order_id'] = $newdata['tracking_number'] ?? ($newdata['package_number'] ?? ($newdata['reference_number']??''));
+            $fieldData['refrence_no'] = $newdata['reference_number'] ?? '';
+            $fieldData['shipping_method_no'] = $newdata['tracking_number'] ?? '';
+            $fieldData['channel_hawbcode'] = $newdata['package_number'] ?? '';
+            $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         }else{
             $fieldData['flag'] = $flag ? true : false;
             $fieldData['info'] = $flag ? '' : ($response['message'] ?? '');
@@ -334,7 +334,6 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             $fieldData['refrence_no'] = $ls[0]['package']['reference_number'] ?? '';
             $fieldData['shipping_method_no'] = '';
             $fieldData['channel_hawbcode'] = '';
-
             $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         }
 
@@ -487,17 +486,14 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         if ($response['message'] != 'success') {
             return $this->retErrorResponseData('嘉里COD物流商【获取面单】接口失败，发生未知错误');
         }
-
-        foreach ($response['data'] as $item) {
-            $item['flag'] = true;
-            $item['info']=$response['message'];
-            $item['order_no']=$data['tracking_number'];
-            $item['lable_file']=$item['base64'];//面单内容
-            $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
-            $item['label_path_plat']='';//不要填写
-            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
-        }
-
+        $item=[];
+        $item['flag'] = true;
+        $item['info']=$response['message'];
+        $item['order_no']=$data['tracking_number'];
+        $item['lable_file']=$response['data']['base64'];//面单内容
+        $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $item['label_path_plat']='';//不要填写
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
     }
 
@@ -518,7 +514,6 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             'key' => 'shipment/status',
         ];
         $response = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
