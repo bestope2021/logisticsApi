@@ -232,9 +232,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         }
 
         foreach ($params as $item) {
-            $productList = [];
-            $order_weight = 0;
-            $order_num = 0;$order_price=0;
+            $productList = [];$order_weight = 0;$order_num = 0;$order_price=0;
             foreach ($item['productList'] as $value) {
                 $productList[] = [
                     'sku' => $value['productSku'] ?? '',// N:产品 SKU;Length <= 100
@@ -268,13 +266,13 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                     'reference_number' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                     'declared_value'=>round($order_price,2),//申报价值
                     'declared_value_currency'=>$item['productList'][0]['currencyCode']??($item['packageCodCurrencyCode']??''),
-                    'cod_value'=>round($item['packageCodCurrencyCode'],2)??'',
+                    'cod_value'=>round($item['packageCodCurrencyCode'],2)??'0.00',
                     'cod_value_currency'=>$item['packageCodCurrencyCode']??'',
                     'length' => (int)($item['packageLength'] ?? 1),// N:包裹长度（单位：cm）
                     'width' => (int)($item['packageWidth'] ?? 1),// N:包裹宽度（单位：cm）
                     'height' => (int)($item['packageHeight'] ?? 1),// N:包裹高度（单位：cm）
                     'actual_weight' => (int)(($order_weight*1000) ?? 1),//包裹重，重量g
-                    'payment_method'=>'PP',//• COD : 货到付款 • PP : 预付 (默认)
+                    'payment_method'=>(round($item['packageCodCurrencyCode'],2)>0)?'COD':'PP',//• COD : 货到付款 • PP : 预付 (默认)
                     'shipment_type'=>'General',//• General : 普货 (默认) • Sensitive : 敏货• Mobile & Tablet : 手机和平板
                 ],
                 'sender'=>[

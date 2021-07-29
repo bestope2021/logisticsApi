@@ -13,6 +13,7 @@ use smiler\logistics\Api\BaXing\BaXing;
 use smiler\logistics\Api\Bheo\Bheo;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
+use smiler\logistics\Api\YikeDa\YiKeDa;
 use smiler\logistics\Api\CNE\Cne;
 use smiler\logistics\Api\DgDhl\DgDhl;
 use smiler\logistics\Api\DgPost\DgPost;
@@ -86,10 +87,11 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_BA_TONG => BaTong::class,// 巴通
         LogisticsIdent::LS_IDENT_BHEO =>Bheo::class,// 出口易
         LogisticsIdent::LS_IDENT_ITDIDA => ItDiDa::class,// （嘀嗒）易抵达
-        LogisticsIdent::LS_IDENT_BaXing => BaXing::class,// 八星头程
+        LogisticsIdent::LS_IDENT_BaXing => BaXing::class,// 八星小包
         LogisticsIdent::LS_IDENT_MeiTong => MeiTong::class,// 美通头程
         LogisticsIdent::LS_IDENT_DgYz => DgYz::class,// 东莞邮政小包直发
         LogisticsIdent::LS_IDENT_JIALICOD => JiaLiCod::class,// 嘉里COD物流
+        LogisticsIdent::LS_IDENT_YIKEDA => YiKeDa::class,// 易可达
     ];
 
     /**

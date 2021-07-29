@@ -77,4 +77,6 @@ class LogisticsIdent
     const LS_IDENT_DgYz= 'dgyz';
     // 嘉里COD物流
     const LS_IDENT_JIALICOD = 'jialicod';
+    // 易可达头程
+    const LS_IDENT_YIKEDA = 'yikeda';
 }
