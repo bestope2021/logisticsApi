@@ -31,8 +31,8 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'info',// 提示信息
             'refrence_no',// 客户订单号
             'order_id',// 第三方订单号
-            'shipping_method_no',// 追踪号
-            'channel_hawbcode',// 尾程追踪号
+            'trackingNo',// 追踪号
+            'frt_channel_hawbcode',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
             'extended',// 扩展参数
@@ -62,10 +62,17 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
     }
     public static function createSign(&$str_arr){
         $app_secret=$str_arr['appSecret'];
-        //ksort($str_arr);//按键名升序排列
+        //ksort($str_arr);//按键名升序排列，不能排序
         unset($str_arr['appSecret']);
-        //json格式化body
-        $str_arr['body']=json_encode($str_arr['body'],JSON_UNESCAPED_UNICODE);
+
+        if(empty($str_arr['body'])){
+            //强制转对象
+            $str_arr['body']=json_encode($str_arr['body'],JSON_FORCE_OBJECT);
+        }else{
+            //json格式化body
+            $str_arr['body']=json_encode($str_arr['body'],JSON_UNESCAPED_UNICODE);
+        }
+
         $b = '';
         foreach($str_arr as $key=>$value){
             $b.=$value;
@@ -142,4 +149,22 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 
         return self::getFieldMap(self::getShippingMethodFields(), $field);
     }
+
+    /**
+     * 获取追踪号
+     * @param mixed ...$vars
+     * @return mixed
+     */
+    public static function getTrackNumber(...$vars)
+    {
+        $field = [
+            'flag',// 处理状态： true 成功，false 失败
+            'info',// 提示信息
+            'trackingNo',// 追踪号
+            'frt_channel_hawbcode',// 尾程追踪号
+        ];
+
+        return self::getFieldMap(self::getTrackNumberFields(), $field);
+    }
+
 }

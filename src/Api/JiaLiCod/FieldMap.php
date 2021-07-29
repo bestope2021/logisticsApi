@@ -6,7 +6,7 @@
  * Email: <2166909366@qq.com>
  */
 
-namespace smiler\logistics\Api\BaTong;
+namespace smiler\logistics\Api\JiaLiCod;
 
 
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
@@ -15,7 +15,7 @@ use smiler\logistics\Common\LsSdkFieldMapInterface;
 /**
  * 字段映射
  * Class FieldMap
- * @package smiler\logistics\Api\BaTong
+ * @package smiler\logistics\Api\JiaLiCod
  */
 class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 {
@@ -31,8 +31,8 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'info',// 提示信息
             'refrence_no',// 客户订单号
             'order_id',// 第三方订单号
-            'trackingNo',// 追踪号
-            'frt_channel_hawbcode',// 尾程追踪号
+            'shipping_method_no',// 追踪号
+            'channel_hawbcode',// 尾程追踪号
             'prediction_freight',// 预估费用
             'effective_days',// 跟踪号有效期天数
             'extended',// 扩展参数
@@ -73,19 +73,19 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             $field = [
                 'flag',// 处理状态： true 成功，false 失败
                 'info',// 提示信息
-                'server_hawbcode',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+                'reference_number',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
                 'track_status',// 订单状态
                 'track_status_name',// 订单状态（货态）说明
-                'details',// 物流轨迹明细
+                'status',// 物流轨迹明细
             ];
         }
 
         if ($vars[0] == self::QUERY_TRACK_TWO) {
             $field = [
-                'track_status',// 订单状态（货态）
-                'track_description',// 订单状态（货态）描述
-                'track_occur_date',// 订单状态（货态）时间
-                'track_location',// 所在地
+                'status_code',// 订单状态（货态）//没有返回英文
+                'status_code',// 订单状态（货态）描述
+                'event_date',// 订单状态（货态）时间
+                'location',// 所在地
             ];
         }
 
@@ -110,22 +110,4 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 
         return self::getFieldMap(self::getShippingMethodFields(), $field);
     }
-
-    /**
-     * 获取追踪号
-     * @param mixed ...$vars
-     * @return mixed
-     */
-    public static function getTrackNumber(...$vars)
-    {
-        $field = [
-            'flag',// 处理状态： true 成功，false 失败
-            'info',// 提示信息
-            'trackingNo',// 追踪号
-            'frt_channel_hawbcode',// 尾程追踪号
-        ];
-
-        return self::getFieldMap(self::getTrackNumberFields(), $field);
-    }
-
 }

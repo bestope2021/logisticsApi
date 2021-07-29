@@ -67,4 +67,14 @@ class LogisticsIdent
     const LS_IDENT_BA_TONG = 'batong';
     // 出口易
     const LS_IDENT_BHEO = 'ChuKou1';
+    // 易抵达
+    const LS_IDENT_ITDIDA = 'ITDIDA';
+    // 八星小包
+    const LS_IDENT_BaXing= 'baxing';
+    // 美通头程
+    const LS_IDENT_MeiTong= 'meitong';
+    // 东莞邮政小包直发
+    const LS_IDENT_DgYz= 'dgyz';
+    // 嘉里COD物流
+    const LS_IDENT_JIALICOD = 'jialicod';
 }

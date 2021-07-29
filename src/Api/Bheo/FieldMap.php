@@ -107,7 +107,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
                 'message',
                 'TrackingNumber',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号/转单号
                 'TrackingStatus',// 当前状态
-                'Checkpoints',// 目的国家
+                'Country',// 目的国家
                 'Checkpoints',// 物流轨迹明细
             ];
         }

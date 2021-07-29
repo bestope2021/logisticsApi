@@ -59,7 +59,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
 
         'getShippingMethod' => 'getProductList.htm', //获取配送方式
 
-        'getTrackNumber' => 'getOrderTrackingNumber.htm', //获取跟踪号
+        'getTrackNumber' => 'grderTrackingNumber.htm', //获取跟踪号
 
     ];
 

@@ -9,18 +9,23 @@ namespace smiler\logistics;
 
 
 use smiler\logistics\Api\BaTong\BaTong;
+use smiler\logistics\Api\BaXing\BaXing;
 use smiler\logistics\Api\Bheo\Bheo;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\CNE\Cne;
 use smiler\logistics\Api\DgDhl\DgDhl;
 use smiler\logistics\Api\DgPost\DgPost;
+use smiler\logistics\Api\DgYz\DgYz;
 use smiler\logistics\Api\FourPX\FourPX;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
+use smiler\logistics\Api\ItDiDa\ItDiDa;
+use smiler\logistics\Api\JiaLiCod\JiaLiCod;
 use smiler\logistics\Api\Kjyt\Kjyt;
 use smiler\logistics\Api\Kjyt\KjytLabel;
 use smiler\logistics\Api\LeTian\LeTian;
+use smiler\logistics\Api\MeiTong\MeiTong;
 use smiler\logistics\Api\Miaoxin\Miaoxin;
 use smiler\logistics\Api\Miaoxin\MiaoxinLabel;
 use smiler\logistics\Api\ShangMeng\ShangMeng;
@@ -60,7 +65,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_XY_EXP_TRACK => XyExpTrack::class,// 兴源-轨迹查询
         LogisticsIdent::LS_IDENT_WT_TREE => Wts::class,// 梧桐树
         LogisticsIdent::LS_IDENT_WT_TREE_LABEL => WtsLabel::class,// 梧桐树-打印面单标签
-        LogisticsIdent::LS_IDENT_BX_XMS => BxXms::class,// 八星
+        LogisticsIdent::LS_IDENT_BX_XMS => BxXms::class,// 八星头程
         LogisticsIdent::LS_IDENT_T_POST => TPost::class,// 通邮
         LogisticsIdent::LS_IDENT_WAN_BANG_EXPRESS => WanbExpress::class,// 万邦
         LogisticsIdent::LS_IDENT_BTD_XMS => BtdXms::class,// 宝通达
@@ -80,6 +85,11 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_JUNXING => JunXing::class,// 骏兴头程
         LogisticsIdent::LS_IDENT_BA_TONG => BaTong::class,// 巴通
         LogisticsIdent::LS_IDENT_BHEO =>Bheo::class,// 出口易
+        LogisticsIdent::LS_IDENT_ITDIDA => ItDiDa::class,// （嘀嗒）易抵达
+        LogisticsIdent::LS_IDENT_BaXing => BaXing::class,// 八星头程
+        LogisticsIdent::LS_IDENT_MeiTong => MeiTong::class,// 美通头程
+        LogisticsIdent::LS_IDENT_DgYz => DgYz::class,// 东莞邮政小包直发
+        LogisticsIdent::LS_IDENT_JIALICOD => JiaLiCod::class,// 嘉里COD物流
     ];
 
     /**

@@ -73,7 +73,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
      */
     public function __construct(array $config)
     {
-        //$this->checkKeyExist(['appToken', 'url', 'appKey'], $config);
+        $this->checkKeyExist(['access_token'], $config);
         $this->config = $config;
     }
 
@@ -105,79 +105,79 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             $order_weight = 0;
             $order_price = 0;
             foreach ($item['productList'] as $value) {
-                $skus[]=[
+                $skus[] = [
                     'Sku' => $value['productSku'] ?? '',// N:产品 SKU;Length <= 100
                     'Quantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
-                    'Weight'=>ceil(($value['grossWeight']/$value['quantity']))??ceil(($value['netWeight']/$value['quantity'])),//单件重量(g)[取值是向上取整的]
-                    'DeclareValue' => round((float)($value['declarePrice']/$value['quantity'] ?? ''),2), //Y:单件申报价值(USD) 【已过时】
-                    'NewDeclareValue'=>[
-                        'Value'=>round((float)($value['declarePrice']/$value['quantity'] ?? ''),2),//金额
-                        'Currency'=>$value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
+                    'Weight' => ceil(($value['grossWeight'] / $value['quantity'])) ?? ceil(($value['netWeight'] / $value['quantity'])),//单件重量(g)[取值是向上取整的]
+                    'DeclareValue' => round((float)($value['declarePrice'] / $value['quantity'] ?? ''), 2), //Y:单件申报价值(USD) 【已过时】
+                    'NewDeclareValue' => [
+                        'Value' => round((float)($value['declarePrice'] / $value['quantity'] ?? ''), 2),//金额
+                        'Currency' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
                     ],//单件申报价值信息,非必填
                     'DeclareNameEn' => $value['declareEnName'] ?? '',// Y:申报英文名称Length <= 100
                     'DeclareNameCn' => $value['declareCnName'] ?? '',// N:申报中文名称Length <= 100
-                    'ProductName'=>$value['declareCnName'] ?? '',//商品名称
-                    'Price'=>round((float)($value['declarePrice']/$value['quantity'] ?? ''),4),
+                    'ProductName' => $value['declareCnName'] ?? '',//商品名称
+                    'Price' => round((float)($value['declarePrice'] / $value['quantity'] ?? ''), 4),
                     'HsCode' => $value['hsCode'] ?? '',// N:海关编码
                 ];
                 $order_price += round((float)($value['declarePrice'] * $value['quantity']), 4);//订单总价格
                 $order_weight += $value['declareWeight'];//订单总重量
-                $currency=$value['currencyCode'] ?? 'USD';//申报销售产品币种
+                $currency = $value['currencyCode'] ?? 'USD';//申报销售产品币种
             }
-            $shipToAddress=[
-                'TaxId'=>$item['recipientTaxNumber']??'',//收件人税号或者VAT税号,例如巴西税号：自然人税号称为CPF码，格式为CPF:000.000.000.00；法人税号称为CNPJ码，格式为CNPJ:00.000.000/0000-00
-                'Country'=>$item['recipientCountryCode'] ?? '',//收货国家
-                'Province'=>$item['recipientState'] ?? '', //N:收件人省
+            $shipToAddress = [
+                'TaxId' => $item['recipientTaxNumber'] ?? '',//收件人税号或者VAT税号,例如巴西税号：自然人税号称为CPF码，格式为CPF:000.000.000.00；法人税号称为CNPJ码，格式为CNPJ:00.000.000/0000-00
+                'Country' => $item['recipientCountryCode'] ?? '',//收货国家
+                'Province' => $item['recipientState'] ?? '', //N:收件人省
                 'City' => $item['recipientCity'] ?? '',//收件人城市
                 'Street1' => $item['recipientStreet'] ?? '',//收件人地址
-                'Street2'=>'',
+                'Street2' => '',
                 'Postcode' => $item['recipientPostCode'] ?? '',//邮编
                 'Contact' => $item['recipientName'] ?? '',//收件人姓名
                 'Company' => $item['recipientName'] ?? '',//公司名
                 'Phone' => $item['recipientPhone'] ?? '', //N:收件人电话
                 'Email' => $item['recipientEmail'] ?? '',//邮箱
             ];
-            $exportsInfo=[
-                'EoriCode'=>'',
-                'Country'=>'',
-                'Province'=>'',
-                'City'=>'',
-                'Street1'=>'',
-                'Street2'=>'',
-                'Postcode'=>'',
-                'Contact'=>'',
-                'Company'=>'',
-                'Phone'=>'',
-                'Email'=>'',
+            $exportsInfo = [
+                'EoriCode' => '',
+                'Country' => '',
+                'Province' => '',
+                'City' => '',
+                'Street1' => '',
+                'Street2' => '',
+                'Postcode' => '',
+                'Contact' => '',
+                'Company' => '',
+                'Phone' => '',
+                'Email' => '',
             ];
-            $packages=[
-                'PackageId'=>$item['customerOrderNo'],
+            $packages = [
+                'PackageId' => $item['customerOrderNo'],
                 //'ServiceCode'=>'CUE',
-                'ServiceCode'=>$item['shippingMethodCode'] ?? 'CUE',//运输渠道，字符串
-                'ShipToAddress'=>$shipToAddress,
-                'Weight'=>ceil($order_weight),//重量(g) [取值是向上取整的],优先取毛重,然后再净重
-                'Length' => round((float)(array_sum(array_column($item['productList'],'length')) ?? ''), 2),//长度
-                'Width' => round((float)(array_sum(array_column($item['productList'],'width')) ?? ''), 2),//宽度
-                'Height' => round((float)(array_sum(array_column($item['productList'],'height')) ?? ''), 2),//高度
-                'Skus'=>$skus,
-                'ExportsInfo'=>$exportsInfo??[],//经济运营商(出口)
-                'ImportsInfo'=>$exportsInfo??[],//经济运营商(进口)
-                'SellPrice'=>$order_price,//售价
-                'SellPriceCurrency'=>$currency,//销售币种
-                'SalesPlatform'=>$item['platformSource']??'',//销售平台
-                'OtherSalesPlatform'=>$item['platformSource']??'',//其他销售平台
-                'ImportTrackingNumber'=>'',//导入的跟踪号，如果服务允许导入跟踪号时有效
-                'Custom'=>'',//客户自定义，可以用于打印在地址标签Custom区域
-                'Remark'=>'',//备注；可用于打印配货清单，有多个以|分隔的值才会打印配货清单
-                'VatCode'=>'',//Vat税号或者IOSS号码
+                'ServiceCode' => $item['shippingMethodCode'] ?? 'CUE',//运输渠道，字符串
+                'ShipToAddress' => $shipToAddress,
+                'Weight' => ceil($order_weight),//重量(g) [取值是向上取整的],优先取毛重,然后再净重
+                'Length' => round((float)(array_sum(array_column($item['productList'], 'length')) ?? ''), 2),//长度
+                'Width' => round((float)(array_sum(array_column($item['productList'], 'width')) ?? ''), 2),//宽度
+                'Height' => round((float)(array_sum(array_column($item['productList'], 'height')) ?? ''), 2),//高度
+                'Skus' => $skus,
+                'ExportsInfo' => $exportsInfo ?? [],//经济运营商(出口)
+                'ImportsInfo' => $exportsInfo ?? [],//经济运营商(进口)
+                'SellPrice' => $order_price,//售价
+                'SellPriceCurrency' => $currency,//销售币种
+                'SalesPlatform' => $item['platformSource'] ?? '',//销售平台
+                'OtherSalesPlatform' => $item['platformSource'] ?? '',//其他销售平台
+                'ImportTrackingNumber' => '',//导入的跟踪号，如果服务允许导入跟踪号时有效
+                'Custom' => '',//客户自定义，可以用于打印在地址标签Custom区域
+                'Remark' => '',//备注；可用于打印配货清单，有多个以|分隔的值才会打印配货清单
+                'VatCode' => '',//Vat税号或者IOSS号码
             ];
             //查询处理点列表
             //  $handleDelivery = $this->getHandleMethod(1, []);
             $data = [
-                'Location'=>'',
+                'Location' => '',
                 //'Location'=>$handleDelivery??'',//处理点 如不填则使用商家默认，
-                'Package'=>$packages,//包裹信息
-                'Remark'=>'',//备注
+                'Package' => $packages,//包裹信息
+                'Remark' => '',//备注
             ];
 
             $ls[] = $data;
@@ -185,10 +185,10 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
 
         $response = $this->createOrderNumber(__FUNCTION__, $ls[0]);
 
-        if(empty($response['Errors'])){
-            $this->successData['track_number']=$response['TrackingNumber'];
-            $this->successData['handle_id']=$response['Ck1PackageId'];
-            $this->successData['order_no']=$ls[0]['Package']['PackageId'];
+        if (empty($response['Errors'])) {
+            $this->successData['track_number'] = $response['TrackingNumber'];
+            $this->successData['handle_id'] = $response['Ck1PackageId'];
+            $this->successData['order_no'] = $ls[0]['Package']['PackageId'];
         }
         $reqRes = $this->getReqResData();
 
@@ -197,9 +197,9 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $flag = $response['Status']==='Created' ? 1 : 0;//有创建成功标识
+        $flag = empty($response['Status']) ? 0 : ($response['Status'] === 'Created' ? 1 : 0);//有创建成功标识
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['CreateFailedReason'] ?? ($response['CreateFailedReason'] ?? ''));
+        $fieldData['info'] = $flag ? '' : ($response['CreateFailedReason'] ?? ($response['Errors'][0]['Message'] ?? ''));
         $resBody = $response ?? [];
 
         // 获取追踪号
@@ -247,7 +247,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $this->req_data = $data;
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('get', $this->config['delete_order_url'].'/'.$this->successData['order_no'].'/cancel?idType=PackageId', $data, $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $this->successData['order_no'] . '/cancel?idType=PackageId', $data, $this->dataType, $apiHeaders);
         $this->res_data = $response;
         return $response;
     }
@@ -287,22 +287,23 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
      * @param array $data
      * @return string
      */
-    public function getHandleMethod($type,$data=[]){
-        $this->req_data=$data;
+    public function getHandleMethod($type, $data = [])
+    {
+        $this->req_data = $data;
         $res = [];
-        if($type==1){
+        if ($type == 1) {
             //获取运输方式列表
             $apiHeaders = $this->buildHeaders();//生成头部信息
             $response = $this->sendCurl('get', $this->config['get_trans_url'], $data, $this->dataType, $apiHeaders);
-            if(is_array($response)){
-                $res=$response;
+            if (is_array($response)) {
+                $res = $response;
             }
-        }else{
+        } else {
             //获取处理点
             $apiHeaders = $this->buildHeaders();//生成头部信息
             $response = $this->sendCurl('get', $this->config['get_handle_point_url'], $data, $this->dataType, $apiHeaders);
-            if(is_array($response)){
-                $res=$response;
+            if (is_array($response)) {
+                $res = $response;
             }
         }
         $this->res_data = $response;
@@ -315,7 +316,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     public function buildHeaders()
     {
         $header = [];
-        $header['Authorization'] = 'Bearer '.$this->config['access_token'];
+        $header['Authorization'] = 'Bearer ' . $this->config['access_token'];
         $header['Content-Type'] = 'application/json; charset=utf-8';
         return $header;
     }
@@ -354,10 +355,10 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         }
         $data = [
             'PackageIds' => $trackNumberArray,//直发包裹Id列表,最多2000个
-            'PrintFormat'=>'ClassicLabel',//ClassicLabel或者ClassicA4(经典标签纸或者经典A4纸)
-            'PrintContent'=>'AddressCostomsSplit',//打印地址、报关单与配货清单（只支持ClassicLabel），包裹的remark有多个以|分隔的值才会打印配货清单
-            'CustomPrintOptions'=>['Custom'],//RefNo,CustomsTitleEn,CustomsTitleCn,Custom,Remark,Sku
-            'IdType'=>'PackageId',//PackageId和Ck1PackageId
+            'PrintFormat' => 'ClassicLabel',//ClassicLabel或者ClassicA4(经典标签纸或者经典A4纸)
+            'PrintContent' => 'AddressCostomsSplit',//打印地址、报关单与配货清单（只支持ClassicLabel），包裹的remark有多个以|分隔的值才会打印配货清单
+            'CustomPrintOptions' => ['Custom'],//RefNo,CustomsTitleEn,CustomsTitleCn,Custom,Remark,Sku
+            'IdType' => 'PackageId',//PackageId和Ck1PackageId
         ];
 
         $response = $this->getLabelPrint(__FUNCTION__, $data);
@@ -373,14 +374,14 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             $fieldData['flag'] = true;
             $fieldData['labelType'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
             $fieldData['labelPathPlat'] = '';//不要赋值，会出问题，导致上传不成功
-            $fieldData['labelPath'] =  $bodyData['Label'];//一维数组
+            $fieldData['labelPath'] = $bodyData['Label'];//一维数组
             $fieldData[] = $fieldData;
         } else {
             foreach ($bodyData as $item) {
                 $fieldData['flag'] = true;
                 $fieldData['labelType'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
-                $fieldData['labelPathPlat'] =  $item['Label'];;
-                $fieldData['labelPath'] =  $item['Label'];;//二维数组
+                $fieldData['labelPathPlat'] = $item['Label'];;
+                $fieldData['labelPath'] = $item['Label'];;//二维数组
             }
         }
 
@@ -402,11 +403,10 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         }
         $res = $response;
         foreach ($res as $item) {
-            $item['code'] = strtoupper(LogisticsIdent::LS_IDENT_BHEO);//全大写
-            $item['fieldCode']=$item['ServiceCode'];
-            $item['fieldName']=$item['ServiceName'];
+            $item['code'] = $item['ServiceCode'];//strtoupper(LogisticsIdent::LS_IDENT_BHEO);//全大写
+            $item['fieldCode'] = $item['ServiceCode'];
+            $item['fieldName'] = $item['ServiceName'];
             $item['shipping_method_type'] = $item['IsTracking'];
-            $item['remark'] = LogisticsIdent::LS_IDENT_BHEO;
             $item['extended'] = $item['InService'] == true ? '可用' : '不可用';
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
@@ -445,7 +445,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
         $data['Checkpoints'] = $ls;
-        $data['flag'] =!empty($response[0]) ? true : false;
+        $data['flag'] = isset($data) ? true : false;
         $data['message'] = '获取成功';
         $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
         return $this->retSuccessResponseData($fieldData);

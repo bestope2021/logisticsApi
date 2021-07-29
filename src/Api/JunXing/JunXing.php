@@ -39,7 +39,9 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
      * 一次最多删除多少个跟踪号
      */
     const DEL_TRACK_COUNT = 200;
+
     public $iden = 'junxing';
+
     public $iden_name = '骏兴头程物流';
     /**
      * curl 请求数据类型
@@ -69,7 +71,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
      */
     public function __construct(array $config)
     {
-        //$this->checkKeyExist(['appToken', 'url', 'appKey'], $config);
+        $this->checkKeyExist(['appId', 'appSecret'], $config);
         $this->config = $config;
     }
 
@@ -106,22 +108,8 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
                     'cargoNameCn' => $value['declareCnName'] ?? '',// Y:申报英文名称Length <= 50
                     'cargoNameEn' => $value['declareEnName'] ?? '',// N:申报中文名称Length <= 50
                     'declareQty' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
-//                    'customsCode' => $value['hsCode'] ?? '',// N:海关编码
                     'unitPrice' => round((float)($value['declarePrice'] ?? ''), 3), //Y:申报单价
                     'currency' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
-//                    'weight' => $value['netWeight'] ?? '',// 净重
-//                    'unit' => 'PCE', //N:单位  MTR：米  PCE：件 SET：套 默认PCE
-//                    'pcs' => 1, //N:外包装件数,默认1
-//                    'roughWeight'=>round((float)($value['grossWeight']??''),3),//毛重
-//                    'countryOrigin'=> $value['originCountry'] ?? '', //商品产地,//原产地
-//                    'include' => '', //货物包含
-//                    'remark'=>'',//申报备注
-//                    'purpose'=>'',//用途
-//                    'texture' => '', //N:申报材质
-//                    'brand'=>'',//品牌
-//                    'cargoUrl' => $value['productUrl'] ?? '',// N:销售地址
-//                    'sku' => $value['productSku']??'', //SKU信息
-//                    'cartonNo' => '', //箱号
                 ];
                 $OrderSingInfoVOs[] = [
                     'length' => round((float)($value['length'] ?? ''), 3),//长度
@@ -203,22 +191,20 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? ''));
         $resBody = empty($response['result_code']) ? json_decode($response['body'], true) : [];
-
+       
         // 获取追踪号
         if ($flag && !empty($resBody)) {
             $trackNumberResponse = $this->getTrackNumber($resBody['waybillNo']);
-            if (!empty($trackNumberResponse['result_code'])) {
-                $fieldData['flag'] = false;
-                $fieldData['info'] = $trackNumberResponse['message'];
+            if($trackNumberResponse['flag']){
+                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber']?? '';//追踪号
+                $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
             }
-            $trackNumber = empty($trackNumberResponse['result_code']) ? json_decode($trackNumberResponse['body'], true) : '';
-            $fieldData['channel_hawbcode'] = empty($trackNumber['transNo']) ? $resBody['waybillNo'] : $trackNumber['transNo'];
         }
 
         $fieldData['order_id'] = $ls[0]['refNo'] ?? '';
         $fieldData['refrence_no'] = $ls[0]['refNo'] ?? '';//$resBody['waybillNo']
-        $fieldData['shipping_method_no'] = $resBody['waybillNo'] ?? '';//追踪号
-        $fieldData['channel_hawbcode'] = $trackNumber['transNo'] ?? '';//转单号
+        $fieldData['trackingNo'] = $resBody['waybillNo'] ?? '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//转单号
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
@@ -254,6 +240,31 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $response = $this->sendCurlNew('post', $this->config['trace_number_url'], $data, $this->dataType, $apiHeaders);
         $this->res_data = $response;
         return $response;
+    }
+    /**
+     * 获取跟踪号
+     * @param $processCode
+     * @param $is_ret
+     * @return array
+     */
+    public function getTrackNumber(string $processCode, $is_ret = false)
+    {
+        $params = [
+            'queryNos' => $processCode,// $reference_no, //查询号码【一般是运单号码；也支持参考编号】
+            'queryType' => 1,//查询类型【1是运单号；2是客户单单号即参考编号】
+        ];
+        $response = $this->getTraceNum(__FUNCTION__, $params);
+        $fieldData = [];
+        $fieldMap = FieldMap::getTrackNumber();
+        $flag = empty($response['result_code']) ? 1 : 0;
+        $trackNumber = $flag ? json_decode($response['body'], true) : '';
+        $fieldData['flag'] = $flag ? true : false;
+        $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? '未知错误'));
+        $fieldData['trackingNo'] = $flag ? $processCode : '';//追踪号
+        $fieldData['frt_channel_hawbcode'] = $flag ? ($trackNumber['transNo']??'') : '';//尾程追踪号
+        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
+        if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+        return $ret;
     }
 
     /**删除订单，最多200个订单
@@ -405,21 +416,6 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
 
     }
 
-
-    /**获取跟踪号，todo 有些渠道生成订单号不能立刻获取跟踪号
-     * @param string $reference_no
-     * @return mixed
-     */
-    public function getTrackNumber(string $reference_no)
-    {
-        $params = [
-            'queryNos' => $reference_no,// $reference_no, //查询号码【一般是运单号码；也支持参考编号】
-            'queryType' => 1,//查询类型【1是运单号；2是客户单单号即参考编号】
-        ];
-        $res = $this->getTraceNum(__FUNCTION__, $params);
-        return $res;
-    }
-
     /**
      * 删除订单
      *{"body": "{\"hasError\":true,\"successWayBillNos\":[\"21212121qqq\",\"rwe212121\",\"rerw1212131\",\"ewrerw12212121\",\"test1254000\",\"212121qwqwq\"],\"errorWayBillNoMaps\":{\"test20200911aa\":\"该运单在oms中不存在，请仔细检查！\"}}","message": "请求成功","result_code": 0}
@@ -494,13 +490,12 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldMap = FieldMap::shippingMethod();//字段映射
         $response = $this->getTransport(__FUNCTION__, []);
         if (!empty($response['result_code'])) {
-            $this->retErrorResponseData();
+            $this->retErrorResponseData($response['message']??'骏兴头程物流商获取运输方式接口异常，获取失败！');
         }
         if ((empty($response['result_code'])) && (!empty($response['body']))) {
-            //$res = iconv('GBK', 'utf-8', $res);
             $res = json_decode($response['body'], true);
             foreach ($res as $item) {
-                $item['code'] = strtoupper(LogisticsIdent::LS_IDENT_JUNXING);//全大写
+                $item['code'] = $item['fieldCode'];//strtoupper(LogisticsIdent::LS_IDENT_JUNXING);//全大写
                 $item['shipping_method_type'] = '';
                 $item['remark'] = LogisticsIdent::LS_IDENT_JUNXING;
                 $item['extended'] = $item['isCustomerBinding'] == true ? '是绑定到客户' : '不是绑定到客户';
