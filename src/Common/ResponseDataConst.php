@@ -68,6 +68,9 @@ class ResponseDataConst
     const LSA_LABEL_CONTENT_TYPE = 'labelContentType';// 面单内容类型
     const LSA_LABEL_TYPE_1 = 1;// 面单类型 - 运单
     const LSA_LABEL_TYPE_2 = 2;// 面单类型 - 报关单/发票
+    const LSA_LABEL_BARCODE_TYPE = 'labelBarcodeType';// 面单码类型
+    const LSA_LABEL_BARCODE_TYPE_STRING = 'string';// 字符串类型
+    const LSA_LABEL_BARCODE = 'labelBarcode';// 面单码
 
     // 邮寄方式
     const LSA_SHIP_METHOD_CODE = 'shippingMethodCode';// 运输方式代码

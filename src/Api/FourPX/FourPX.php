@@ -585,8 +585,9 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             ResponseDataConst::LSA_LABEL_CUSTOM_PATH => $data['label_url_info']['custom_label'] ?? '',// 报关标签链接
             ResponseDataConst::LSA_LABEL_PACKAGE_PATH => $data['label_url_info']['package_label'] ?? '',// 配货标签链接
             ResponseDataConst::LSA_LABEL_INVOICE_PATH => $data['label_url_info']['invoice_label'] ?? '',// DHL发票链接
+            ResponseDataConst::LSA_LABEL_BARCODE_TYPE => ResponseDataConst::LSA_LABEL_BARCODE_TYPE_STRING,// 面单码类型
+            ResponseDataConst::LSA_LABEL_BARCODE => $data['label_barcode'] ?? '',// 面单码
         ] : [];//扩展参数
-
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
     }
