@@ -254,6 +254,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                 $order_num += $value['quantity'];
                 $order_price += $value['declarePrice'];
             }
+
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $data = [
                 'sale_platform'=>$item['platformSource']??'',
@@ -272,7 +273,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                     'width' => (int)($item['packageWidth'] ?? 1),// N:包裹宽度（单位：cm）
                     'height' => (int)($item['packageHeight'] ?? 1),// N:包裹高度（单位：cm）
                     'actual_weight' => (int)(($order_weight*1000) ?? 1),//包裹重，重量g
-                    'payment_method'=>(round($item['packageCodCurrencyCode'],2)>0)?'COD':'PP',//• COD : 货到付款 • PP : 预付 (默认)
+                    'payment_method'=>(round($item['packageCodAmount'],2)>0)?'COD':'PP',//• COD : 货到付款 • PP : 预付 (默认)
                     'shipment_type'=>'General',//• General : 普货 (默认) • Sensitive : 敏货• Mobile & Tablet : 手机和平板
                 ],
                 'sender'=>[

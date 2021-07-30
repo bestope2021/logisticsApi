@@ -164,10 +164,6 @@ abstract class LogisticsAbstract
         Logs::info($reqTitle, "请求方式@URL: {$method}@{$url}", $params ?? [], $this->iden);
         $response = $http->setHeaders($header)->setOption(CURLOPT_SSL_VERIFYPEER, false)->setOption(CURLOPT_TIMEOUT, 180)->$method($url);
 
-//        if(stripos($url,'default/svc/web-service?service=')){
-//
-//            $response='';
-//        }
         Logs::info($resTitle, "请求方式@URL: {$method}@{$url}", $response, $this->iden);
         if (!$parseResponse) {
             return $response;
