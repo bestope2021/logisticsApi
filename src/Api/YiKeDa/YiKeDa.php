@@ -49,7 +49,9 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'queryTrack' => 'queryTrackingStatus', //轨迹查询
 
-        'getShippingMethod' => 'getShippingMethod', //获取配送方式
+      //  'getShippingMethod' => 'getShippingMethod', //获取配送方式
+
+        'getShippingMethod' => 'getSmcode', //获取配送方式
 
         'getPackagesLabel' => 'printSku', // 【打印标签|面单
 
@@ -145,13 +147,14 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 $order_volume=($value['length']*$value['width']*$value['height'])*0.000001;
             }
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $yunshu=$this->getSmCode();echo "<pre>";print_r($yunshu);die;
             $warehousesmcode=$this->getWarehouseSmCode('EXPRESS',$item['recipientCountryCode']);
             $ls[] = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
                 'transit_type' => 3,//入库单类型：0：自发入库单;3：头程中转入库单;5：FBA入库单
                 'receiving_shipping_type'=>2,//0：空运1：海运散货2：快递3：铁运整柜4：海运整柜5：铁运散货
                 'warehouse_code'=>$this->getWarehouseCode($item['recipientCountryCode']),//海外仓仓库编码
-                'sm_code'=>$this->getSmCode('EXPRESS'),//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
+                'sm_code'=>$this->getSmCode(),//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
                 'transit_warehouse_code'=>$this->getTransferWarehouse(),//transit_type=3特有。（非整柜：物流产品绑定的中转仓库 ， 整柜：国内中转仓库）
                 'customs_type'=>1,//transit_type=3特有。报关项,0:EDI报关,1:委托报关,2:报关自理
                 'collecting_service'=>1,//transit_type=3特有。揽收服务,0:自送货物,1:上门提货
@@ -227,6 +230,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $this->res_data = $res;
         if($res['ask']=='Success'){
             $resultinfo=array_column($res['data'],'warehouse_code','country_code');
+
             $result=empty($resultinfo[$country])?[]:$resultinfo[$country];
         }else{
             $result='USEA';//默认的
@@ -237,13 +241,13 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * @param $code
      * @return mixed|string
      */
-    public function getSmCode($code){
+    public function getSmCode(){
         $data = $this->buildParams('getSmcode', []);
         $this->req_data = $data;
         $res = $this->sendCurl('post', $this->config['url'].$this->config['get_smcode_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'getSmcode');
         $this->res_data = $res;
         if($res['ask']=='Success'){
-            $express=$res['data'][$code];
+            $express=$res['data'];
             $result=$express[0]['sm_code'];//默认选第一个
         }else{
             $result='圆通';//默认的
@@ -310,22 +314,30 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function getShippingMethod()
     {
-        $param=[
-          'warehouseCode'=>'USEA',
-        ];
-        $res = $this->request(__FUNCTION__,$param);
+//        $param=[
+//          'warehouseCode'=>'USEA',
+//        ];
+//        $res = $this->request(__FUNCTION__,$param);
+        $data = $this->buildParams('getSmcodeTwcToWarehouse', []);
+        $this->req_data = $data;
+        $res = $this->sendCurl('post', $this->config['url'].$this->config['get_warehouse_smcode_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'getSmcodeTwcToWarehouse');
+        $this->res_data = $res;
 
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
 
-//        $this->dd($res);
-        if ($res['success'] != 'true') {
-            return $this->retErrorResponseData($res['errorInfo'] ?? '未知错误');
+
+        if ($res['ask'] != 'Success') {
+            return $this->retErrorResponseData($res['message'] ?? '未知错误');
         }
-        foreach ($res['transportWays'] as $item) {
-            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+
+        foreach ($res['data'] as $k=>$v) {
+            foreach ($v as $item){
+                $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
+            }
         }
+
         return $this->retSuccessResponseData($fieldData);
     }
 

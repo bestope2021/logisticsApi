@@ -267,7 +267,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                     'reference_number' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                     'declared_value'=>round($order_price,2),//申报价值
                     'declared_value_currency'=>$item['productList'][0]['currencyCode']??($item['packageCodCurrencyCode']??''),
-                    'cod_value'=>round($item['packageCodCurrencyCode'],2)??'0.00',
+                    'cod_value'=>round($item['packageCodAmount'],2)??'0.00',
                     'cod_value_currency'=>$item['packageCodCurrencyCode']??'',
                     'length' => (int)($item['packageLength'] ?? 1),// N:包裹长度（单位：cm）
                     'width' => (int)($item['packageWidth'] ?? 1),// N:包裹宽度（单位：cm）
