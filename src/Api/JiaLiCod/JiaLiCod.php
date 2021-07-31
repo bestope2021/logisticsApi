@@ -477,7 +477,6 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             'tracking_number'=>$params['trackNumber'],//客户单号，以逗号分割
         ];
         $response = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();

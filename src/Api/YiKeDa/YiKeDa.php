@@ -45,13 +45,13 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'createOrder' => 'createGRN', // 创建并预报订单 todo 如果调用创建订单需要预报
 
-        'deleteOrder' => 'cancelOrder', //删除订单。发货后的订单不可删除。
+        'deleteOrder' => 'delGRN', //删除订单。发货后的订单不可删除。
 
         'queryTrack' => 'queryTrackingStatus', //轨迹查询
 
-      //  'getShippingMethod' => 'getShippingMethod', //获取配送方式
+        'getShippingMethod' => 'getShippingMethod', //获取配送方式
 
-        'getShippingMethod' => 'getSmcode', //获取配送方式
+      //  'getShippingMethod' => 'getSmcode', //获取配送方式
 
         'getPackagesLabel' => 'printSku', // 【打印标签|面单
 
@@ -147,15 +147,19 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 $order_volume=($value['length']*$value['width']*$value['height'])*0.000001;
             }
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
-            $yunshu=$this->getSmCode();echo "<pre>";print_r($yunshu);die;
-            $warehousesmcode=$this->getWarehouseSmCode('EXPRESS',$item['recipientCountryCode']);
+            $sm_code=$item['shippingMethodCode']??'testAir';
+            $warehousesmcode=$this->getWarehouseSmCode('testAir',$item['recipientCountryCode']);
+           // echo "<pre>";print_r($warehousesmcode);echo "<br>";
             $ls[] = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
                 'transit_type' => 3,//入库单类型：0：自发入库单;3：头程中转入库单;5：FBA入库单
                 'receiving_shipping_type'=>2,//0：空运1：海运散货2：快递3：铁运整柜4：海运整柜5：铁运散货
-                'warehouse_code'=>$this->getWarehouseCode($item['recipientCountryCode']),//海外仓仓库编码
-                'sm_code'=>$this->getSmCode(),//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
-                'transit_warehouse_code'=>$this->getTransferWarehouse(),//transit_type=3特有。（非整柜：物流产品绑定的中转仓库 ， 整柜：国内中转仓库）
+            //    'warehouse_code'=>$this->getWarehouseCode($item['recipientCountryCode']),//海外仓仓库编码
+            //    'sm_code'=>$this->getSmCode(),//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
+            //    'transit_warehouse_code'=>$this->getTransferWarehouse(),//transit_type=3特有。（非整柜：物流产品绑定的中转仓库 ， 整柜：国内中转仓库）
+                'warehouse_code'=>$warehousesmcode['warehouse_code']??'',
+                'sm_code'=>'testAir'??'',//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
+                'transit_warehouse_code'=>$warehousesmcode['transit_warehouse_code']??'',
                 'customs_type'=>1,//transit_type=3特有。报关项,0:EDI报关,1:委托报关,2:报关自理
                 'collecting_service'=>1,//transit_type=3特有。揽收服务,0:自送货物,1:上门提货
                 'collecting_address'=>[
@@ -191,13 +195,13 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $flag = $response['success'] == 'true';
+        $flag = $response['ask'] == 'Success';
 
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['error']['errorInfo'] ?? '未知错误');
+        $fieldData['info'] = $flag ? '' : ($response['Error']['errorMessage'] ?? '未知错误');
 
-        $fieldData['orderNo'] = $ls[0]['orderNo'];
-        $fieldData['trackingNo'] = $response['trackingNo'] ?? '';
+        $fieldData['orderNo'] = $ls[0]['reference_no'];
+        $fieldData['trackingNo'] = $response['data']['receiving_code'] ?? '';
         $fieldData['id'] = $response['id'] ?? '';
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
@@ -223,19 +227,46 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $result;
     }
 
-    public function getWarehouseSmCode($express,$country){
+    /**获取入库单相关的中转服务方式，包括目的仓、中转仓，跟分别支持的物流方式
+     * @param $sm_code
+     * @param $country
+     * @return array
+     */
+    public function getWarehouseSmCode($sm_code,$country){
         $data = $this->buildParams('getSmcodeTwcToWarehouse', []);
         $this->req_data = $data;
         $res = $this->sendCurl('post', $this->config['url'].$this->config['get_warehouse_smcode_command'],$data, $this->dataType, $this->apiHeaders, 'UTF-8', 'getSmcodeTwcToWarehouse');
         $this->res_data = $res;
+        $result=[];
         if($res['ask']=='Success'){
-            $resultinfo=array_column($res['data'],'warehouse_code','country_code');
+           // $warehouse_code=$this->getWarehouseCode($country);
 
-            $result=empty($resultinfo[$country])?[]:$resultinfo[$country];
+            foreach ($res['data'] as $rk=>$rv){
+
+                foreach ($rv as $k=>$v){
+                    if($v['sm_code']==$sm_code){
+                        $warecodetransit=array_column($v['twc_to_warehouse'],'warehouse_code','transit_warehouse_code');
+                        //判定渠道相等
+                        $result=[
+                            'transit_warehouse_code'=>current($warecodetransit),
+                            'warehouse_code'=>array_flip($warecodetransit)[current($warecodetransit)],
+                        ];
+                        return $result;
+                    }else{
+                        $result=[
+                            'transit_warehouse_code'=>'',
+                            'warehouse_code'=>'',
+                        ];
+                        return $result;
+                    }
+                }
+            }
         }else{
-            $result='USEA';//默认的
+            $result['transit_warehouse_code']='';
+            $result['warehouse_code']='';
+            return $result;
         }
-        return $result;
+
     }
     /**获取sm_code
      * @param $code
@@ -329,7 +360,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
 
         if ($res['ask'] != 'Success') {
-            return $this->retErrorResponseData($res['message'] ?? '未知错误');
+            return $this->retErrorResponseData($res['Error']['errorMessage'] ?? '未知错误');
         }
 
         foreach ($res['data'] as $k=>$v) {
@@ -357,10 +388,12 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function deleteOrder(string $order_id)
     {
         $param = [
-            'order_code' => $order_id,
-            'reason' => '易可达取消订单',
+            'receiving_code' => $order_id,
+           // 'reason' => '易可达取消订单',
         ];
-        $response = $this->request(__FUNCTION__, $param);
+        $data = $this->buildParams('delGRN', $param);
+        $response = $this->sendCurl('post', $this->config['url'].$this->config['get_delete_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'delGRN');
+        //$response = $this->request(__FUNCTION__, $param);
         return $response;
     }
 
@@ -393,32 +426,31 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function getPackagesLabel($params = [])
     {
-        $data = [
-            'printOrderRequest' => [
-                'trackingNo' => implode(',', $this->toArray($params['orderNo'])),
-                'printSelect' => $params['label_content'] ?? 1, //选择打印样式“1” 地址标签打印 “11” 报关单 “2” 地址标签+配货信息 “3” 地址标签+报关单（默认） “13”地址标签+(含配货信息) “12” 地址标签+(含配货信息)+报关单 “15” 地址标签+报关单+配货信息
-                'pageSizeCode' => $params['label_type'] ?? 6, //“1”表示80.5mm × 90mm “2”表示105mm × 210mm “7”表示100mm × 150mm “4”表示102mm × 76mm “5”表示110mm × 85mm “6”表示100mm × 100mm（默认） “3”表示A4,
-                'downloadPdf' => 0,
-            ],
+        $param = [
+            'product_sku_arr' => implode(',', $this->toArray($params['orderNo'])),
+            'print_code' => $params['label_content'] ?? 1, //选择打印样式“1” 地址标签打印 “11” 报关单 “2” 地址标签+配货信息 “3” 地址标签+报关单（默认） “13”地址标签+(含配货信息) “12” 地址标签+(含配货信息)+报关单 “15” 地址标签+报关单+配货信息
+            'print_size' => $params['label_type'] ?? 1, //“1”表示80.5mm × 90mm “2”表示105mm × 210mm “7”表示100mm × 150mm “4”表示102mm × 76mm “5”表示110mm × 85mm “6”表示100mm × 100mm（默认） “3”表示A4,
         ];
-        $response = $this->request(__FUNCTION__, $data);
-
+        //$response = $this->request(__FUNCTION__, $data);
+        $data = $this->buildParams('printSku', $param);
+        $response = $this->sendCurl('post', $this->config['url'].$this->config['get_label_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'printSku');
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
 
         // 结果
-        $flag = $response['success'] == 'true';
+        $flag = $response['ask'] == 'Success';
 
         if (!$flag) {
-            return $this->retErrorResponseData($response['error']['errorInfo'] ?? '未知错误');
+            return $this->retErrorResponseData($response['Error']['errorMessage'] ?? '未知错误');
         }
 
         $response['flag'] = $flag;
         $response['trackingNo'] = $params['trackNumber'][0] ?? '';
-        $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
-        $response['lable_content_type'] = $params['label_content'] ?? 1;
-
+        $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $response['lable_content_type'] = $response['data']['type']??($params['label_content'] ?? 2);//1：png，2：pdf
+        $response['url']=$response['data']['label_image']??'';
+        $response['label_path_plat'] = '';//不要填写
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
 //        $this->dd($fieldData);
         return $this->retSuccessResponseData($fieldData);
@@ -435,30 +467,33 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
             throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
         }
-        $data = [
+        $param = [
             'refrence_no' => $trackNumber,
         ];
-        $response = $this->request(__FUNCTION__, $data);
-
+        //$response = $this->request(__FUNCTION__, $param);
+        $data = $this->buildParams('queryTrackingStatus', $param);
+        $response = $this->sendCurl('post', $this->config['url'].$this->config['get_track_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'queryTrackingStatus');
         // 处理结果
         $fieldData = [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
 
         // 结果
-        $flag = $response['success'] == 'true';
+        $flag = $response['ask'] == 'Success';
 
         if (!$flag) {
-            return $this->retErrorResponseData($response['error']['errorInfo'] ?? '未知错误');
+            return $this->retErrorResponseData($response['Error']['errorMessage'] ?? '未知错误');
         }
 
-        $data = $response['trace '];
+        $data = $response['data']['trajectory_information'];
 
         $ls = [];
-        foreach ($data['sPaths'] as $key => $val) {
+        foreach ($data['item'] as $key => $val) {
+            $data['status']=$val['code'];
+            $data['status_msg']=$val['code_info'];
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
-        $data['sPaths'] = $ls;
+        $data['item'] = $ls;
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 
         return $this->retSuccessResponseData($fieldData);

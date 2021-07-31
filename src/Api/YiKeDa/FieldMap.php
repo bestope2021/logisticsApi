@@ -73,19 +73,19 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             $field = [
                 'flag',// 处理状态： true 成功，false 失败
                 'info',// 提示信息
-                'tno',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+                'tracking_number',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
                 'status',// 订单状态
-                'pathInfo',// 订单状态（货态）说明
-                'sPaths',// 物流轨迹明细
+                'status_msg',// 订单状态（货态）说明
+                'item',// 物流轨迹明细
             ];
         }
 
         if ($vars[0] == LsSdkFieldMapAbstract::QUERY_TRACK_TWO) {
             $field = [
-                'status',// 订单状态（货态）
-                'pathInfo',// 订单状态（货态）描述
-                'pathTime',// 订单状态（货态）时间
-                'pathAddr',// 所在地
+                'code',// 订单状态（货态）
+                'code_info',// 订单状态（货态）描述
+                'date_time',// 订单状态（货态）时间
+                'location',// 所在地
             ];
         }
 
