@@ -62,6 +62,8 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         'getTransferWarehouse' => 'getTransferWarehouse',//获取中转仓库
 
         'getSmcodeTwcToWarehouse' => 'getSmcodeTwcToWarehouse',//获取入库单相关的中转服务方式，包括目的仓、中转仓，跟分别支持的物流方式。
+
+        'carsModel' => 'carsModel',//获取车型
     ];
 
     /**
@@ -162,6 +164,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'transit_warehouse_code'=>$warehousesmcode['transit_warehouse_code']??'',
                 'customs_type'=>1,//transit_type=3特有。报关项,0:EDI报关,1:委托报关,2:报关自理
                 'collecting_service'=>1,//transit_type=3特有。揽收服务,0:自送货物,1:上门提货
+                //收件人信息
                 'collecting_address'=>[
                     'ca_first_name'=>$item['recipientLastName']??'',//揽收联系人-名
                     'ca_last_name'=>$item['recipientFirstName']??'',//揽收联系人-姓
@@ -173,20 +176,33 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'ca_contact_phone'=>$item['recipientPhone']??'',//必填 收件人电话
                     'ca_address2'=>$item['recipientStreet1'] ?? ($item['recipientStreet2'] ?? $address),//非必填 收件人地址2
                 ],//transit_type=3特有。揽收资料。必填条件：当collection_service=1（上门揽收）时必填
+                //发件人信息
+                'shiper_address'=>[
+                    'sa_contacter'=>$item['senderName'] ?? '',//联系人
+                    'sa_contact_phone' => $item['senderPhone'] ?? '', //N:发件人电话
+                    'sa_address1' => $item['senderFullAddress'] ?? '',// Y:发件人完整地址Length <= 200
+                    'sa_state' => $item['senderState'] ?? '', // N:发件人省
+                    'sa_city' => $item['senderCity'] ?? '',// Y:发件人城市Length<=50
+                    'sa_country_code' => 'CN',// Y:发件人国家简码，默认CN, $item['senderCountryCode'] ??
+                ],
                 'collecting_time'=>date('Y-m-d H:i:s',time()),//transit_type=3特有。揽收时间。注：揽收时间不允许小于创建时间
                 'value_add_service'=>'',//transit_type=3特有增值服务，可选值:world_ease(worldease服务) origin_crt(产地证) fumigation(熏蒸 )
                 'clearance_service'=>0,//transit_type=3特有。是否自有税号清关。0：否1：是 注：当warehouse_code开启了增值服务，必为1；如没开启，可选0或者1
                 'import_company'=>$item['recipientTaxNumber']??'',//进口商编码目的仓库对应的国家需要提供VAT(目前英国需要提供)
                 'export_company'=>$item['senderTaxNumber']??'',//transit_type=3特有。出口商编码。必填条件：clearance_service=1（自有税号清关）
-                'car_model_code'=>'',//车型 车型接口获取。transit_type=3特有。当collecting_service=1时必填。
+                'car_model_code'=>'minivan',//$this->getCarModel(),//车型 车型接口获取。transit_type=3特有。当collecting_service=1时必填。
                 'weight'=>round($order_weight,2),//重量(kg)小于等于100000   8,2
                 'volume'=>round($order_volume,2),//体积(立方米)小于等于100   5,2
                 //todo 调试写死
                 //'transportWayCode' => $item['shippingMethodCode'] ?? 'USRNN',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'items' => $productList,// Y:一次最多支持 20 个产品信息（超过 20 个将会忽略）
             ];
+
         }
-        $response = $this->request(__FUNCTION__, $ls[0]);
+        $data = $this->buildParams('createOrder', $ls[0]);
+
+        $response = $this->sendCurl('post', $this->config['url'].$this->config['create_order_command'],$data, $this->dataType, $this->apiHeaders, 'UTF-8', 'createGRN');
+        //$response = $this->request(__FUNCTION__, $ls[0]);
 
         // 处理结果
         $reqRes = $this->getReqResData();
@@ -198,7 +214,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $flag = $response['ask'] == 'Success';
 
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['Error']['errorMessage'] ?? '未知错误');
+        $fieldData['info'] = $flag ? '' : ($response['message'] ?? '未知错误');
 
         $fieldData['orderNo'] = $ls[0]['reference_no'];
         $fieldData['trackingNo'] = $response['data']['receiving_code'] ?? '';
@@ -207,6 +223,22 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 //        $this->dd($response, $ret, $reqRes);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+    }
+
+    /**获取车型
+     * @return array|string
+     */
+    public function getCarModel(){
+        $data = $this->buildParams('carsModel', []);
+        $res = $this->sendCurl('post', $this->config['url'].$this->config['get_car_model_command'],$data, $this->dataType, $this->apiHeaders, 'UTF-8', 'carsModel');
+
+        if($res['ask']=='Success'){
+            $resultinfo=array_column($res['data'],'car_model_name','car_model_code');
+            $result=empty($resultinfo)?'minivan':$resultinfo;
+        }else{
+            $result='minivan';//默认的
+        }
+        return $result;
     }
 
     /**按照收货国家获取仓库编码
@@ -245,7 +277,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
                 foreach ($rv as $k=>$v){
                     if($v['sm_code']==$sm_code){
-                        $warecodetransit=array_column($v['twc_to_warehouse'],'warehouse_code','transit_warehouse_code');
+                        $warecodetransit=array_column($v['twc_to_warehouse'],'transit_warehouse_code','warehouse_code');
                         //判定渠道相等
                         $result=[
                             'transit_warehouse_code'=>current($warecodetransit),
@@ -360,7 +392,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
 
         if ($res['ask'] != 'Success') {
-            return $this->retErrorResponseData($res['Error']['errorMessage'] ?? '未知错误');
+            return $this->retErrorResponseData($res['message'] ?? '未知错误');
         }
 
         foreach ($res['data'] as $k=>$v) {
@@ -391,7 +423,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'receiving_code' => $order_id,
            // 'reason' => '易可达取消订单',
         ];
-        $data = $this->buildParams('delGRN', $param);
+        $data = $this->buildParams('deleteOrder', $param);
         $response = $this->sendCurl('post', $this->config['url'].$this->config['get_delete_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'delGRN');
         //$response = $this->request(__FUNCTION__, $param);
         return $response;
@@ -432,7 +464,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'print_size' => $params['label_type'] ?? 1, //“1”表示80.5mm × 90mm “2”表示105mm × 210mm “7”表示100mm × 150mm “4”表示102mm × 76mm “5”表示110mm × 85mm “6”表示100mm × 100mm（默认） “3”表示A4,
         ];
         //$response = $this->request(__FUNCTION__, $data);
-        $data = $this->buildParams('printSku', $param);
+        $data = $this->buildParams('getPackagesLabel', $param);
         $response = $this->sendCurl('post', $this->config['url'].$this->config['get_label_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'printSku');
         // 处理结果
         $fieldData = [];
@@ -442,7 +474,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $flag = $response['ask'] == 'Success';
 
         if (!$flag) {
-            return $this->retErrorResponseData($response['Error']['errorMessage'] ?? '未知错误');
+            return $this->retErrorResponseData($response['message'] ?? '未知错误');
         }
 
         $response['flag'] = $flag;
@@ -471,7 +503,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'refrence_no' => $trackNumber,
         ];
         //$response = $this->request(__FUNCTION__, $param);
-        $data = $this->buildParams('queryTrackingStatus', $param);
+        $data = $this->buildParams('queryTrack', $param);
         $response = $this->sendCurl('post', $this->config['url'].$this->config['get_track_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'queryTrackingStatus');
         // 处理结果
         $fieldData = [];
@@ -482,7 +514,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $flag = $response['ask'] == 'Success';
 
         if (!$flag) {
-            return $this->retErrorResponseData($response['Error']['errorMessage'] ?? '未知错误');
+            return $this->retErrorResponseData($response['message'] ?? '未知错误');
         }
 
         $data = $response['data']['trajectory_information'];
