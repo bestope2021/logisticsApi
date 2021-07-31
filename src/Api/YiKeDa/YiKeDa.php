@@ -150,17 +150,16 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             }
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
             $sm_code=$item['shippingMethodCode']??'testAir';
-            $warehousesmcode=$this->getWarehouseSmCode('testAir',$item['recipientCountryCode']);
-           // echo "<pre>";print_r($warehousesmcode);echo "<br>";
+            $warehousesmcode=$this->getWarehouseSmCode($sm_code,$item['recipientCountryCode']);
             $ls[] = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
                 'transit_type' => 3,//入库单类型：0：自发入库单;3：头程中转入库单;5：FBA入库单
-                'receiving_shipping_type'=>2,//0：空运1：海运散货2：快递3：铁运整柜4：海运整柜5：铁运散货
+                'receiving_shipping_type'=>0,//0：空运1：海运散货2：快递3：铁运整柜4：海运整柜5：铁运散货
             //    'warehouse_code'=>$this->getWarehouseCode($item['recipientCountryCode']),//海外仓仓库编码
             //    'sm_code'=>$this->getSmCode(),//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
             //    'transit_warehouse_code'=>$this->getTransferWarehouse(),//transit_type=3特有。（非整柜：物流产品绑定的中转仓库 ， 整柜：国内中转仓库）
                 'warehouse_code'=>$warehousesmcode['warehouse_code']??'',
-                'sm_code'=>'testAir'??'',//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
+                'sm_code'=>$sm_code??'testAir',//transit_type=3特有。物流产品（整柜无需填）,我们后台设置的是快递
                 'transit_warehouse_code'=>$warehousesmcode['transit_warehouse_code']??'',
                 'customs_type'=>1,//transit_type=3特有。报关项,0:EDI报关,1:委托报关,2:报关自理
                 'collecting_service'=>1,//transit_type=3特有。揽收服务,0:自送货物,1:上门提货
