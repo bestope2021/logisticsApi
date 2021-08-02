@@ -244,8 +244,8 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'caiZhiEn' => $value['declareEnName'] ?? '',// Y:申报材质英文名称Length <= 50
                     'caiZhiCn' => $value['productMaterial'] ?? '',// N:申报材质中文名称Length <= 50
                     'cargoModel' => $value['modelType'] ?? '',//商品型号
-                //    'imageUrl' => $value['productUrl'] ?? '',// N:图片
-                //    'salesUrl' => $value['productUrl'] ?? '',// N:销售地址,
+                    //    'imageUrl' => $value['productUrl'] ?? '',// N:图片
+                    //    'salesUrl' => $value['productUrl'] ?? '',// N:销售地址,
                     'shenBaoBiZhong' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
                     'shenBaoDanJia' => (float)($value['declarePrice'] ?? ''), //Y:单价
                     'shenBaoHaiGuanBianMa' => $value['hsCode'] ?? '',// N:海关编码
@@ -306,7 +306,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        foreach ($response['data'] as $k=>$v){
+        foreach ($response['data'] as $k => $v) {
             // 结果
             $flag = $v['code'] === 200;
             $fieldData['flag'] = $flag ? true : false;
@@ -331,22 +331,25 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public function request($function, $data = [])
     {
         $this->req_data = $data;
-        if(($this->req_data['key']=='files') || ($this->req_data['key']=='queryTracks')){
-            $this->apiHeaders = [
-                'Authorization' => 'Bearer  ' . $this->loginToken,
-            ];
-        }else{
-            $this->apiHeaders = [
-                'Authorization' => 'Bearer  ' . $this->loginToken,
-                'Content-Type' => 'application/json; charset=utf-8',
-            ];
+        switch ($this->req_data['key']) {
+            case 'files' || 'queryTracks':
+                $this->apiHeaders = [
+                    'Authorization' => 'Bearer  ' . $this->loginToken,
+                ];
+                break;
+            default:
+                $this->apiHeaders = [
+                    'Authorization' => 'Bearer  ' . $this->loginToken,
+                    'Content-Type' => 'application/json; charset=utf-8',
+                ];
+                break;
         }
 
         switch ($this->req_data['key']) {
             case 'login':
                 unset($data['key']);
                 unset($this->req_data['key']);
-                $response = $this->sendCurl('post', $this->config['url'] . $this->config['login_command'], $data, 'form',[]);
+                $response = $this->sendCurl('post', $this->config['url'] . $this->config['login_command'], $data, 'form', []);
                 break;//登录
             case 'yundans':
                 unset($data['key']);
@@ -416,10 +419,10 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             return $this->retErrorResponseData('易抵达物流商发生未知错误，获取失败！');
         }
         foreach ($response['data'] as $item) {
-            $item['code']=$item['channelName'];
-            $item['enname']=$item['channelName'];
-            $item['cnname']=$item['channelName'];
-            $item['shipping_method_type']=$item['logisticsModeCode'];
+            $item['code'] = $item['channelName'];
+            $item['enname'] = $item['channelName'];
+            $item['cnname'] = $item['channelName'];
+            $item['shipping_method_type'] = $item['logisticsModeCode'];
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
 
@@ -454,8 +457,8 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         }
         $data = [
             'key' => 'files',
-            'keHuDanHaoList'=>$params['trackNumber'],//客户单号，以逗号分割
-            'wenJianLeiXingList'=>3,//文件类型列表，用逗号隔开,1：系统label，2：系统发票，3：转单lebel，4：转单发票
+            'keHuDanHaoList' => $params['trackNumber'],//客户单号，以逗号分割
+            'wenJianLeiXingList' => 3,//文件类型列表，用逗号隔开,1：系统label，2：系统发票，3：转单lebel，4：转单发票
         ];
         $response = $this->request(__FUNCTION__, $data);
 
@@ -469,11 +472,11 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         foreach ($response['data'] as $item) {
             $item['flag'] = true;
-            $item['info']=$item['message'];
-            $item['order_no']=$item['keHuDanHao'];
-            $item['lable_file']=$item['fileList'][0]['data'];//面单内容
+            $item['info'] = $item['message'];
+            $item['order_no'] = $item['keHuDanHao'];
+            $item['lable_file'] = $item['fileList'][0]['data'];//面单内容
             $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
-            $item['label_path_plat']='';//不要填写
+            $item['label_path_plat'] = '';//不要填写
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
 
@@ -511,14 +514,14 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         $ls = [];
         foreach ($data['trackList'] as $key => $val) {
-            $data['flag']=true;
-            $data['track_status']=$val['desc'];
-            $data['track_status_name']=$val['desc'];
+            $data['flag'] = true;
+            $data['track_status'] = $val['desc'];
+            $data['track_status_name'] = $val['desc'];
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
 
         $data['details'] = $ls;
-        $data['server_hawbcode']=$data['no'];
+        $data['server_hawbcode'] = $data['no'];
 
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 

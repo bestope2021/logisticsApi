@@ -43,7 +43,9 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
      */
     public $dataType = 'json';
 
-    public $apiHeaders = [];
+    public $apiHeaders = [
+        'Content-Type' => 'application/json; charset=utf-8',
+    ];
 
     //登录Token
     public $loginToken;
@@ -85,14 +87,12 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
     {
         $this->checkKeyExist(['login_account', 'login_password', 'url'], $config);
         $this->config = $config;
-
         //验证是否登录
         if (((!empty($this->expireTime)) && (time() > strtotime($this->expireTime))) || (empty($this->expireTime)) || (empty($this->loginToken))) {
             $this->isLogin($this->config['login_account'], $this->config['login_password']);
         } else {
             return $this;
         }
-
     }
 
     /**
@@ -199,7 +199,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             'key' => 'token/get',
         ];
         $response = $this->request(__FUNCTION__, $data);
-       
+
         if ((!empty($response['code'])) && ($response['code'] == 200)) {
             $this->loginToken = $response['body']['token'];
             $this->expireTime = date("Y-m-d H:i:s", strtotime("+1 days"));//有效期是两天
@@ -207,8 +207,6 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             $this->loginToken = '';
             $this->expireTime = '';//失败则返回为空
         }
-        //return $this;
-
     }
 
     /**
@@ -232,7 +230,10 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         }
 
         foreach ($params as $item) {
-            $productList = [];$order_weight = 0;$order_num = 0;$order_price=0;
+            $productList = [];
+            $order_weight = 0;
+            $order_num = 0;
+            $order_price = 0;
             foreach ($item['productList'] as $value) {
                 $productList[] = [
                     'sku' => $value['productSku'] ?? '',// N:产品 SKU;Length <= 100
@@ -241,12 +242,12 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                     'unit_price' => (float)($value['declarePrice'] ?? ''), //Y:单价
                     'currency' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
                     'quantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
-                    'unit_weight' => (int)round($value['declareWeight']*1000, 2) ?? '',
+                    'unit_weight' => (int)round($value['declareWeight'] * 1000, 2) ?? '',
                     'length' => (int)round($value['length'], 2) ?? '',
                     'width' => (int)round($value['width'], 2) ?? '',
                     'height' => (int)round($value['height'], 2) ?? '',
                     'hs_code' => $value['hsCode'] ?? '',// N:海关编码
-                    'brand' => $value['brand']??'',// N:品牌名称Length <= 50
+                    'brand' => $value['brand'] ?? '',// N:品牌名称Length <= 50
                     'remark' => $value['_sort_ident_info'] ?? '',// N:备注
 
                 ];
@@ -257,47 +258,47 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
 
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $data = [
-                'sale_platform'=>$item['platformSource']??'',
-                'service'=>[
+                'sale_platform' => $item['platformSource'] ?? '',
+                'service' => [
                     'channel_code' => $item['shippingMethodCode'] ?? 'TESTCNTHP001',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
-                    'service_type'=>'default',//(默认 : default)service_type 可选值会根据不运输渠道有所不同使用自提点服务则填pickup_point
-                    'delivery_instruction'=>'',//派送特别需求备注
+                    'service_type' => 'default',//(默认 : default)service_type 可选值会根据不运输渠道有所不同使用自提点服务则填pickup_point
+                    'delivery_instruction' => '',//派送特别需求备注
                 ],
-                'package'=>[
+                'package' => [
                     'reference_number' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
-                    'declared_value'=>round($order_price,2),//申报价值
-                    'declared_value_currency'=>$item['productList'][0]['currencyCode']??($item['packageCodCurrencyCode']??''),
-                    'cod_value'=>round($item['packageCodAmount'],2)??'0.00',
-                    'cod_value_currency'=>$item['packageCodCurrencyCode']??'',
+                    'declared_value' => round($order_price, 2),//申报价值
+                    'declared_value_currency' => $item['productList'][0]['currencyCode'] ?? ($item['packageCodCurrencyCode'] ?? ''),
+                    'cod_value' => round($item['packageCodAmount'], 2) ?? '0.00',
+                    'cod_value_currency' => $item['packageCodCurrencyCode'] ?? '',
                     'length' => (int)($item['packageLength'] ?? 1),// N:包裹长度（单位：cm）
                     'width' => (int)($item['packageWidth'] ?? 1),// N:包裹宽度（单位：cm）
                     'height' => (int)($item['packageHeight'] ?? 1),// N:包裹高度（单位：cm）
-                    'actual_weight' => (int)(($order_weight*1000) ?? 1),//包裹重，重量g
-                    'payment_method'=>(round($item['packageCodAmount'],2)>0)?'COD':'PP',//• COD : 货到付款 • PP : 预付 (默认)
-                    'shipment_type'=>'General',//• General : 普货 (默认) • Sensitive : 敏货• Mobile & Tablet : 手机和平板
+                    'actual_weight' => (int)(($order_weight * 1000) ?? 1),//包裹重，重量g
+                    'payment_method' => (round($item['packageCodAmount'], 2) > 0) ? 'COD' : 'PP',//• COD : 货到付款 • PP : 预付 (默认)
+                    'shipment_type' => 'General',//• General : 普货 (默认) • Sensitive : 敏货• Mobile & Tablet : 手机和平板
                 ],
-                'sender'=>[
-                    'name'=>$item['senderName']??'',//必填 寄件人名
-                    'company'=>$item['senderCompany']??'',//必填 寄件公司名
-                    'address'=>$item['senderAddress']??'',//必填 寄件地址
-                    'district'=>$item['senderDistrict']??'',//非必填 寄件地址分区
-                    'city'=>$item['senderCity']??'',//必填 寄件城市
-                    'province'=>$item['senderState']??'',//非必填 寄件州/省
-                    'country_code'=>$item['senderCountryCode']??'',//必填 寄件国家, ISO 3166 标准
-                    'post_code'=>$item['senderPostCode']??'',//必填 寄件邮编
-                    'phone'=>$item['senderPhone']??'',//必填 寄件电话
-                    'email'=>$item['senderEmail']??'',//非必填 寄件邮箱
+                'sender' => [
+                    'name' => $item['senderName'] ?? '',//必填 寄件人名
+                    'company' => $item['senderCompany'] ?? '',//必填 寄件公司名
+                    'address' => $item['senderAddress'] ?? '',//必填 寄件地址
+                    'district' => $item['senderDistrict'] ?? '',//非必填 寄件地址分区
+                    'city' => $item['senderCity'] ?? '',//必填 寄件城市
+                    'province' => $item['senderState'] ?? '',//非必填 寄件州/省
+                    'country_code' => $item['senderCountryCode'] ?? '',//必填 寄件国家, ISO 3166 标准
+                    'post_code' => $item['senderPostCode'] ?? '',//必填 寄件邮编
+                    'phone' => $item['senderPhone'] ?? '',//必填 寄件电话
+                    'email' => $item['senderEmail'] ?? '',//非必填 寄件邮箱
                 ],
-                'receiver'=>[
-                    'name'=>$item['recipientName']??'',//必填 收件人姓名
-                    'company'=>$item['recipientCompany']??'',//必填 收件人公司名
-                    'address'=>$address ?? '',//必填 收件人地址
-                    'city'=>$item['recipientCity']??'',//必填 收件人城市
-                    'province'=>$item['recipientState']??'',//非必填 收件人省
-                    'country_code'=>$item['recipientCountryCode']??'',//必填 收件人国家, ISO 3166 标准
-                    'post_code'=>$item['recipientPostCode']??'',//必填 收件人邮编
-                    'phone'=>$item['recipientPhone']??'',//必填 收件人电话
-                    'email'=>$item['recipientEmail']??'',//非必填 收件人邮箱
+                'receiver' => [
+                    'name' => $item['recipientName'] ?? '',//必填 收件人姓名
+                    'company' => $item['recipientCompany'] ?? '',//必填 收件人公司名
+                    'address' => $address ?? '',//必填 收件人地址
+                    'city' => $item['recipientCity'] ?? '',//必填 收件人城市
+                    'province' => $item['recipientState'] ?? '',//非必填 收件人省
+                    'country_code' => $item['recipientCountryCode'] ?? '',//必填 收件人国家, ISO 3166 标准
+                    'post_code' => $item['recipientPostCode'] ?? '',//必填 收件人邮编
+                    'phone' => $item['recipientPhone'] ?? '',//必填 收件人电话
+                    'email' => $item['recipientEmail'] ?? '',//非必填 收件人邮箱
                 ],
 
                 'items' => $productList,//商品信息数组
@@ -316,17 +317,17 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
         // 结果
-        $flag = $response['message'] =='success';
-        if(!empty($response['data'])){
-            $newdata=$response['data'];
+        $flag = $response['message'] == 'success';
+        if (!empty($response['data'])) {
+            $newdata = $response['data'];
             $fieldData['flag'] = $flag ? true : false;
             $fieldData['info'] = $flag ? '' : ($response['message'] ?? '');
-            $fieldData['order_id'] = $newdata['tracking_number'] ?? ($newdata['package_number'] ?? ($newdata['reference_number']??''));
+            $fieldData['order_id'] = $newdata['tracking_number'] ?? ($newdata['package_number'] ?? ($newdata['reference_number'] ?? ''));
             $fieldData['refrence_no'] = $newdata['reference_number'] ?? '';
             $fieldData['shipping_method_no'] = $newdata['tracking_number'] ?? '';
             $fieldData['channel_hawbcode'] = $newdata['package_number'] ?? '';
             $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-        }else{
+        } else {
             $fieldData['flag'] = $flag ? true : false;
             $fieldData['info'] = $flag ? '' : ($response['message'] ?? '');
             $fieldData['order_id'] = '';
@@ -339,6 +340,11 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
+    public function pushHeader()
+    {
+        $this->apiHeaders['Authorization'] = 'Bearer ' . $this->loginToken;
+    }
+
     /**公共请求方法
      * @param string $function
      * @param array $data
@@ -347,26 +353,30 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
     public function request($function, $data = [])
     {
         $this->req_data = $data;
-        if($this->req_data['key']=='token/get'){
-            $this->apiHeaders = [
-                'Content-Type' => 'application/json; charset=utf-8',
-            ];//登录接口
-        }elseif($this->req_data['key']=='orders'){
-            $this->apiHeaders = [
-                'Authorization' => 'Bearer ' . $this->loginToken,
-            ];//删除取消订单，未获取轨迹的订单
-        }else{
-            $this->apiHeaders = [
-                'Authorization' => 'Bearer ' . $this->loginToken,
-                'Content-Type' => 'application/json; charset=utf-8',
-            ];
+        switch ($this->req_data['key']) {
+            case 'token/get':
+                $this->apiHeaders = [
+                    'Content-Type' => 'application/json; charset=utf-8',
+                ];//登录接口
+                break;
+            case 'orders';
+                $this->apiHeaders = [
+                    'Authorization' => 'Bearer ' . $this->loginToken,
+                ];//删除取消订单，未获取轨迹的订单
+                break;
+            default:
+                $this->apiHeaders = [
+                    'Authorization' => 'Bearer ' . $this->loginToken,
+                    'Content-Type' => 'application/json; charset=utf-8',
+                ];//其余接口
+                break;
         }
 
         switch ($this->req_data['key']) {
             case 'token/get':
                 unset($data['key']);
                 unset($this->req_data['key']);
-                $response = $this->sendCurl('post', $this->config['url'] . $this->config['login_command'], $data, $this->dataType,$this->apiHeaders);
+                $response = $this->sendCurl('post', $this->config['url'] . $this->config['login_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//登录
             case 'shipment/create':
                 unset($data['key']);
@@ -386,7 +396,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             case 'orders':
                 unset($data['key']);
                 unset($this->req_data['key']);
-                $response = $this->sendCurl('delete', $this->config['url'] . $this->config['cancel_order_command'].'/'.$data['keHuDanHao'], [], $this->dataType, $this->apiHeaders);
+                $response = $this->sendCurl('delete', $this->config['url'] . $this->config['cancel_order_command'] . '/' . $data['keHuDanHao'], [], $this->dataType, $this->apiHeaders);
                 break;//取消订单
             case 'channel/list':
                 unset($data['key']);
@@ -437,9 +447,9 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         }
 
         foreach ($response['data'] as $item) {
-            $item['enname']=$item['name'];
-            $item['cnname']=$item['name'];
-            $item['shipping_method_type']=$item['name'];
+            $item['enname'] = $item['name'];
+            $item['cnname'] = $item['name'];
+            $item['shipping_method_type'] = $item['name'];
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
 
@@ -474,7 +484,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         }
         $data = [
             'key' => 'shipment/label',
-            'tracking_number'=>$params['trackNumber'],//客户单号，以逗号分割
+            'tracking_number' => $params['trackNumber'],//客户单号，以逗号分割
         ];
         $response = $this->request(__FUNCTION__, $data);
         // 处理结果
@@ -484,13 +494,13 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         if ($response['message'] != 'success') {
             return $this->retErrorResponseData('嘉里COD物流商【获取面单】接口失败，发生未知错误');
         }
-        $item=[];
+        $item = [];
         $item['flag'] = true;
-        $item['info']=$response['message'];
-        $item['order_no']=$data['tracking_number'];
-        $item['lable_file']=$response['data']['base64'];//面单内容
+        $item['info'] = $response['message'];
+        $item['order_no'] = $data['tracking_number'];
+        $item['lable_file'] = $response['data']['base64'];//面单内容
         $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
-        $item['label_path_plat']='';//不要填写
+        $item['label_path_plat'] = '';//不要填写
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
     }
@@ -525,9 +535,9 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
 
         $ls = [];
         foreach ($data['status'] as $key => $val) {
-            $data['flag']=true;
-            $data['track_status']=$val['status_code'];
-            $data['track_status_name']=$val['status_code'];
+            $data['flag'] = true;
+            $data['track_status'] = $val['status_code'];
+            $data['track_status_name'] = $val['status_code'];
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
 

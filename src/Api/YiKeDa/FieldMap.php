@@ -92,6 +92,17 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
         return self::getFieldMap(self::getQueryTrackFields($vars[0]), $field);
     }
 
+    public static function shippingMethodType(){
+        return [
+            0=>'尾程物流产品',
+            1=>'退件代选物流产品',
+            2=>'头程物流产品',
+            3=>'退件自选物流产品',
+            4=>'未预报退件物流产品',
+            5=>'销毁物流产品',
+            6=>'自提物流产品',
+        ];
+    }
     /**
      * 获取物流商运输方式
      * @param mixed ...$vars
@@ -103,7 +114,7 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             'sm_code',// 运输方式代码
             'sm_code',// 运输方式英文
             'sm_code_name',// 运输方式中文
-            'shipping_method_type',// 运输方式类型
+            'type',// 运输方式类型
             'remark',// 备注
             'extended',// 扩展参数
         ];
