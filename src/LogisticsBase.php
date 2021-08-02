@@ -47,12 +47,14 @@ class LogisticsBase
             throw new InvalidIArgumentException('物流商标识未找到');
         }
 
+        Logs::setRootPath($rootPath);
+        Logs::setTitle($title);
+
         if(!isset(self::$instances[$name])){
             $obj = LogisticsIdenConfig::getApiObj($name);
             self::$instances[$name] = new $obj($config);
         }
-        Logs::setRootPath($rootPath);
-        Logs::setTitle($title);
+
         return self::$instances[$name];
     }
 
