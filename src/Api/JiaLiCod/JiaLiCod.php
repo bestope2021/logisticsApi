@@ -284,7 +284,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                     'district' => $item['senderDistrict'] ?? '',//非必填 寄件地址分区
                     'city' => $item['senderCity'] ?? '',//必填 寄件城市
                     'province' => $item['senderState'] ?? '',//非必填 寄件州/省
-                    'country_code' => $item['senderCountryCode'] ?? '',//必填 寄件国家, ISO 3166 标准
+                    'country_code' => $item['senderCountryCode'] ?? 'CN',//必填 寄件国家, ISO 3166 标准
                     'post_code' => $item['senderPostCode'] ?? '',//必填 寄件邮编
                     'phone' => $item['senderPhone'] ?? '',//必填 寄件电话
                     'email' => $item['senderEmail'] ?? '',//非必填 寄件邮箱

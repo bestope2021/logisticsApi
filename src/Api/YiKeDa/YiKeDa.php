@@ -469,7 +469,8 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $param = [
             'receiving_code' => implode(',', $this->toArray($params['orderNo'])),
-            'print_type' => $params['label_content'] ?? 1, //打印类型(1：入库清单，2：箱唛)
+            'print_type' => $params['label_content'] ?? 2, //打印类型(1：入库清单，2：箱唛)
+            'receiving_box_no_arr' => [1,2,3],//入库单箱号(一次不能超过50个)print_type=1时，为空print_type=2时，必填
             'print_size' => $params['label_type'] ?? 2, //1：A4 2：100*100，3：100*150，4：100*60
         ];
         //$response = $this->request(__FUNCTION__, $data);
