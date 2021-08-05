@@ -233,12 +233,7 @@ abstract class LogisticsAbstract
                         break;
                 }
                 break;//仅针对嘉里COD的成功返回，状态码为201
-            case 401:
-                Logs::warning($resTitle, "CURL授权失败", $response, $dir);
-                throw new CurlException('curl: 授权失败');
-                break;
 
-            case 404:
             case 400:
                 switch (strtolower($dataType)) {
                     case 'xml':
@@ -251,6 +246,12 @@ abstract class LogisticsAbstract
                         break;
                 }
                 break;//仅针对出口易和嘉里COD的错误返回json格式，且状态码是400
+            case 401:
+                Logs::warning($resTitle, "CURL授权失败", $response, $dir);
+                throw new CurlException('curl: 授权失败');
+                break;
+
+
             case 403:
                 switch (strtolower($dataType)) {
                     case 'xml':
@@ -263,6 +264,9 @@ abstract class LogisticsAbstract
                         break;
                 }
                 break;//仅针对嘉里COD的错误返回json格式，且状态码是403
+
+            case 404:
+
             case 409:
                 switch (strtolower($dataType)) {
                     case 'xml':
@@ -275,6 +279,18 @@ abstract class LogisticsAbstract
                         break;
                 }
                 break;//仅针对嘉里COD的错误返回json格式，且状态码是409
+            case 429:
+                switch (strtolower($dataType)) {
+                    case 'xml':
+                        $return = static::xmlToArray($response);
+                        break;
+                    case 'form':
+                    case 'json':
+                    default:
+                        $return = json_decode($response, true);
+                        break;
+                }
+                break;//仅针对嘉里COD的错误返回json格式，且状态码是429
             case 500:
                 switch (strtolower($dataType)) {
                     case 'xml':

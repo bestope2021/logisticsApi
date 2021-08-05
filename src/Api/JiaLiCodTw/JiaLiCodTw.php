@@ -5,7 +5,7 @@
  * Date: 2/22/21
  */
 
-namespace smiler\logistics\Api\JiaLiCod;
+namespace smiler\logistics\Api\JiaLiCodTw;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
@@ -18,12 +18,12 @@ use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
 /**
- * 新马泰嘉里COD物流
+ * 台湾嘉里COD物流
  * @link http://hotfix.yidida.top/itdida-api/swagger-ui.html#!/21151330212716922359/loginUsingPOST_7
- * Class JiaLiCod
- * @package smiler\logistics\Api\JiaLiCod
+ * Class JiaLiCodTw
+ * @package smiler\logistics\Api\JiaLiCodTw
  */
-class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
+class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
 {
     /**
      * 一次最多提交多少个包裹
@@ -34,9 +34,9 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
      */
     const QUERY_TRACK_COUNT = 10;
 
-    public $iden = 'jialicod';
+    public $iden = 'jialicodtw';
 
-    public $iden_name = '嘉里COD物流';
+    public $iden_name = '台湾嘉里COD物流';
     /**
      * curl 请求数据类型
      * @var string
@@ -260,7 +260,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             $data = [
                 'sale_platform' => $item['platformSource'] ?? '',
                 'service' => [
-                    'channel_code' => $item['shippingMethodCode'] ?? 'TESTCNTHP001',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
+                    'channel_code' => $item['shippingMethodCode'] ?? 'CAHKTWS18',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                     'service_type' => 'default',//(默认 : default)service_type 可选值会根据不运输渠道有所不同使用自提点服务则填pickup_point
                     'delivery_instruction' => '',//派送特别需求备注
                 ],
@@ -306,7 +306,9 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
 
             $ls[] = $data;
         }
+
         $ls[0]['key'] = 'shipment/create';
+
         $response = $this->request(__FUNCTION__, $ls[0]);
 
 
@@ -438,7 +440,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
     {
         $data = ['key' => 'channel/list'];
         $response = $this->request(__FUNCTION__, $data);
-
+echo "<pre>";print_r($response);die;
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
