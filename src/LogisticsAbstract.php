@@ -200,6 +200,15 @@ abstract class LogisticsAbstract
         return $xml;
     }
 
+    /**输出解析
+     * @param $curl
+     * @param $dataType
+     * @param $response
+     * @param string $resTitle
+     * @param string $dir
+     * @return mixed
+     * @throws CurlException
+     */
     protected static function parseResponse($curl, $dataType, $response, $resTitle = '', $dir = '')
     {
         switch ($curl->responseCode) {
