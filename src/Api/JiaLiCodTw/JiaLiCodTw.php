@@ -319,8 +319,9 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
         // 结果
         if(($response['code'] == 201) || ($response['code'] == 409)){
             $flag = 1;//201正常，409是重复下单已存在也正常返回
+        }else{
+            $flag = 0;
         }
-
         if (!empty($response['data'])) {
             $newdata = $response['data'];
             $fieldData['flag'] = $flag ? true : false;
