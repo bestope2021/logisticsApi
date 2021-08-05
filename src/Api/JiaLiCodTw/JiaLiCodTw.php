@@ -90,8 +90,6 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
         //验证是否登录
         if (((!empty($this->expireTime)) && (time() > strtotime($this->expireTime))) || (empty($this->expireTime)) || (empty($this->loginToken))) {
             $this->isLogin($this->config['login_account'], $this->config['login_password']);
-        } else {
-            return $this;
         }
     }
 
@@ -199,7 +197,6 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
             'key' => 'token/get',
         ];
         $response = $this->request(__FUNCTION__, $data);
-
         if ((!empty($response['code'])) && ($response['code'] == 200)) {
             $this->loginToken = $response['body']['token'];
             $this->expireTime = date("Y-m-d H:i:s", strtotime("+1 days"));//有效期是两天
@@ -299,6 +296,7 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
                     'post_code' => $item['recipientPostCode'] ?? '',//必填 收件人邮编
                     'phone' => $item['recipientPhone'] ?? '',//必填 收件人电话
                     'email' => $item['recipientEmail'] ?? '',//非必填 收件人邮箱
+                    'id_number' => $item['recipientTaxNumber'] ?? '',//收件人税号收件税号跨境，收件人为 TW，CN时，必填
                 ],
 
                 'items' => $productList,//商品信息数组
@@ -319,7 +317,7 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
         // 结果
-        $flag = $response['message'] == 'success';
+        $flag = $response['code'] == 200;
         if (!empty($response['data'])) {
             $newdata = $response['data'];
             $fieldData['flag'] = $flag ? true : false;
@@ -440,11 +438,11 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
     {
         $data = ['key' => 'channel/list'];
         $response = $this->request(__FUNCTION__, $data);
-echo "<pre>";print_r($response);die;
+
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-        if ($response['message'] != 'success') {
+        if ($response['code'] != 200) {
             return $this->retErrorResponseData('嘉里COD物流商发生未知错误，获取失败！');
         }
 
@@ -481,6 +479,7 @@ echo "<pre>";print_r($response);die;
      */
     public function getPackagesLabel($params)
     {
+
         if (count($params) > self::ORDER_COUNT) {
             throw new ManyProductException($this->iden_name . "一次最多支持提交" . self::ORDER_COUNT . "个包裹");
         }
@@ -489,11 +488,12 @@ echo "<pre>";print_r($response);die;
             'tracking_number' => $params['trackNumber'],//客户单号，以逗号分割
         ];
         $response = $this->request(__FUNCTION__, $data);
+
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
 
-        if ($response['message'] != 'success') {
+        if ($response['code'] != 200) {
             return $this->retErrorResponseData('嘉里COD物流商【获取面单】接口失败，发生未知错误');
         }
         $item = [];
@@ -511,7 +511,7 @@ echo "<pre>";print_r($response);die;
      * 获取物流商轨迹
      * {"data":[{"shipper_hawbcode":"T1020210305164402901045177","server_hawbcode":"HMEUS0000223958YQ","channel_hawbcode":null,"destination_country":"US","destination_country_name":null,"track_status":"NT","track_status_name":"转运中","signatory_name":"","details":[{"tbs_id":"2826898","track_occur_date":"2021-03-05 16:44:59","track_location":"","track_description":"快件电子信息已经收到","track_description_en":"Shipment information received","track_code":"IR","track_status":"NT","track_status_cnname":"转运中"}]}],"success":1,"cnmessage":"获取跟踪记录成功","enmessage":"获取跟踪记录成功","order_id":0}
      * @return mixed
-     * {"code":0,"info":"success","data":[{"flag":"","tipMsg":"","orderNo":"HMEUS0000223958YQ","status":"NT","statusMsg":"转运中","logisticsTrackingDetails":[{"status":"NT","statusContent":"快件电子信息已经收到","statusTime":"2021-03-05 16:44:59","statusLocation":""}]}]}
+     * {"code":0,"info":"Success","data":[{"flag":"","tipMsg":"","orderNo":"HMEUS0000223958YQ","status":"NT","statusMsg":"转运中","logisticsTrackingDetails":[{"status":"NT","statusContent":"快件电子信息已经收到","statusTime":"2021-03-05 16:44:59","statusLocation":""}]}]}
      */
     public function queryTrack($trackNumber)
     {
@@ -529,7 +529,7 @@ echo "<pre>";print_r($response);die;
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
 
-        if ($response['message'] != 'success') {
+        if ($response['code'] != 200) {
             return $this->retErrorResponseData('嘉里COD物流商【获取轨迹】接口失败，发生未知错误');
         }
 

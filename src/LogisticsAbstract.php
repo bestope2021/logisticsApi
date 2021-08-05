@@ -233,7 +233,19 @@ abstract class LogisticsAbstract
                         break;
                 }
                 break;//仅针对嘉里COD的成功返回，状态码为201
+            case 202:
+                switch (strtolower($dataType)) {
+                    case 'xml':
+                        $return = static::xmlToArray($response);
+                        break;
 
+                    case 'form':
+                    case 'json':
+                    default:
+                        $return = json_decode($response, true);
+                        break;
+                }
+                break;//仅针对台湾嘉里COD的成功返回，状态码为202
             case 400:
                 switch (strtolower($dataType)) {
                     case 'xml':
