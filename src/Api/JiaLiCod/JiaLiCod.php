@@ -317,7 +317,9 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
         // 结果
-        $flag = $response['message'] == 'success';
+        if(($response['code'] == 201) || ($response['code'] == 409)){
+            $flag = 1;//201正常，409是重复下单已存在也正常返回
+        }
         if (!empty($response['data'])) {
             $newdata = $response['data'];
             $fieldData['flag'] = $flag ? true : false;
@@ -340,10 +342,6 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
-    public function pushHeader()
-    {
-        $this->apiHeaders['Authorization'] = 'Bearer ' . $this->loginToken;
-    }
 
     /**公共请求方法
      * @param string $function
@@ -442,8 +440,8 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-        if ($response['message'] != 'success') {
-            return $this->retErrorResponseData('嘉里COD物流商发生未知错误，获取失败！');
+        if ($response['code'] != 200) {
+            return $this->retErrorResponseData('嘉里COD物流商【获取运输方式】发生未知错误，获取失败！');
         }
 
         foreach ($response['data'] as $item) {
@@ -491,7 +489,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
 
-        if ($response['message'] != 'success') {
+        if ($response['code'] != 200) {
             return $this->retErrorResponseData('嘉里COD物流商【获取面单】接口失败，发生未知错误');
         }
         $item = [];
@@ -522,12 +520,13 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             'key' => 'shipment/status',
         ];
         $response = $this->request(__FUNCTION__, $data);
+
         // 处理结果
         $fieldData = [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
 
-        if ($response['message'] != 'success') {
+        if ($response['code'] != 200) {
             return $this->retErrorResponseData('嘉里COD物流商【获取轨迹】接口失败，发生未知错误');
         }
 

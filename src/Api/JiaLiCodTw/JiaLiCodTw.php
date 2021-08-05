@@ -317,7 +317,10 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
         // 结果
-        $flag = $response['code'] == 200;
+        if(($response['code'] == 201) || ($response['code'] == 409)){
+            $flag = 1;//201正常，409是重复下单已存在也正常返回
+        }
+
         if (!empty($response['data'])) {
             $newdata = $response['data'];
             $fieldData['flag'] = $flag ? true : false;
@@ -340,10 +343,6 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
-    public function pushHeader()
-    {
-        $this->apiHeaders['Authorization'] = 'Bearer ' . $this->loginToken;
-    }
 
     /**公共请求方法
      * @param string $function
@@ -443,7 +442,7 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
         if ($response['code'] != 200) {
-            return $this->retErrorResponseData('嘉里COD物流商发生未知错误，获取失败！');
+            return $this->retErrorResponseData('嘉里COD物流商【获取运输方式】发生未知错误，获取失败！');
         }
 
         foreach ($response['data'] as $item) {
