@@ -299,7 +299,7 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                     'post_code' => $item['recipientPostCode'] ?? '',//必填 收件人邮编
                     'phone' => $item['recipientPhone'] ?? '',//必填 收件人电话
                     'email' => $item['recipientEmail'] ?? '',//非必填 收件人邮箱
-                    'id_number' => $item['recipientTaxNumber'] ?? '',//收件人税号收件税号跨境，收件人为 TW，CN时，必填
+                    'id_number' => $item['recipientTaxNumber'] ?? '999999',//收件人税号收件税号跨境，收件人为 TW，CN时，必填
                 ],
 
                 'items' => $productList,//商品信息数组
