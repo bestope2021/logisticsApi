@@ -150,7 +150,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 $weight += $value['declareWeight'];
             }
 
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $ls[] = [
                 "buyerid" => $item['buyer_id'] ?? '',
                 'order_piece' => 1, //件数，小包默认1，快递需真实填写
@@ -170,7 +170,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'consignee_email' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
                 'consignee_taxno' => $item['recipientTaxNumber'] ?? '', //税号
                 'consignee_doorno' => '', //门牌号
-                'shipper_taxnotype' => (isset($item['iossNumber'])&&!empty($item['iossNumber']))?'IOSS':'OTHER', //税号类型，可选值IOSS,NO-IOSS,OTHER
+                'shipper_taxnotype' => (isset($item['iossNumber']) && !empty($item['iossNumber'])) ? 'IOSS' : 'OTHER', //税号类型，可选值IOSS,NO-IOSS,OTHER
                 'shipper_taxno' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 'customer_id' => $this->config['customer_id'],
                 'customer_userid' => $this->config['customer_userid'],
@@ -368,7 +368,20 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
     {
         $requestUrl = $this->config['url'] . $this->interface[$function];
         $this->req_data = $data;
-        $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+        switch ($function) {
+            case 'operationPackages':
+                $res = $this->sendCurl('get', $requestUrl . '?customerId=' . $data['customerId'] . '&orderNo=' . $data['orderNo'] . '&weight=' . $data['weight'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//更新重量
+            case 'getTrackNumber':
+                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//获取追踪号
+            case 'queryTrack':
+                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//获取轨迹
+            default:
+                $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;
+        }
         $this->res_data = $res;
         return $res;
     }
