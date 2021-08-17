@@ -229,9 +229,14 @@ class Miaoxin extends LogisticsAbstract implements BaseLogisticsInterface, Track
     public function getTrackNumber(string $order_id)
     {
         $data = [
-            'order_id' => $order_id
+            'documentCode' => $order_id
         ];
-        $response = $this->request(__FUNCTION__, $data);
+        $response = $this->request(__FUNCTION__, $data, false);
+        $response = json_decode(iconv('GBK', 'utf-8', $response), true);
+        if (empty($response) || $response['status'] == 'false') {
+            return $this->retErrorResponseData($response['msg'] ?? '');
+        }
+
         return $response;
     }
 
@@ -274,9 +279,13 @@ class Miaoxin extends LogisticsAbstract implements BaseLogisticsInterface, Track
             throw new InvalidIArgumentException("请求参数不能为空");
         }
 
-        $response = $this->request(__FUNCTION__, $ls);
-        return $response;
+        $response = $this->request(__FUNCTION__, $ls, false);
+        $response = json_decode(iconv('GBK', 'utf-8', $response), true);
+        if (empty($response)) {
+            return $this->retErrorResponseData('更新失败！');
+        }
 
+        return $response;
     }
 
     /**

@@ -41,7 +41,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public $labelType = 'L10x10';
 
     //生成pdf标签地址
-    public $pdfUrl = "http://open.btdair.com:8099/GenerateLabels.ashx";
+    public $pdfUrl = "http://121.15.2.131:8099/GenerateLabels.ashx";//2021/8/17更换了接口由原来的域名http://open.btdair.com:8099改成IP：http://121.15.2.131:8099
 
     /**
      * curl 请求数据类型
@@ -239,6 +239,13 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $ret;
     }
 
+    /**统一请求处理方法
+     * @param string $function
+     * @param array $data
+     * @param string $method
+     * @return mixed
+     * @throws InvalidIArgumentException
+     */
     public function request($function, $data = [] ,$method = self::METHOD_POST)
     {
         $data = $this->buildParams($function, $data);
@@ -258,6 +265,10 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $res;
     }
 
+    /**设置头部
+     * @param $function
+     * @return array|string[]
+     */
     public function setApiHeaders($function){
         $apiHeaders = $this->apiHeaders;
         $apiHeaders['SOAPAction'] .= $this->interface[$function];
@@ -404,6 +415,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         ];
 
         $response = $this->request(__FUNCTION__, $data, self::METHOD_GET);
+
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
