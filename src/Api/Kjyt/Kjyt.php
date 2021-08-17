@@ -59,7 +59,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
 
         'getShippingMethod' => 'getProductList.htm', //获取配送方式
 
-        'getTrackNumber' => 'grderTrackingNumber.htm', //获取跟踪号
+        'getTrackNumber' => 'getOrderTrackingNumber.htm', //获取跟踪号
 
     ];
 
@@ -230,9 +230,14 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
     public function getTrackNumber(string $order_id)
     {
         $data = [
-            'order_id' => $order_id
+            'documentCode' => $order_id
         ];
-        $response = $this->request(__FUNCTION__, $data);
+        $response = $this->request(__FUNCTION__, $data, false);
+        $response = json_decode(iconv('GBK', 'utf-8', $response), true);
+        if (empty($response) || $response['status'] == 'false') {
+            return $this->retErrorResponseData($response['msg'] ?? '');
+        }
+
         return $response;
     }
 
@@ -353,15 +358,33 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
         $this->throwNotSupport(__FUNCTION__);
     }
 
+    /**统一请求处理
+     * @param string $function
+     * @param array $data
+     * @param bool $parseResponse
+     * @return mixed
+     */
     public function request($function, $data = [], $parseResponse = true)
     {
         $requestUrl = $this->config['url'] . $this->interface[$function];
         $this->req_data = $data;
-        $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+        switch ($function) {
+            case 'operationPackages':
+                $res = $this->sendCurl('get', $requestUrl . '?customerId=' . $data['customerId'] . '&orderNo=' . $data['orderNo'] . '&weight=' . $data['weight'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//更新重量
+            case 'getTrackNumber':
+                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//获取追踪号
+            case 'queryTrack':
+                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//获取轨迹
+            default:
+                $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;
+        }
         $this->res_data = $res;
         return $res;
     }
-
     /**
      * 获取请求数据
      */
