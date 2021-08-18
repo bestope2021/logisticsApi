@@ -133,17 +133,17 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                 'Receiver' => [ //收件人信息
                     'Userid' => $this->config['userId'], //客户号
                     'Name' => empty($item['recipientName']) ? '' : str_replace('&','',$item['recipientName']),// Y:收件人姓名
-                    'Phone' => $item['recipientPhone'] ?? '', //N:收件人电话
-                    'Mobile' => $item['recipientPhone'] ?? '', //N:收件人手机 todo 收货人-座机，手机。美国专线至少填一项
-                    'Email' => $item['recipientEmail'] ?? '', //Y:收货人-邮箱
-                    'Company' => $item['recipientCompany'] ?? '', //N:收件人公司名
-                    'Country' => $item['recipientCountryCode'] ?? '', //Y:收件人国家二字代码
-                    'Postcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
-                    'State' => $item['recipientState'] ?? '', //N:收件人省
-                    'City' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'Address1' => $item['recipientStreet'] ?? '',// Y:收件人街道
-                    'Address2' => $item['recipientStreet1'] ?? '', //收货人-地址2
-                    'NationalId' => $item['recipientTaxNumber'] ?? '',// N:护照ID，税号。（国家为巴西时 此属性必填）
+                    'Phone' => empty($item['recipientPhone']) ? '' : str_replace('&','',$item['recipientPhone']), //N:收件人电话
+                    'Mobile' => empty($item['recipientPhone']) ? '' : str_replace('&','',$item['recipientPhone']), //N:收件人手机 todo 收货人-座机，手机。美国专线至少填一项
+                    'Email' => empty($item['recipientEmail']) ? '' : str_replace('&','',$item['recipientEmail']), //Y:收货人-邮箱
+                    'Company' => empty($item['recipientCompany']) ? '' : str_replace('&','',$item['recipientCompany']), //N:收件人公司名
+                    'Country' => empty($item['recipientCountryCode']) ? '' : str_replace('&','',$item['recipientCountryCode']), //Y:收件人国家二字代码
+                    'Postcode' => empty($item['recipientPostCode']) ? '' : str_replace('&','',$item['recipientPostCode']), //Y:收件人邮编
+                    'State' => empty($item['recipientState']) ? '' : str_replace('&','',$item['recipientState']), //N:收件人省
+                    'City' => empty($item['recipientCity']) ? '' : str_replace('&','',$item['recipientCity']), //N:收件人城市
+                    'Address1' => empty($item['recipientStreet']) ? '' : str_replace('&','',$item['recipientStreet']),// Y:收件人街道
+                    'Address2' => empty($item['recipientStreet1']) ? '' : str_replace('&','',$item['recipientStreet1']), //收货人-地址2
+                    'NationalId' => empty($item['recipientTaxNumber']) ? '' : str_replace('&','',$item['recipientTaxNumber']),// N:护照ID，税号。（国家为巴西时 此属性必填）
                 ],
 
                 'GoodsName' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
