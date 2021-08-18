@@ -163,6 +163,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             $billing = [
                 'ShipperAccountNumber' => $dhl['shipper_account_number'] ?? '',//发件人账号
                 'ShippingPaymentType' => 'S' ?? '',//运费付款方,S: 发件人; R: 收件人; T:第三方
+                'DutyAccountNumber' => $dhl['shipper_account_number'] ?? '',//使用发件人账号或第三国/地区的账号（收、发件人之外的第三国/地区）支付目的地税金时（即启用DTP服务时），建议同时在SpecialService字段添加DD代码。启用DTP服务会产生额外服务费用，费用详情请咨询DHL销售经理或DHL客服95380
             ];
 
             //收件人注册号/税号节点，暂定一个
