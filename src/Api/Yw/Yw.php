@@ -132,7 +132,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                 ],
                 'Receiver' => [ //收件人信息
                     'Userid' => $this->config['userId'], //客户号
-                    'Name' => $item['recipientName'] ?? '',// Y:收件人姓名
+                    'Name' => empty($item['recipientName']) ? '' : str_replace('&','',$item['recipientName']),// Y:收件人姓名
                     'Phone' => $item['recipientPhone'] ?? '', //N:收件人电话
                     'Mobile' => $item['recipientPhone'] ?? '', //N:收件人手机 todo 收货人-座机，手机。美国专线至少填一项
                     'Email' => $item['recipientEmail'] ?? '', //Y:收货人-邮箱
