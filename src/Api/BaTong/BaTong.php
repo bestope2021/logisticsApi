@@ -198,7 +198,12 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $flag = $response['success'] == 1;
+        if($response['success'] == 1 || $response['success'] == 2){
+            $flag = 1;
+        }else{
+            $flag = 0;
+        }
+
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
