@@ -47,13 +47,15 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'deleteOrder' => 'removeorder', //删除订单。发货后的订单不可删除。
 
-        'queryTrack' => 'getTrack', //轨迹查询
+        'queryTrack' => 'track', //轨迹查询
 
-        'getShippingMethod' => 'getTransportWayList', //获取配送方式
+        'getShippingMethod' => 'transport', //获取配送方式
 
-        'getPackagesLabel' => 'printOrder', // 【打印标签|面单
+        'getPackagesLabel' => 'label', // 【打印标签|面单
 
         'operationPackages' => 'updateWeight',// 核实提交订单重量
+
+        'getTrackNumber' => 'lastnum',//
     ];
 
     /**

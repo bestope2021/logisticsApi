@@ -58,7 +58,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         'getPackagesLabel' => 'getnewlabel', // 【打印标签|面单】
 
-        'getTrackNumber' => 'lastnum',//获取跟踪号
+        'getTrackNumber' => 'gettrackingnumber',//获取跟踪号
 
         'queryTrack' => 'gettrack', //轨迹查询
 
