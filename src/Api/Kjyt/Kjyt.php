@@ -230,15 +230,14 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
     public function getTrackNumber(string $order_id)
     {
         $data = [
-            'documentCode' => $order_id
+            'order_id' => $order_id
         ];
         $response = $this->request(__FUNCTION__, $data, false);
-        $response = json_decode(iconv('GBK', 'utf-8', $response), true);
+        $response = json_decode($response, true);
         if (empty($response) || $response['status'] == 'false') {
             return $this->retErrorResponseData($response['msg'] ?? '');
         }
-
-        return $response;
+        return $this->retSuccessResponseData($response);
     }
 
     /**
@@ -279,10 +278,9 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
         if (empty($ls)) {
             throw new InvalidIArgumentException("请求参数不能为空");
         }
-
-        $response = $this->request(__FUNCTION__, $ls);
-        return $response;
-
+        $response = $this->request(__FUNCTION__, $ls, false);
+        $response = json_decode($response, true);
+        return $this->retSuccessResponseData($response);
     }
 
     /**
@@ -328,7 +326,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
             'documentCode' => implode(',', $this->toArray($trackNumber))
         ];
         $response = $this->request(__FUNCTION__, $data, false);
-        $response = json_decode(iconv('GBK', 'utf-8', $response), true);
+        $response = json_decode($response, true);
         if (empty($response) || $response[0]['ack'] == 'false') {
             return $this->retErrorResponseData($response[0]['message'] ?? '');
         }
@@ -370,13 +368,13 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
         $this->req_data = $data;
         switch ($function) {
             case 'operationPackages':
-                $res = $this->sendCurl('get', $requestUrl . '?customerId=' . $data['customerId'] . '&orderNo=' . $data['orderNo'] . '&weight=' . $data['weight'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                $res = $this->sendCurl('get', $requestUrl . '?customerId=' . $data['customerId'] . '&orderNo=' . $data['orderNo'] . '&weight=' . $data['weight'], [], $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
                 break;//更新重量
             case 'getTrackNumber':
-                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                $res = $this->sendCurl('get', $requestUrl . '?order_id=' . $data['order_id'], [], $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
                 break;//获取追踪号
             case 'queryTrack':
-                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], [], $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
                 break;//获取轨迹
             default:
                 $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
