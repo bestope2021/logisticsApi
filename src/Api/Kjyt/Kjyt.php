@@ -279,8 +279,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
             throw new InvalidIArgumentException("请求参数不能为空");
         }
         $response = $this->request(__FUNCTION__, $ls, false);
-        $response = json_decode($response, true);
-        return $this->retSuccessResponseData($response);
+        return $response;
     }
 
     /**
