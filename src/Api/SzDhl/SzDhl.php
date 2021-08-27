@@ -206,6 +206,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             $shipmentDetails = [];
             $commodity = [];
             $productContents = [];
+            $grossWeight = 0;
             foreach ($item['productList'] as $index => $value) {
                 array_push($productContents,$value['declareEnName']);
                 $declaredCurrency = $value['currencyCode'];
@@ -240,18 +241,17 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                         ] : "",//单项商品参考信息节点
                     ]
                 ];
-
-                //快件重量、尺寸信息节点
-                $shipmentDetails['Pieces'][] = [
-                    'Piece' => [
-                        'Weight' => $value['grossWeight'] / 1000,//单件毛重
-                        'Width' => (int)$value['width'],//单件宽度
-                        'Height' => (int)$value['height'],//单件高度
-                        'Depth' => (int)$value['length'],//单件长度
-                    ]
-
-                ];
+                $grossWeight += $value['grossWeight']*$value['quantity'];
             }
+            //快件重量、尺寸信息节点
+            $shipmentDetails['Pieces'][] = [
+                'Piece' => [
+                    'Weight' => $grossWeight / 1000,//单件毛重
+                    'Width' => $item['packageWidth'],//单件宽度
+                    'Height' => $item['packageHeight'],//单件高度
+                    'Depth' => $item['packageLength'],//单件长度
+                ]
+            ];
 
             //发件人注册号/税号节点，暂定一个
             $shipperRegistrationNumbers[0] = [
