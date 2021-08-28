@@ -284,7 +284,12 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         }
 
         $response = $this->request(__FUNCTION__, $ls, false);
-        return $response;
+
+        if(!empty($response)){
+            return $this->retSuccessResponseData($response);
+        }else{
+            return $this->retErrorResponseData('修改订单重量异常');
+        }
     }
 
     /**

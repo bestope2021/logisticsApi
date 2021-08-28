@@ -296,7 +296,10 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             'order_weight' => $params['weight'] ?? '',
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        if ($response['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($response);
     }
 
     /**
