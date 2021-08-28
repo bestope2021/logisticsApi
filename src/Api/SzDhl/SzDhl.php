@@ -247,9 +247,9 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             $shipmentDetails['Pieces'][] = [
                 'Piece' => [
                     'Weight' => $grossWeight / 1000,//单件毛重
-                    'Width' => $item['packageWidth'],//单件宽度
-                    'Height' => $item['packageHeight'],//单件高度
-                    'Depth' => $item['packageLength'],//单件长度
+                    'Width' => round($item['packageWidth'],1),//单件宽度
+                    'Height' => round($item['packageHeight'],1),//单件高度
+                    'Depth' => round($item['packageLength'],1),//单件长度
                 ]
             ];
 
