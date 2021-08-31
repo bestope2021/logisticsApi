@@ -265,17 +265,17 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             'PackageId' => $pars['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
             'Weight' => (float)($pars['weight'] ?? ''),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
         ];
-
-
         if (empty($params)) {
             throw new InvalidIArgumentException("请求参数不能为空");
         }
-
         $this->req_data = $params;
         $apiHeaders = $this->buildHeaders();//生成头部信息
         $response = $this->sendCurl('put', $this->config['update_weight_url'], $params, $this->dataType, $apiHeaders);
         $this->res_data = $response;
-        return $response;
+        if (!empty($response)) {
+            return $this->retErrorResponseData('更新重量失败');
+        }
+        return $this->retSuccessResponseData([]);
     }
     /**获取轨迹
      * @param $function
@@ -450,7 +450,11 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         ];
         $apiHeaders = $this->buildHeaders();//生成头部信息
         $response = $this->sendCurl('get', $this->config['update_weight_url'].'/'.$processCode.'/status', $params, $this->dataType, $apiHeaders);
-        return $response;
+        if (empty($response['Status'])) {
+            return $this->retErrorResponseData(($response['CreateFailedReason'] ?? ($response['Errors'][0]['Message'] ?? '未知错误')));
+        }
+
+        return $this->retSuccessResponseData($response);
     }
     /**
      * 获取物流商轨迹queryNo

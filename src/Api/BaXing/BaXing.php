@@ -55,7 +55,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'operationPackages' => 'updateWeight',// 核实提交订单重量
 
-        'getTrackNumber' => 'lastnum',//
+        'getTrackNumber' => 'lastnum',//获取追踪号
     ];
 
     /**

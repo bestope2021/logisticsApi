@@ -322,10 +322,10 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             return $this->retErrorResponseData('修改订单重量异常');
         }
         // 结果
-        if ($response['success'] != true) {
+        if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
-        return $this->retSuccessResponseData([]);
+        return $this->retSuccessResponseData($response);
     }
 
     /**

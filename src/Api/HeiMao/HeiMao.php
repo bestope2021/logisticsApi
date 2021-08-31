@@ -260,7 +260,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $reference_no //客户参考号
         ];
         $res = $this->request(__FUNCTION__, $params);
-        return $res;
+        if ($res['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($res['data']);
     }
 
     /**
@@ -296,7 +299,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'order_weight' => $params['weight'] ?? '',
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        if ($response['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($response);
     }
 
     /**

@@ -384,9 +384,12 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function getTrackNumber(string $order_id)
     {
         $param = [
-            'orderId' => $order_id,
+            'orderNo' => $order_id,
         ];
         $response = $this->request(__FUNCTION__, $param);
-        return $response;
+        if ($response['success'] != 'true') {
+            return $this->retErrorResponseData($response['errorInfo'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($response['order']);
     }
 }
