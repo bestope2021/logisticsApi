@@ -427,7 +427,10 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             'key' => '',
         ];
         $res = $this->request(__FUNCTION__, $params);
-        return $res;
+        if ($res['code'] != 200) {
+            return $this->retErrorResponseData('嘉里COD物流商【获取追踪号】接口失败，发生未知错误');
+        }
+        return $this->retSuccessResponseData($res);
     }
 
     /**
@@ -540,13 +543,12 @@ class JiaLiCod extends LogisticsAbstract implements BaseLogisticsInterface, Trac
             $data['flag'] = true;
             $data['track_status'] = $val['status_code'];
             $data['track_status_name'] = $val['status_code'];
+            $data['reference_number']=$data['tracking_number'];//2021/08/31加的
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
 
         $data['status'] = $ls;
-
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
-
         return $this->retSuccessResponseData($fieldData);
     }
 
