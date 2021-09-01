@@ -195,7 +195,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果,2021/9/1
+        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2
         if($response['success'] == 1 || $response['success'] == 2){
             $flag = 1;
         }else{
