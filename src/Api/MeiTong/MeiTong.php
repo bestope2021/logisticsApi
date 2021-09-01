@@ -141,7 +141,7 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
                 //'import_scc' => 0,//是否单独清关，0 否，1 是；（此字段 后续会弃用。这里填 1 是的时候等同于下面字段 taxwith 的 3 自主 税号，import_scc 和 taxwith 同时传了的话，以 taxwith 为准。）
                 'taxwith' => 0,//交税方式，默认值为 0 什么都不选择；1 不 包税；2 包税；3 自主税号
                 'deliverywith' => '', //交货条款，默认为空。ddu 代表 DDU;ddp 代表 DDP
-                'exportwith' => 0, //报关，默认值为 0 什么都不选择；1 买单 报关；2 报关退税
+                'exportwith' => 2,//0, //报关，默认值为 0 什么都不选择；1 买单 报关；2 报关退税
                 'importwith' => 0,//清关，默认值为 0 什么都不选择；1 一 般贸易清关；2 快件清关
                 'attrs' => [],//物品属性。带电：elec 带磁：magnetic 危险品： danger
                 'declaration_currency' => $item['packageCodCurrencyCode'] ?? 'USD', //N:币种

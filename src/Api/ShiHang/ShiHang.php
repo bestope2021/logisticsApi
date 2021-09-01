@@ -189,14 +189,18 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         $response = $this->request(__FUNCTION__, $ls[0]);
 
         $reqRes = $this->getReqResData();
-//        $this->dd($response);
+
 
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果
-        $flag = $response['success'] == 1;
+        // 结果,2021/9/1
+        if($response['success'] == 1 || $response['success'] == 2){
+            $flag = 1;
+        }else{
+            $flag = 0;
+        }
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
