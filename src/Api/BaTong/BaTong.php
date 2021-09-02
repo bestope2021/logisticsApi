@@ -197,8 +197,8 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果(2021/08/19加的判断)
-        if($response['success'] == 1 || $response['success'] == 2){
+        // 结果(2021/08/19加的判断)     2021/9/2修复优化获取追踪号逻辑
+        if(in_array($response['success'],[1,2])){
             $flag = 1;
         }else{
             $flag = 0;
@@ -273,7 +273,11 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $param);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
-        $flag = $response['success'] == 1;
+        if($response['success']==1){
+            $flag=1;
+        }else{
+            $flag=0;
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? '未知错误'));
         $fieldData['trackingNo'] = $flag ? $response['data']['shipping_method_no'] : '';//追踪号
