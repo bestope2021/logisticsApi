@@ -81,4 +81,6 @@ class LogisticsIdent
     const LS_IDENT_YIKEDA = 'yikeda';
     // 台湾嘉里COD物流
     const LS_IDENT_JIALICODTW = 'jialicodtw';
+    // 纬狮
+    const LS_IDENT_WeiShi = 'weishi';
 }
