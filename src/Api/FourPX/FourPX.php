@@ -68,6 +68,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'deleteOrder' => 'ds.xms.order.cancel',// POST:删除订单
         'createBag' => 'ds.xms.bag.create',// POST:直发授权-完成装袋
         'getBagLabel' => 'ds.xms.bag_label.get',// POST:直发授权-袋标签
+//        'operationPackages'=>'ds.xms.order.updateweight',//POST:更新预报重量,红清加过了
     ];
 
     /*
@@ -86,6 +87,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'deleteOrder' => '1.0.0',// POST:删除订单
         'createBag' => '1.0.0',// POST:直发授权-完成装袋
         'getBagLabel' => '2.0.0',// POST:直发授权-袋标签
+//        'operationPackages'=>'1.0.0',//POST:更新预报重量
     ];
     protected $_sign = '';
     /**
@@ -591,6 +593,27 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
     }
+    /**
+     * 修改订单重量
+     * @param array $params
+     * @return mixed|void
+     */
+//    public function operationPackages($params)
+//    {
+//        $data = [
+//            'request_no' => $params['ProcessCode'] ?? '',
+//            'weight' => $params['weight'] ?? '',
+//        ];
+//        $response = $this->request(__FUNCTION__, $data);
+//        if (empty($response)) {
+//            return $this->retErrorResponseData('修改订单重量异常');
+//        }
+//        // 结果
+//        if ($response['result'] != self::SUCCESS_IDENT) {
+//            return $this->retErrorResponseData($response['msg'] ?? '未知错误');
+//        }
+//        return $this->retSuccessResponseData($response);
+//    }
 
     /**
      * 获取物流商轨迹
@@ -686,15 +709,6 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         return $this->retSuccessResponseData($fieldData);
     }
 
-    /**
-     * 修改订单重量
-     * @param array $params
-     * @return mixed|void
-     */
-    public function operationPackages($params)
-    {
-        $this->throwNotSupport(__FUNCTION__);
-    }
 
     /**
      * 修改订单状态

@@ -42,9 +42,11 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      * curl 请求数据类型
      * @var string
      */
-    public $dataType = 'form';
+    public $dataType = 'json';
 
-    public $apiHeaders = [];
+    public $apiHeaders = [
+        'Content-Type' => 'application/json'
+    ];
 
     public $interface = [
 
@@ -111,7 +113,7 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'invoice_currencycode' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
                     'hs_code' => $value['hsCode'] ?? '',// N:海关编码
                     'invoice_note' => '', //配货信息
-                    'invoice_url' => $value['productUrl'] ?? '',// N:销售地址
+                //    'invoice_url' => $value['productUrl'] ?? '',// N:销售地址
                     'sku' => $value['productSku'] ?? '',// N:产品 SKU;Length <= 100
                 ];
                 $order_weight += $value['declareWeight'];
@@ -160,15 +162,13 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         }
         $response = $this->request(__FUNCTION__, $ls[0]);
         $reqRes = $this->getReqResData();
-
+        if (empty($response['ask'])) {
+            return $this->retErrorResponseData($response['msg'] ?? '未知错误');
+        }
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
-        if($response['ask']=='Success'){
-            $flag = 1;
-        }else{
-            $flag = 0;
-        }
+        $flag = !empty($response['ask'])?($response['ask'] == 'Success'?true:false):false;
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? ''));
         $fieldData['order_id'] = $response['order_code'] ?? ($response['reference_no'] ?? '');
@@ -204,10 +204,10 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'appToken' => $this->config['appToken'],
             'appKey' => $this->config['appKey'],
             'service' => $this->interface[$interface],
-            'paramsJson' => "{}",
+            'paramsJson' => '{}',
         ];
         if (!empty($arr)) {
-            $data['paramsJson'] = json_encode($arr, JSON_UNESCAPED_UNICODE);
+            $data['paramsJson'] = $arr;
         }
         return $data;
     }
@@ -318,7 +318,7 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public function getPackagesLabel($params)
     {
         $data = [
-            'reference_no' => $params['customerOrderNo'],
+            'reference_no' => $params['trackNumber'],
             'lable_type' => '1', //PDF标签尺寸类型：1：10 * 10 标签;2：A4纸;3：10 * 15标签
         ];
 
@@ -337,8 +337,8 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         $response['flag'] = $flag;
         $response['info'] = $response['message'] ?? '';
-        $response['order_no'] = $params['trackingNumber'] ?? '';
-        $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $response['order_no'] = $params['trackNumber'] ?? '';
+        $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
         $response['lable_file'] = $response['url'] ?? '';
         $response['label_path_plat'] = '';//不要填写
         $response['lable_content_type'] = $params['label_content'] ?? 1;
@@ -364,7 +364,6 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'codes' => $trackNumberArray,//传数组
         ];
         $response = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
@@ -374,13 +373,17 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             return $this->retErrorResponseData($response['message'] ?? '未知错误');
         }
 
-        $data = $response['data'][0];
-
+        $data = $response['Data'][0];
         $ls = [];
-        foreach ($data['Detail'] as $key => $val) {
-            $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+        if(!empty($data['Detail'])){
+            foreach ($data['Detail'] as $key => $val) {
+                $data['Status']=$val['Comment_en'];
+                $data['New_Comment']=$val['Comment'];
+                $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+            }
         }
         $data['Detail'] = $ls;
+
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 
         return $this->retSuccessResponseData($fieldData);
