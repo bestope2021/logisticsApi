@@ -49,6 +49,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
     public $apiHeaders = [];
 
     public $interface = [
+
         'getAuth' => 'selectAuth.htm', // 身份认证
 
         'createOrder' => 'createOrderBatchApi.htm', // 【创建订单】
@@ -150,7 +151,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 $weight += $value['declareWeight'];
             }
 
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $ls[] = [
                 "buyerid" => $item['buyer_id'] ?? '',
                 'order_piece' => 1, //件数，小包默认1，快递需真实填写
@@ -170,7 +171,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'consignee_email' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
                 'consignee_taxno' => $item['recipientTaxNumber'] ?? '', //税号
                 'consignee_doorno' => '', //门牌号
-                'shipper_taxnotype' => (isset($item['iossNumber'])&&!empty($item['iossNumber']))?'IOSS':'OTHER', //税号类型，可选值IOSS,NO-IOSS,OTHER
+                'shipper_taxnotype' => (isset($item['iossNumber']) && !empty($item['iossNumber'])) ? 'IOSS' : 'OTHER', //税号类型，可选值IOSS,NO-IOSS,OTHER
                 'shipper_taxno' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 'customer_id' => $this->config['customer_id'],
                 'customer_userid' => $this->config['customer_userid'],
@@ -233,8 +234,13 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         $data = [
             'order_id' => $order_id
         ];
-        $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        $response = $this->request(__FUNCTION__, $data, false);
+        $response = json_decode($response, true);
+        if (empty($response) || $response['status'] == 'false') {
+            return $this->retErrorResponseData($response['msg'] ?? '');
+        }
+
+        return $this->retSuccessResponseData($response);
     }
 
     /**
@@ -250,6 +256,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         if (empty($res)) {
             $this->retErrorResponseData();
         }
+
         $res = iconv('GBK', 'utf-8', $res);
         $res = json_decode($res, true);
         foreach ($res as $item) {
@@ -276,9 +283,13 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
             throw new InvalidIArgumentException("请求参数不能为空");
         }
 
-        $response = $this->request(__FUNCTION__, $ls);
-        return $response;
+        $response = $this->request(__FUNCTION__, $ls, false);
 
+        if(!empty($response)){
+            return $this->retSuccessResponseData($response);
+        }else{
+            return $this->retErrorResponseData('修改订单重量异常');
+        }
     }
 
     /**
@@ -324,10 +335,11 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
             'documentCode' => implode(',', $this->toArray($trackNumber))
         ];
         $response = $this->request(__FUNCTION__, $data, false);
-        $response = json_decode(iconv('GBK', 'utf-8', $response), true);
+        $response = json_decode($response, true);
         if (empty($response) || $response[0]['ack'] == 'false') {
             return $this->retErrorResponseData($response[0]['message'] ?? '');
         }
+
         $response = $response[0]['data'] ?? [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
@@ -358,7 +370,20 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
     {
         $requestUrl = $this->config['url'] . $this->interface[$function];
         $this->req_data = $data;
-        $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+        switch ($function) {
+            case 'operationPackages':
+                $res = $this->sendCurl('get', $requestUrl . '?customerId=' . $data['customerId'] . '&orderNo=' . $data['orderNo'] . '&weight=' . $data['weight'], [], $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//更新重量
+            case 'getTrackNumber':
+                $res = $this->sendCurl('get', $requestUrl . '?order_id=' . $data['order_id'], [], $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//获取追踪号
+            case 'queryTrack':
+                $res = $this->sendCurl('get', $requestUrl . '?documentCode=' . $data['documentCode'], [], $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;//获取轨迹
+            default:
+                $res = $this->sendCurl('post', $requestUrl, $data, $this->dataType, $this->apiHeaders, 'utf-8', 'xml', $parseResponse);
+                break;
+        }
         $this->res_data = $res;
         return $res;
     }

@@ -12,7 +12,7 @@ use smiler\logistics\Common\LsSdkFieldMapAbstract;
 use smiler\logistics\Common\LsSdkFieldMapInterface;
 
 /**
- * 字段映射
+ * 字段映射TianMu
  * Class FieldMap
  * @package smiler\logistics\Api\TianMu
  */

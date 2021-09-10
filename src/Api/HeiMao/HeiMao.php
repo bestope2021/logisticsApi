@@ -194,8 +194,12 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果
-        $flag = $response['success'] == 1;
+        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2     2021/9/2修复优化获取追踪号逻辑
+        if (in_array($response['success'],[1,2])){
+            $flag = 1;
+        }else{
+            $flag = 0;
+        }
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
@@ -203,7 +207,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         // 获取追踪号
         if ($flag && empty($response['data']['channel_hawbcode'])) {
             $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
-            if ($trackNumberResponse['success'] != 1) {
+            if ($trackNumberResponse['info'] != 'success') {
                 $fieldData['flag'] = false;
                 $fieldData['info'] = $trackNumberResponse['cnmessage'];
             }
@@ -260,7 +264,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $reference_no //客户参考号
         ];
         $res = $this->request(__FUNCTION__, $params);
-        return $res;
+        if (!in_array($res['success'],[1,2])) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($res['data']);
     }
 
     /**
@@ -296,7 +303,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'order_weight' => $params['weight'] ?? '',
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        if ($response['success'] != 1) {
+            return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($response);
     }
 
     /**

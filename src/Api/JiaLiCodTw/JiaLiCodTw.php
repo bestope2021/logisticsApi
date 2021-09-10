@@ -5,7 +5,7 @@
  * Date: 2/22/21
  */
 
-namespace smiler\logistics\Api\ItDiDa;
+namespace smiler\logistics\Api\JiaLiCodTw;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
@@ -18,12 +18,12 @@ use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
 /**
- * 易抵达物流
+ * 台湾嘉里COD物流
  * @link http://hotfix.yidida.top/itdida-api/swagger-ui.html#!/21151330212716922359/loginUsingPOST_7
- * Class ItDiDa
- * @package smiler\logistics\Api\ItDiDa
+ * Class JiaLiCodTw
+ * @package smiler\logistics\Api\JiaLiCodTw
  */
-class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
+class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogisticsInterface, PackageLabelLogisticsInterface
 {
     /**
      * 一次最多提交多少个包裹
@@ -34,16 +34,18 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     const QUERY_TRACK_COUNT = 10;
 
-    public $iden = 'ITDIDA';
+    public $iden = 'jialicodtw';
 
-    public $iden_name = '易抵达物流';
+    public $iden_name = '台湾嘉里COD物流';
     /**
      * curl 请求数据类型
      * @var string
      */
     public $dataType = 'json';
 
-    public $apiHeaders = [];
+    public $apiHeaders = [
+        'Content-Type' => 'application/json; charset=utf-8',
+    ];
 
     //登录Token
     public $loginToken;
@@ -51,7 +53,9 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     //过期时间
     public $expireTime;
 
+
     public $interface = [
+
         'createOrder' => 'createorder', // 【创建订单】
 
         'submitOrder' => 'submitforecast', //提交预报(先创建草稿状态的订单才需要再调用此接口提交预报)
@@ -86,10 +90,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         //验证是否登录
         if (((!empty($this->expireTime)) && (time() > strtotime($this->expireTime))) || (empty($this->expireTime)) || (empty($this->loginToken))) {
             $this->isLogin($this->config['login_account'], $this->config['login_password']);
-        } else {
-            return $this;
         }
-
     }
 
     /**
@@ -193,19 +194,16 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $data = [
             'username' => $account,
             'password' => $password,
-            'key' => 'login',
+            'key' => 'token/get',
         ];
         $response = $this->request(__FUNCTION__, $data);
-
-        if ((!empty($response['success'])) && ($response['success'] === true)) {
-            $this->loginToken = $response['data'];
-            $this->expireTime = date("Y-m-d H:i:s", strtotime("+2 days"));//有效期是两天
+        if ((!empty($response['code'])) && ($response['code'] == 200)) {
+            $this->loginToken = $response['body']['token'];
+            $this->expireTime = date("Y-m-d H:i:s", strtotime("+1 days"));//有效期是两天
         } else {
             $this->loginToken = '';
             $this->expireTime = '';//失败则返回为空
         }
-
-
     }
 
     /**
@@ -232,72 +230,85 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $productList = [];
             $order_weight = 0;
             $order_num = 0;
+            $order_price = 0;
             foreach ($item['productList'] as $value) {
-                $danjian[] = [
-                    'chang' => round($value['length'], 2) ?? '',
-                    'kuan' => round($value['width'], 2) ?? '',
-                    'gao' => round($value['height'], 2) ?? '',
-                    'shiZhong' => round($value['declareWeight'], 2) ?? '',
-                    'warehouseNo' => '',
-                ];
                 $productList[] = [
-                    'caiZhiEn' => $value['declareEnName'] ?? '',// Y:申报材质英文名称Length <= 50
-                    'caiZhiCn' => $value['productMaterial'] ?? '',// N:申报材质中文名称Length <= 50
-                    'cargoModel' => $value['modelType'] ?? '',//商品型号
-                    //    'imageUrl' => $value['productUrl'] ?? '',// N:图片
-                    //    'salesUrl' => $value['productUrl'] ?? '',// N:销售地址,
-                    'shenBaoBiZhong' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
-                    'shenBaoDanJia' => (float)($value['declarePrice'] ?? ''), //Y:单价
-                    'shenBaoHaiGuanBianMa' => $value['hsCode'] ?? '',// N:海关编码
-                    'shenBaoPinMing' => $value['declareEnName'] ?? '',//申报品名
-                    'shenBaoShuLiang' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                     'sku' => $value['productSku'] ?? '',// N:产品 SKU;Length <= 100
-                    'unit' => 'PCE', //N:单位  MTR：米  PCE：件 SET：套 默认PCE
-                    'unitGrossWeight' => $value['declareWeight'] ?? '',// Y:毛量;Length <= 50 KG
-                    'unitNetWeight' => $value['declareWeight'] ?? '',//净重
-                    'yongTuEn' => '',// Y:申报用途英文名称Length <= 50 'customs_purpose'
-                    'yongTuCn' => $value['productPurpose'] ?? '',// N:申报用途中文名称Length <= 50 'customs_purpose'
-                    'zhongWenPinMing' => $value['declareCnName'] ?? '',//中文品名，最大长度为30字符
+                    'description' => $value['declareEnName'] ?? '',// Y:申报材质英文名称Length <= 50
+                    'description_origin_language' => $value['declareCnName'] ?? '',//中文品名，最大长度为30字符
+                    'unit_price' => (float)($value['declarePrice'] ?? ''), //Y:单价
+                    'currency' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
+                    'quantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
+                    'unit_weight' => (int)round($value['declareWeight'] * 1000, 2) ?? '',
+                    'length' => (int)round($value['length'], 2) ?? '',
+                    'width' => (int)round($value['width'], 2) ?? '',
+                    'height' => (int)round($value['height'], 2) ?? '',
+                    'hs_code' => $value['hsCode'] ?? '',// N:海关编码
+                    'brand' => $value['brand'] ?? '',// N:品牌名称Length <= 50
+                    'remark' => $value['_sort_ident_info'] ?? '',// N:备注
+
                 ];
                 $order_weight += $value['declareWeight'];
                 $order_num += $value['quantity'];
+                $order_price += $value['declarePrice'];
             }
+
             $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $data = [
-                'baoGuanFangShi' => 0,//报关方式 0:其它 1:单独报关 ,
-                'baoGuoLeiXing' => 1,//N:包裹类型 0:文件 1:包裹 2:包裹袋 ,
-                'clientCode' => '',//客户编码,无需传参
-                'companyTaxNo' => $item['senderTaxNumber'] ?? '',
-                'danJianList' => $danjian,
-                'guoJia' => $item['recipientCountryCode'] ?? '', //Y:收件人国家二字代码
-                'huoWuTeXing' => '不带电',//货物特性，带电和不带电 ,默认不带电
-                'jiJianGongSiMingCheng' => $item['senderCompany'] ?? '',//寄件人公司名 ,
-                'jiJianRenDiZhi1' => $item['senderFullAddress'] ?? '',//寄件人地址一 ,
-                'jiJianRenDianHua' => $item['senderPhone'] ?? '',//寄件人电话
-                'jiJianRenMingCheng' => $item['senderName'] ?? '',//寄件人名称
-                'jianShu' => (int)$order_num ?? 1,//件数,整数,默认为1 ,
-                'keHuDanHao' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
-                'recipientEmail' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
-                'recipientVat' => '',//收件人VAT ,
-                'shenBaoXinXiList' => $productList,//申报信息数组
-                //todo 调试写死
-                'shouHuoQuDao' => $item['shippingMethodCode'] ?? '佐川小包普货',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
-                'shouHuoShiZhong' => (float)$order_weight,//收货实重
-                'shouJianRenChengShi' => $item['recipientCity'] ?? '', //N:收件人城市
-                'shouJianRenDiZhi1' => $address ?? '',//收件人地址一，最大长度为35字符 ,
-                'shouJianRenDianHua' => $item['recipientPhone'] ?? '',//N:收件人电话
-                'shouJianRenGongSi' => $item['recipientCompany'] ?? '', //N:收件人公司名
-                'shouJianRenShouJi' => $item['recipientMobile'] ?? '', //N:收件人手机
-                'shouJianRenXingMing' => $item['recipientName'] ?? '',// Y:收件人姓名
-                'shouJianRenYouBian' => $item['recipientPostCode'] ?? '', //N:收件人邮编
-                'wuLiuFangShi' => 0,//业务类型 0:快递 1:小包 2:专线 4:空运 5:海运 7:陆运 100:快递进口 ,
-                'zhouMing' => $item['recipientState'] ?? '', //N:收件人省
+                'sale_platform' => $item['platformSource'] ?? '',
+                'service' => [
+                    'channel_code' => $item['shippingMethodCode'] ?? 'CAHKTWS18',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
+                    'service_type' => 'default',//(默认 : default)service_type 可选值会根据不运输渠道有所不同使用自提点服务则填pickup_point
+                    'delivery_instruction' => '',//派送特别需求备注
+                ],
+                'package' => [
+                    'reference_number' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
+                    'declared_value' => round($order_price, 2),//申报价值
+                    'declared_value_currency' => $item['productList'][0]['currencyCode'] ?? ($item['packageCodCurrencyCode'] ?? ''),
+                    'cod_value' => round($item['packageCodAmount'], 2) ?? '0.00',
+                    'cod_value_currency' => $item['packageCodCurrencyCode'] ?? '',
+                    'length' => (int)($item['packageLength'] ?? 1),// N:包裹长度（单位：cm）
+                    'width' => (int)($item['packageWidth'] ?? 1),// N:包裹宽度（单位：cm）
+                    'height' => (int)($item['packageHeight'] ?? 1),// N:包裹高度（单位：cm）
+                    'actual_weight' => (int)(($order_weight * 1000) ?? 1),//包裹重，重量g
+                    'payment_method' => (round($item['packageCodAmount'], 2) > 0) ? 'COD' : 'PP',//• COD : 货到付款 • PP : 预付 (默认)
+                    'shipment_type' => 'General',//• General : 普货 (默认) • Sensitive : 敏货• Mobile & Tablet : 手机和平板
+                ],
+                'sender' => [
+                    'name' => $item['senderName'] ?? '',//必填 寄件人名
+                    'company' => $item['senderCompany'] ?? '',//必填 寄件公司名
+                    'address' => $item['senderAddress'] ?? '',//必填 寄件地址
+                    'district' => $item['senderDistrict'] ?? '',//非必填 寄件地址分区
+                    'city' => $item['senderCity'] ?? '',//必填 寄件城市
+                    'province' => $item['senderState'] ?? '',//非必填 寄件州/省
+                    'country_code' => $item['senderCountryCode'] ?? 'CN',//必填 寄件国家, ISO 3166 标准
+                    'post_code' => $item['senderPostCode'] ?? '',//必填 寄件邮编
+                    'phone' => $item['senderPhone'] ?? '',//必填 寄件电话
+                    'email' => $item['senderEmail'] ?? '',//非必填 寄件邮箱
+                ],
+                'receiver' => [
+                    'name' => $item['recipientName'] ?? '',//必填 收件人姓名
+                    'company' => $item['recipientCompany'] ?? '',//必填 收件人公司名
+                    'address' => $address ?? '',//必填 收件人地址
+                    'city' => $item['recipientCity'] ?? '',//必填 收件人城市
+                    'province' => $item['recipientState'] ?? '',//非必填 收件人省
+                    'country_code' => $item['recipientCountryCode'] ?? '',//必填 收件人国家, ISO 3166 标准
+                    'post_code' => $item['recipientPostCode'] ?? '',//必填 收件人邮编
+                    'phone' => $item['recipientPhone'] ?? '',//必填 收件人电话
+                    'email' => $item['recipientEmail'] ?? '',//非必填 收件人邮箱
+                    'id_number' => empty($item['recipientTaxNumber']) ? '999999' : $item['recipientTaxNumber'],//收件人税号，收件税号跨境，收件人为 TW，CN时，必填   2021/08/11紧急需求，台湾嘉里COD默认值为999999
+                ],
+
+                'items' => $productList,//商品信息数组
             ];
 
             $ls[] = $data;
         }
-        $ls['key'] = 'yundans';
-        $response = $this->request(__FUNCTION__, $ls);
+
+        $ls[0]['key'] = 'shipment/create';
+
+        $response = $this->request(__FUNCTION__, $ls[0]);
+
 
         $reqRes = $this->getReqResData();
 
@@ -305,23 +316,34 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
-
-        foreach ($response['data'] as $k => $v) {
-            // 结果
-            $flag = $v['code'] === 200;
+        // 结果
+        if(($response['code'] == 201) || ($response['code'] == 409)){
+            $flag = 1;//201正常，409是重复下单已存在也正常返回
+        }else{
+            $flag = 0;
+        }
+        if (!empty($response['data'])) {
+            $newdata = $response['data'];
             $fieldData['flag'] = $flag ? true : false;
-            $fieldData['info'] = $flag ? '' : ($v['message'] ?? '');
-            $fieldData['order_id'] = $v['xiTongDanHao'] ?? ($v['keHuDanHao'] ?? '');
-            $fieldData['refrence_no'] = $v['keHuDanHao'] ?? '';
-            $fieldData['shipping_method_no'] = $v['zhuanDanHao'] ?? '';
-            $fieldData['channel_hawbcode'] = $v['xiTongDanHao'] ?? '';
-
+            $fieldData['info'] = $flag ? '' : ($response['message'] ?? '');
+            $fieldData['order_id'] = $newdata['tracking_number'] ?? ($newdata['package_number'] ?? ($newdata['reference_number'] ?? ''));
+            $fieldData['refrence_no'] = $newdata['reference_number'] ?? '';
+            $fieldData['shipping_method_no'] = $newdata['tracking_number'] ?? '';
+            $fieldData['channel_hawbcode'] = $newdata['package_number'] ?? '';
             $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-
-            return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+        } else {
+            $fieldData['flag'] = $flag ? true : false;
+            $fieldData['info'] = $flag ? '' : ($response['message'] ?? '');
+            $fieldData['order_id'] = '';
+            $fieldData['refrence_no'] = $ls[0]['package']['reference_number'] ?? '';
+            $fieldData['shipping_method_no'] = '';
+            $fieldData['channel_hawbcode'] = '';
+            $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         }
 
+        return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
+
 
     /**公共请求方法
      * @param string $function
@@ -332,46 +354,51 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $this->req_data = $data;
         switch ($this->req_data['key']) {
-            case 'files' || 'queryTracks':
+            case 'token/get':
                 $this->apiHeaders = [
-                    'Authorization' => 'Bearer  ' . $this->loginToken,
-                ];
+                    'Content-Type' => 'application/json; charset=utf-8',
+                ];//登录接口
+                break;
+            case 'orders';
+                $this->apiHeaders = [
+                    'Authorization' => 'Bearer ' . $this->loginToken,
+                ];//删除取消订单，未获取轨迹的订单
                 break;
             default:
                 $this->apiHeaders = [
-                    'Authorization' => 'Bearer  ' . $this->loginToken,
+                    'Authorization' => 'Bearer ' . $this->loginToken,
                     'Content-Type' => 'application/json; charset=utf-8',
-                ];
+                ];//其余接口
                 break;
         }
 
         switch ($this->req_data['key']) {
-            case 'login':
+            case 'token/get':
                 unset($data['key']);
                 unset($this->req_data['key']);
-                $response = $this->sendCurl('post', $this->config['url'] . $this->config['login_command'], $data, 'form', []);
+                $response = $this->sendCurl('post', $this->config['url'] . $this->config['login_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//登录
-            case 'yundans':
+            case 'shipment/create':
                 unset($data['key']);
                 unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['create_order_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//下单
-            case 'files':
+            case 'shipment/label':
                 unset($data['key']);
                 unset($this->req_data['key']);
-                $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_label_command'], $data, 'form', $this->apiHeaders);
+                $response = $this->sendCurl('get', $this->config['url'] . $this->config['get_label_command'] . '?tracking_number=' . $data['tracking_number'], [], $this->dataType, $this->apiHeaders);
                 break;//获取面单
-            case 'queryTracks':
+            case 'shipment/status':
                 unset($data['key']);
                 unset($this->req_data['key']);
-                $response = $this->sendCurl('get', $this->config['url'] . $this->config['get_track_command'] . '?no=' . $data['no'], [], 'form', $this->apiHeaders);
+                $response = $this->sendCurl('get', $this->config['url'] . $this->config['get_track_command'] . '?tracking_number=' . $data['tracking_number'], [], $this->dataType, $this->apiHeaders);
                 break;//获取轨迹
-            case 'deleteYundans':
+            case 'orders':
                 unset($data['key']);
                 unset($this->req_data['key']);
-                $response = $this->sendCurl('post', $this->config['url'] . $this->config['cancel_order_command'], $data, $this->dataType, $this->apiHeaders);
+                $response = $this->sendCurl('delete', $this->config['url'] . $this->config['cancel_order_command'] . '/' . $data['keHuDanHao'], [], $this->dataType, $this->apiHeaders);
                 break;//取消订单
-            case 'getReceivingChannels':
+            case 'channel/list':
                 unset($data['key']);
                 unset($this->req_data['key']);
                 $response = $this->sendCurl('get', $this->config['url'] . $this->config['get_method_command'], [], $this->dataType, $this->apiHeaders);
@@ -399,9 +426,11 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'key' => '',
         ];
         $res = $this->request(__FUNCTION__, $params);
-        return $res;
+        if ($res['code'] != 200) {
+            return $this->retErrorResponseData('嘉里COD物流商【获取追踪号】接口失败，发生未知错误');
+        }
+        return $this->retSuccessResponseData($res);
     }
-
     /**
      * 获取物流商运输方式
      * @return mixed
@@ -409,20 +438,20 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function getShippingMethod()
     {
-        $data = ['key' => 'getReceivingChannels'];
+        $data = ['key' => 'channel/list'];
         $response = $this->request(__FUNCTION__, $data);
 
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-        if ($response['success'] != 1) {
-            return $this->retErrorResponseData('易抵达物流商发生未知错误，获取失败！');
+        if ($response['code'] != 200) {
+            return $this->retErrorResponseData('嘉里COD物流商【获取运输方式】发生未知错误，获取失败！');
         }
+
         foreach ($response['data'] as $item) {
-            $item['code'] = $item['channelName'];
-            $item['enname'] = $item['channelName'];
-            $item['cnname'] = $item['channelName'];
-            $item['shipping_method_type'] = $item['logisticsModeCode'];
+            $item['enname'] = $item['name'];
+            $item['cnname'] = $item['name'];
+            $item['shipping_method_type'] = $item['name'];
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
 
@@ -439,7 +468,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $data = [
             'keHuDanHao' => $order_code, //客户参考号
-            'key' => 'deleteYundans',
+            'key' => 'orders',
         ];
         $response = $this->request(__FUNCTION__, $data);
         return $response;
@@ -452,13 +481,13 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function getPackagesLabel($params)
     {
+
         if (count($params) > self::ORDER_COUNT) {
             throw new ManyProductException($this->iden_name . "一次最多支持提交" . self::ORDER_COUNT . "个包裹");
         }
         $data = [
-            'key' => 'files',
-            'keHuDanHaoList' => $params['trackNumber'],//客户单号，以逗号分割
-            'wenJianLeiXingList' => 3,//文件类型列表，用逗号隔开,1：系统label，2：系统发票，3：转单lebel，4：转单发票
+            'key' => 'shipment/label',
+            'tracking_number' => $params['trackNumber'],//客户单号，以逗号分割
         ];
         $response = $this->request(__FUNCTION__, $data);
 
@@ -466,20 +495,17 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
 
-        if ($response['success'] != 1) {
-            return $this->retErrorResponseData('易抵达物流商【获取面单】接口失败，发生未知错误');
+        if ($response['code'] != 200) {
+            return $this->retErrorResponseData('嘉里COD物流商【获取面单】接口失败，发生未知错误');
         }
-
-        foreach ($response['data'] as $item) {
-            $item['flag'] = true;
-            $item['info'] = $item['message'];
-            $item['order_no'] = $item['keHuDanHao'];
-            $item['lable_file'] = $item['fileList'][0]['data'];//面单内容
-            $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
-            $item['label_path_plat'] = '';//不要填写
-            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
-        }
-
+        $item = [];
+        $item['flag'] = true;
+        $item['info'] = $response['message'];
+        $item['order_no'] = $data['tracking_number'];
+        $item['lable_file'] = $response['data']['base64'];//面单内容
+        $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $item['label_path_plat'] = '';//不要填写
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
     }
 
@@ -487,41 +513,40 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      * 获取物流商轨迹
      * {"data":[{"shipper_hawbcode":"T1020210305164402901045177","server_hawbcode":"HMEUS0000223958YQ","channel_hawbcode":null,"destination_country":"US","destination_country_name":null,"track_status":"NT","track_status_name":"转运中","signatory_name":"","details":[{"tbs_id":"2826898","track_occur_date":"2021-03-05 16:44:59","track_location":"","track_description":"快件电子信息已经收到","track_description_en":"Shipment information received","track_code":"IR","track_status":"NT","track_status_cnname":"转运中"}]}],"success":1,"cnmessage":"获取跟踪记录成功","enmessage":"获取跟踪记录成功","order_id":0}
      * @return mixed
-     * {"code":0,"info":"success","data":[{"flag":"","tipMsg":"","orderNo":"HMEUS0000223958YQ","status":"NT","statusMsg":"转运中","logisticsTrackingDetails":[{"status":"NT","statusContent":"快件电子信息已经收到","statusTime":"2021-03-05 16:44:59","statusLocation":""}]}]}
+     * {"code":0,"info":"Success","data":[{"flag":"","tipMsg":"","orderNo":"HMEUS0000223958YQ","status":"NT","statusMsg":"转运中","logisticsTrackingDetails":[{"status":"NT","statusContent":"快件电子信息已经收到","statusTime":"2021-03-05 16:44:59","statusLocation":""}]}]}
      */
     public function queryTrack($trackNumber)
     {
-//        $trackNumberArray = $this->toArray($trackNumber);
-//        if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
-//            throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
-//        }
+        $trackNumberArray = $this->toArray($trackNumber);
+        if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
+            throw new InvalidIArgumentException($this->iden_name . "查询物流轨迹一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
+        }
         $data = [
-            'no' => $trackNumber,//对方说没上限
-            'key' => 'queryTracks',
+            'tracking_number' => $trackNumber,//追踪号
+            'key' => 'shipment/status',
         ];
         $response = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
 
-        if ($response['success'] != 1) {
-            return $this->retErrorResponseData('易抵达物流商【获取轨迹】接口失败，发生未知错误');
+        if ($response['code'] != 200) {
+            return $this->retErrorResponseData('嘉里COD物流商【获取轨迹】接口失败，发生未知错误');
         }
 
-        $data = $response['data'][0];
+        $data = $response['data'];
 
         $ls = [];
-        foreach ($data['trackList'] as $key => $val) {
+        foreach ($data['status'] as $key => $val) {
             $data['flag'] = true;
-            $data['track_status'] = $val['desc'];
-            $data['track_status_name'] = $val['desc'];
+            $data['track_status'] = $val['status_code'];
+            $data['track_status_name'] = $val['status_code'];
+            $data['reference_number']=$data['tracking_number'];//2021/08/31加的
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
 
-        $data['details'] = $ls;
-        $data['server_hawbcode'] = $data['no'];
+        $data['status'] = $ls;
 
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 

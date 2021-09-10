@@ -40,6 +40,7 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     ];
 
     public $interface = [
+
         'createOrder' => 'createAndAuditOrder', // 创建并预报订单 todo 如果调用创建订单需要预报
 
         'deleteOrder' => 'deleteOrder', //删除订单。发货后的订单不可删除。
@@ -50,6 +51,7 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'getPackagesLabel' => 'printOrder', // 【打印标签|面单
 
+        'getTrackNumber' => 'lookupOrderVirtualWno', //获取跟踪号
     ];
 
     /**
@@ -201,6 +203,12 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
+
+    /**统一请求
+     * @param string $function
+     * @param array $data
+     * @return mixed
+     */
     public function request($function, $data = [])
     {
         $data = $this->buildParams($function, $data);
@@ -367,5 +375,21 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function getPackagesDetail($order_id)
     {
         $this->throwNotSupport(__FUNCTION__);
+    }
+
+    /**获取追踪号
+     * @param string $order_id
+     * @return mixed
+     */
+    public function getTrackNumber(string $order_id)
+    {
+        $param = [
+            'orderNo' => $order_id,
+        ];
+        $response = $this->request(__FUNCTION__, $param);
+        if ($response['success'] != 'true') {
+            return $this->retErrorResponseData($response['errorInfo'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($response['order']);
     }
 }

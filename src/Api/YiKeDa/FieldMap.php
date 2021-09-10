@@ -15,7 +15,7 @@ use smiler\logistics\Common\LsSdkFieldMapInterface;
 /**
  * 字段映射
  * Class FieldMap
- * @package smiler\logistics\Api\BxXms
+ * @package smiler\logistics\Api\YiKeDa
  */
 class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 {
@@ -73,25 +73,36 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
             $field = [
                 'flag',// 处理状态： true 成功，false 失败
                 'info',// 提示信息
-                'tno',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
+                'tracking_number',// 查询单号可能是 客户订单号/第三方订单号|运单号/追踪号
                 'status',// 订单状态
-                'pathInfo',// 订单状态（货态）说明
-                'sPaths',// 物流轨迹明细
+                'status_msg',// 订单状态（货态）说明
+                'item',// 物流轨迹明细
             ];
         }
 
         if ($vars[0] == LsSdkFieldMapAbstract::QUERY_TRACK_TWO) {
             $field = [
-                'status',// 订单状态（货态）
-                'pathInfo',// 订单状态（货态）描述
-                'pathTime',// 订单状态（货态）时间
-                'pathAddr',// 所在地
+                'code',// 订单状态（货态）
+                'code_info',// 订单状态（货态）描述
+                'date_time',// 订单状态（货态）时间
+                'location',// 所在地
             ];
         }
 
         return self::getFieldMap(self::getQueryTrackFields($vars[0]), $field);
     }
 
+    public static function shippingMethodType(){
+        return [
+            0=>'尾程物流产品',
+            1=>'退件代选物流产品',
+            2=>'头程物流产品',
+            3=>'退件自选物流产品',
+            4=>'未预报退件物流产品',
+            5=>'销毁物流产品',
+            6=>'自提物流产品',
+        ];
+    }
     /**
      * 获取物流商运输方式
      * @param mixed ...$vars
@@ -101,9 +112,9 @@ class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
     {
         $field = [
             'code',// 运输方式代码
-            'name',// 运输方式英文
+            'name_en',// 运输方式英文
             'name',// 运输方式中文
-            'shipping_method_type',// 运输方式类型
+            'type',// 运输方式类型物流产品类型 0-尾程物流产品;1-退件代选物流产品;2-头程物流产品;3-退件自选物流产品;4-未预报退件物流产品;5-销毁物流产品;6-自提物流产品
             'remark',// 备注
             'extended',// 扩展参数
         ];

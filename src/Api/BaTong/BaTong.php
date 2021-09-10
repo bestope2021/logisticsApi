@@ -58,7 +58,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         'getPackagesLabel' => 'getnewlabel', // 【打印标签|面单】
 
-        'getTrackNumber' => 'lastnum',//获取跟踪号
+        'getTrackNumber' => 'gettrackingnumber',//获取跟踪号
 
         'queryTrack' => 'gettrack', //轨迹查询
 
@@ -197,8 +197,13 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果
-        $flag = $response['success'] == 1;
+        // 结果(2021/08/19加的判断)     2021/9/2修复优化获取追踪号逻辑
+        if(in_array($response['success'],[1,2])){
+            $flag = 1;
+        }else{
+            $flag = 0;
+        }
+
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
@@ -268,7 +273,11 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $param);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
-        $flag = $response['success'] == 1;
+        if($response['success']==1){
+            $flag=1;
+        }else{
+            $flag=0;
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? '未知错误'));
         $fieldData['trackingNo'] = $flag ? $response['data']['shipping_method_no'] : '';//追踪号
@@ -317,10 +326,10 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             return $this->retErrorResponseData('修改订单重量异常');
         }
         // 结果
-        if ($response['success'] != true) {
+        if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
-        return $this->retSuccessResponseData([]);
+        return $this->retSuccessResponseData($response);
     }
 
     /**
