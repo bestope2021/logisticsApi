@@ -15,7 +15,7 @@ use smiler\logistics\Common\LsSdkFieldMapInterface;
 /**
  * 字段映射
  * Class FieldMap
- * @package smiler\logistics\Api\BxXms
+ * @package smiler\logistics\Api\MeiTong
  */
 class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 {

@@ -66,7 +66,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
     ];
 
     /**
-     * HuaHan constructor.
+     * JunXing constructor.
      * @param array $config
      */
     public function __construct(array $config)

@@ -57,7 +57,7 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
     ];
 
     /**
-     * HuaHan constructor.
+     * MeiTong constructor.
      * @param array $config
      */
     public function __construct(array $config)

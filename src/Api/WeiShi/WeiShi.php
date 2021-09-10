@@ -70,7 +70,7 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     ];
 
     /**
-     * HuaHan constructor.
+     * WeiShi constructor.
      * @param array $config
      */
     public function __construct(array $config)

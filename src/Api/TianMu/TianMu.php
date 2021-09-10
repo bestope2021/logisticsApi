@@ -20,7 +20,7 @@ use smiler\logistics\LogisticsAbstract;
 class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
 {
     /**
-     * 一次最多提交多少个包裹,5自定义
+     * 一次最多提交多少个包裹,2自定义
      */
     const ORDER_COUNT = 2;
     /**

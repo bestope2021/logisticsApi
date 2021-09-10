@@ -67,7 +67,7 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     ];
 
     /**
-     * HuaHan constructor.
+     * YiKeDa constructor.
      * @param array $config
      */
     public function __construct(array $config)
