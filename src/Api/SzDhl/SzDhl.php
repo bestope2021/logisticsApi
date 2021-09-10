@@ -103,7 +103,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
     {
         $xml = '';
         foreach ($array as $key => $val) {
-            if(empty($val)) continue;
+            if(empty($val) && $key != 'AddressLine2') continue;
             if(is_array($val)) {
                 if(is_numeric($key)){
                     $xml .= static::arrayToXmlInc($val);
@@ -269,6 +269,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'ShipperID' => $dhl['shipper_account_number'] ?? '',//发件人账号
                 'CompanyName' => $item['senderName'] ?? '',//发件人公司名
                 'AddressLine1' => $item['senderAddress'] ?? '',//发件人地址栏1
+                'AddressLine2' => '',//发件人地址栏2
                 'City' => $item['senderCity'] ?? '',//发件人城市
                 'Division' => $item['senderState'] ?? '',//发件人省州
                 'PostalCode' => $item['senderPostCode'] ?? '',//有邮编国家必输
