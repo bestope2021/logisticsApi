@@ -115,13 +115,18 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
                     'name_en' => $value['declareEnName'] ?? '',
                     'name_zh' => $value['declareCnName'] ?? '',
                     'size' => (float)(round($value['length'], 3) ?? '') . '*' . (float)(round($value['width'], 3) ?? '') . '*' . (float)(round($value['height'], 3) ?? ''),
-                    'hscode' => $value['hsCode'] ?? '',
-                    'brand' => $value['brand'] ?? '',
-                    'model' => $value['modelType'] ?? '',
+                    'hscode' => $value['hsCode'] ?? '',//海关编码
+                    'material' => $value['declareCnName'],//材质
+                    'usage' => 'play',//用途
+                    'brand' => $value['declareCnName'],//品牌
+                    'brand_type' => '无',
+                    'model' => '无',
                     'is_battery' => $isElectricity ?? 0,//产品是否带电，默认为 0。1 为是，0 为否
+                    'sale_price' => (float)(round($value['declarePrice'], 2) ?? 0),//销售价格
+                    'amazon_ref_id' => $item['customerOrderNo'] ?? ($item['iossNumber'] ?? '无'),//产品的 PO Number
                 ];
                 $packages[] = [
-                    'number' => $key + 1,
+                    'number' => $item['customerOrderNo']??$key + 1,
                     'client_length' => (float)(round($value['length'], 3) ?? ''),// N:包裹长度（单位：cm）
                     'client_width' => (float)(round($value['width'], 3) ?? ''),// N:包裹宽度（单位：cm）
                     'client_height' => (float)(round($value['height'], 3) ?? ''),// N:包裹高度（单位：cm）
@@ -145,7 +150,7 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
                 'importwith' => 0,//清关，默认值为 0 什么都不选择；1 一 般贸易清关；2 快件清关
                 'attrs' => [],//物品属性。带电：elec 带磁：magnetic 危险品： danger
                 'declaration_currency' => $item['packageCodCurrencyCode'] ?? 'USD', //N:币种
-                'vat_number' => '',//VAT号
+                'vat_number' => $item['iossNumber'] ?? $item['recipientTaxNumber'],//VAT号
                 'to_address' => [
                     'name' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 50 '',// Y:收件人姓名Length <= 50
                     'company' => $item['recipientCompany'] ?? '', //N:收件人公司名称
@@ -175,6 +180,9 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
 
         $response = $this->request(__FUNCTION__, $ls[0]);
 
+        if(empty($response)){
+            return $this->retErrorResponseData($response['info']);
+        }
         // 处理结果
         $reqRes = $this->getReqResData();
 
@@ -183,24 +191,15 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
 
         // 结果
         $flag = $response['status'] == true;
-
+        if(empty($flag)){
+            return $this->retErrorResponseData($response['info']);
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['info'] ?? '未知错误');
-        // 获取追踪号,如果延迟的话
-        if ($flag && empty($response['data']['frt_channel_hawbcode'])) {
-            if(isset($response['data']['shipment']['shipment_id'])){
-                $trackNumberResponse = $this->getTrackNumber($response['data']['shipment']['shipment_id']);
-                if ($trackNumberResponse['flag']) {
-                    $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
-                    $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
-                }
-            }
-        }
-        $fieldData['orderNo'] = $response['data']['shipment']['shipment_id']??'';
+        $fieldData['orderNo'] =$ls[0]['shipment']['client_reference']  ?? ($response['data']['shipment']['shipment_id']??'');
         $fieldData['trackingNo'] = $response['data']['shipment']['shipment_id'] ?? '';
         $fieldData['frt_channel_hawbcode'] = $flag ? ($trackNumberResponse['frtTrackingNumber'] ?? '') : '';//尾程追踪号
-        $fieldData['id'] = $response['data']['shipment']['shipment_id']??'';
-        $this->order_track = $flag ? [$response['data']['shipment']['shipment_id'] => $ls[0]['client_reference']] : [];
+        $fieldData['id'] = $response['data']['shipment']['shipment_id'] ?? '';
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
@@ -215,10 +214,10 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
         $data = [
             'shipment' => [
                 'client_reference' => $params['ProcessCode'] ?? '',
-                'parcels' => [
+                'parcels' => [[
                     'number' => $params['ProcessCode'] ?? '',
                     'client_weight' => $params['weight'] ?? '',
-                ],
+                ]],
             ],
             'validation' => ['access_token' => $this->config['access_token']],
             'key' => 'update_weight',
@@ -269,11 +268,6 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
                 unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['update_weight_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//客户通过updateWeight API提交订单核重，与仓库操作的实重进行对比是否超重量差异值。注意：一定要在仓库操作前推送，否则将不接收客户推送的核重。
-            case 'lastnum':
-                unset($data['key']);
-                unset($this->req_data['key']);
-                $response = $this->sendCurl('post', $this->config['url'] . $this->config['last_num_command'], $data, $this->dataType, $this->apiHeaders);
-                break;//获取追踪号和转单号用的
             default:
                 unset($data['key']);
                 unset($this->req_data['key']);
@@ -282,31 +276,6 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
         }
         $this->res_data = $response;
         return $response;
-    }
-
-    /**
-     * 获取跟踪号，todo 有些渠道生成订单号不能立刻获取跟踪号
-     * @param $reference_no
-     * @return array|mixed
-     */
-    public function getTrackNumber(string $processCode, $is_ret = false)
-    {
-        $params = [
-            'shipment' => ['client_reference' => $processCode],//客户参考号
-            'validation' => ['access_token' => $this->config['access_token']],
-            'key' => 'lastnum',
-        ];
-        $response = $this->request(__FUNCTION__, $params);
-        $fieldData = [];
-        $fieldMap = FieldMap::getTrackNumber();
-        $flag = $response['message'] == 'Success';
-        $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? '未知错误'));
-        $fieldData['trackingNo'] = $flag ? $response['data']['trackingNumber'] : '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $flag ? $response['data']['lastnum'] : '';//尾程追踪号
-        $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-        if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
-        return $ret;
     }
 
     /**
@@ -394,7 +363,6 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
             'key' => 'get_labels',
         ];
         $response = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
@@ -412,10 +380,8 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
         $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
         $response['url'] = $response['data']['shipment']['single_pdf'] ?? '';
         $response['label_path_plat'] = '';//不要填写
-        $response['lable_content_type'] = $params['label_content'] ?? 1;
-
+        $response['lable_content_type'] = 1;
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
-
         return $this->retSuccessResponseData($fieldData);
     }
 
@@ -475,8 +441,7 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
         }
 
         $data = $response['data']['shipment'];
-        //$data['orderNo'] = $this->order_track[$trackNumber];
-
+       
         $ls = [];
         foreach ($data['traces'] as $key => $val) {
             $val['time'] = date('Y-m-d H:i:s', $val['time']);//格式化时间
