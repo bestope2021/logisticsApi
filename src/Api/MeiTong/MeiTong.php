@@ -379,7 +379,7 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
         $response['trackingNo'] = $params['trackingNumber'] ?? '';
         $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
         $response['url'] = $response['data']['shipment']['single_pdf'] ?? '';
-        $response['label_path_plat'] = '';//不要填写
+        $response['label_path_plat'] = $response['data']['shipment']['single_pdf']??'';//不要填写
         $response['lable_content_type'] = 1;
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
@@ -388,32 +388,6 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
     /**
      * 获取物流商轨迹
      * @return mixed
-     * {
-     *     "code": "1",
-     *     "data": {
-     *         "orderNo": "GL962889980",
-     *         "trackingNumber": "9214490237757389730787",
-     *         "events": [
-     *             {
-     *                 "event_code": "DL",
-     *                 "event_time": "2021-04-09 15:40:00",
-     *                 "event_content": "Delivered, In/At Mailbox",
-     *                 "event_loaction": "ILMACHESNEY PARK"
-     *             },
-     *             {
-     *                 "event_code": "OP",
-     *                 "event_time": "2021-04-09 06:10:00",
-     *                 "event_content": "Out for Delivery",
-     *                 "event_loaction": "ILMACHESNEY PARK"
-     *             },
-     *             {
-     *                 "event_code": "OP",
-     *                 "event_time": "2021-04-09 06:10:00",
-     *                 "event_content": "Out for Delivery, Expected Delivery by 9:00pm",
-     *                 "event_loaction": "ILMACHESNEY PARK"
-     *             }
-     *         ]
-     *     },
      */
     public function queryTrack($trackNumber)
     {

@@ -15,7 +15,7 @@ use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\JiaLiCod\JiaLiCod;
 use smiler\logistics\Api\WeiShi\WeiShi;
-use smiler\logistics\Api\YikeDa\YiKeDa;
+use smiler\logistics\Api\YikeDa\YiKeDaTc;
 use smiler\logistics\Api\CNE\Cne;
 use smiler\logistics\Api\DgDhl\DgDhl;
 use smiler\logistics\Api\DgPost\DgPost;
@@ -93,7 +93,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_MeiTong => MeiTong::class,// 美通头程
         LogisticsIdent::LS_IDENT_DgYz => DgYz::class,// 东莞邮政小包直发
         LogisticsIdent::LS_IDENT_JIALICOD => JiaLiCod::class,// 新马泰嘉里COD物流
-        LogisticsIdent::LS_IDENT_YIKEDA => YiKeDa::class,// 易可达
+        LogisticsIdent::LS_IDENT_YIKEDA => YiKeDaTc::class,// 易可达
         LogisticsIdent::LS_IDENT_JIALICODTW => JiaLiCodTw::class,// 台湾嘉里COD物流
         LogisticsIdent::LS_IDENT_WeiShi => WeiShi::class,// 纬狮物流
     ];
