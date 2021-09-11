@@ -280,10 +280,11 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     'PhoneNumber' => $item['senderPhone'] ?? '',//发件人电话
                     'Email' => $item['senderEmail'] ?? '',//发件人邮箱
                 ],//发件人信息
-                'BusinessPartyTypeCode' => $dhl['sender_business_type'] ?? '',//发件人类别
             ];
 
             if(!empty($senderTaxNumber || !empty($iossNumber))) $shipper['RegistrationNumbers'] = $shipperRegistrationNumbers;
+
+            $shipper['BusinessPartyTypeCode'] = $dhl['sender_business_type'] ?? '';//发件人类别
 
             $shipmentDetails['WeightUnit'] = 'K';//重量单位,K:千克,L:磅
             $shipmentDetails['GlobalProductCode'] = $item['productCode'] ?? 'P';//Global 产品代码,普通包裹：P，正午特派包裹：Y
