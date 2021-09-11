@@ -15,7 +15,7 @@ use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
 use smiler\logistics\Api\JiaLiCod\JiaLiCod;
 use smiler\logistics\Api\WeiShi\WeiShi;
-use smiler\logistics\Api\YikeDa\YiKeDaTc;
+use smiler\logistics\Api\YiKeDaTc\YiKeDaTc;
 use smiler\logistics\Api\CNE\Cne;
 use smiler\logistics\Api\DgDhl\DgDhl;
 use smiler\logistics\Api\DgPost\DgPost;

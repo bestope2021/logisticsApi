@@ -5,7 +5,7 @@
  * Date: 3/1/21
  */
 
-namespace smiler\logistics\Api\YiKeDa;
+namespace smiler\logistics\Api\YiKeDaTc;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;

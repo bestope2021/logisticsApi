@@ -6,7 +6,7 @@
  * Email: <2166909366@qq.com>
  */
 
-namespace smiler\logistics\Api\YiKeDa;
+namespace smiler\logistics\Api\YiKeDaTc;
 
 
 use smiler\logistics\Common\LsSdkFieldMapAbstract;
@@ -15,7 +15,7 @@ use smiler\logistics\Common\LsSdkFieldMapInterface;
 /**
  * 字段映射
  * Class FieldMap
- * @package smiler\logistics\Api\YiKeDa
+ * @package smiler\logistics\Api\YiKeDaTc
  */
 class FieldMap extends LsSdkFieldMapAbstract implements LsSdkFieldMapInterface
 {
