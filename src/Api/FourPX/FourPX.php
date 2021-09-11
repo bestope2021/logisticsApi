@@ -598,22 +598,22 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      * @param array $params
      * @return mixed|void
      */
-//    public function operationPackages($params)
-//    {
-//        $data = [
-//            'request_no' => $params['ProcessCode'] ?? '',
-//            'weight' => $params['weight'] ?? '',
-//        ];
-//        $response = $this->request(__FUNCTION__, $data);
-//        if (empty($response)) {
-//            return $this->retErrorResponseData('修改订单重量异常');
-//        }
-//        // 结果
-//        if ($response['result'] != self::SUCCESS_IDENT) {
-//            return $this->retErrorResponseData($response['msg'] ?? '未知错误');
-//        }
-//        return $this->retSuccessResponseData($response);
-//    }
+    public function operationPackages($params)
+    {
+        $data = [
+            'request_no' => $params['ProcessCode'] ?? '',
+            'weight' => $params['weight'] ?? '',
+        ];
+        $response = $this->request(__FUNCTION__, $data);
+        if (empty($response)) {
+            return $this->retErrorResponseData('修改订单重量异常');
+        }
+        // 结果
+        if ($response['result'] != self::SUCCESS_IDENT) {
+            return $this->retErrorResponseData($response['msg'] ?? '未知错误');
+        }
+        return $this->retSuccessResponseData($response);
+    }
 
     /**
      * 获取物流商轨迹
