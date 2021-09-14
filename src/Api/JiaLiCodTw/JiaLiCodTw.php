@@ -306,22 +306,31 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
         }
 
         $ls[0]['key'] = 'shipment/create';
-
         $response = $this->request(__FUNCTION__, $ls[0]);
 
+        //2021/9/14优化重复下单
 
         $reqRes = $this->getReqResData();
-
+        $flag=0;
 
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
         // 结果
-        if(($response['code'] == 201) || ($response['code'] == 409)){
-            $flag = 1;//201正常，409是重复下单已存在也正常返回
-        }else{
-            $flag = 0;
+        if($response['code'] == 201){
+            $flag = 1;//201正常，
+        }elseif($response['code'] == 409){
+            //409是重复下单已存在,先删除再重新下单，再返回
+            $deleteFlag=$this->deleteOrder($response['data']['tracking_number']);//应该是先删除追踪号
+            if(!empty($deleteFlag)){
+                //已删除成功，再重新下单
+                $response = $this->request(__FUNCTION__, $ls[0]);//调用下单程序，生成新的追踪号
+                if($response['code'] == 201){
+                    $flag = 1;//201正常，
+                }
+            }
         }
+
         if (!empty($response['data'])) {
             $newdata = $response['data'];
             $fieldData['flag'] = $flag ? true : false;
