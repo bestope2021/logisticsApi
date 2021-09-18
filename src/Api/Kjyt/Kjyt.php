@@ -179,7 +179,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
                 'weight' => (float)($item['predictionWeight'] ?? ''),// Y:订单重量，单位KG，默认为0.2,
                 'product_imagepath' => '', //N:图片地址，多图片地址用分号隔开
                 'shipper_name' => $item['senderName'] ?? '', //Y:发件人姓名
-                'shipper_company' => $item['senderCompany'] ?? '', // N:发件人公司名
+                'shipper_companyname' => $item['senderCompany'] ?? '', // N:发件人公司名
                 'shipper_address1' => $item['senderFullAddress'] ?? '',// N:发件人完整地址Length <= 200
                 'shipper_address2' => '',
                 'shipper_address3' => '',
