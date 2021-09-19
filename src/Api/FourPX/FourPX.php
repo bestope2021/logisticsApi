@@ -68,7 +68,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'deleteOrder' => 'ds.xms.order.cancel',// POST:删除订单
         'createBag' => 'ds.xms.bag.create',// POST:直发授权-完成装袋
         'getBagLabel' => 'ds.xms.bag_label.get',// POST:直发授权-袋标签
-//        'operationPackages'=>'ds.xms.order.updateweight',//POST:更新预报重量,红清加过了
+        'operationPackages'=>'ds.xms.order.updateweight',//POST:更新预报重量,红清加过了
     ];
 
     /*
@@ -87,7 +87,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'deleteOrder' => '1.0.0',// POST:删除订单
         'createBag' => '1.0.0',// POST:直发授权-完成装袋
         'getBagLabel' => '2.0.0',// POST:直发授权-袋标签
-//        'operationPackages'=>'1.0.0',//POST:更新预报重量
+        'operationPackages'=>'1.0.0',//POST:更新预报重量
     ];
     protected $_sign = '';
     /**
@@ -386,7 +386,8 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             // 根据客户订单号查询处理号
             $detail = $this->searchOrder($pars['ref_no']);
             // 存在
-            if ($detail) {
+            if (!empty($detail['data'])) {
+                $detail = $detail['data'];
                 $shCode = $detail['logistics_product_code'] ?? '';
                 if ($shCode == ($pars['logistics_service_info']['logistics_product_code'] ?? '')) {
                     $data = $detail;
@@ -493,35 +494,16 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         ];
 
         $response = $this->request(__FUNCTION__, $dt);
-
-
         // 结果
-        $flag = $response['result'] == self::SUCCESS_IDENT;
+        $flag = !empty($response['data']);
 
-        if (!$flag) {
-            return [];
-        }
+        $msg = $response['msg'];
 
         $data = $response['data'][0] ?? [];
 
-//        $ret = [
-//            'ref_no' => $data['consignment_info']['ref_no'] ?? $request_no,//客户单号/客户参考号
-//            'ds_consignment_no' => $data['consignment_info']['ds_consignment_no'] ?? '',//直发委托单号
-//            '4px_tracking_no' => $data['consignment_info']['4px_tracking_no'] ?? '',//4PX跟踪号
-//            'logistics_channel_no' => $data['consignment_info']['logistics_channel_no'] ?? '',//物流渠道号码。如果结果返回为空字符，表示暂时没有物流渠道号码，请稍后主动调用查询直发委托单接口查询
-//            'logistics_channel_name' => $data['consignment_info']['logistics_channel_name'] ?? '',//服务商名称
-//            'label_barcode' => $data['consignment_info']['label_barcode'] ?? '',//标签条码号
-//            'oda_result_sign' => $data['consignment_info']['oda_result_sign'] ?? '',//ODA标识(偏远地址：Y 非偏远地址：N)
-//            'consignment_status' => $data['consignment_info']['consignment_status'] ?? '',//委托单状态（草稿：D；已预报：P；已交接/已交货：V；库内作业中：H；已出库：C；已关闭：X；）
-//            'get_no_mode' => $data['consignment_info']['get_no_mode'] ?? '',//获取末端服务商单号的方式(创建订单时取号：C；仓库作业时取号：U)
-//            'get_no_exmsg' => $data['consignment_info']['get_no_exmsg'] ?? '',//获取服务商单号抛的异常信息（若取号失败/取号异常，此字段将服务商的报错内容，同时logistics_channel_no字段将为空）
-//            'logistics_product_code' => $data['consignment_info']['logistics_product_code'] ?? '',// 运输方式代码
-//            'logistics_product_name' => $data['consignment_info']['logistics_product_name'] ?? '',// 运输方式名称
-//        ];
-
         $ret = $data['consignment_info'] ?? [];
 
-        return $ret;
+        return ['flag'=> $flag,'data'=> $ret,'msg' => $msg];
     }
 
     /**
@@ -601,7 +583,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public function operationPackages($params)
     {
         $data = [
-            'request_no' => $params['ProcessCode'] ?? '',
+            'request_no' => $params['request_no'] ?? '',
             'weight' => $params['weight'] ?? '',
         ];
         $response = $this->request(__FUNCTION__, $data);
@@ -622,7 +604,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public function queryTrack($trackNumber)
     {
         $data = [
-            'deliveryOrderNo' => $trackNumber,// Y:物流单号
+            'deliveryOrderNo' => $trackNumber['sy_order_no'],// Y:物流单号
         ];
 
         $response = $this->request(__FUNCTION__, $data);
