@@ -45,7 +45,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'createOrder' => 'createAndAuditOrder', // 创建并预报订单 todo 如果调用创建订单需要预报
 
-        'deleteOrder' => 'removeorder', //删除订单。发货后的订单不可删除。
+        'deleteOrder' => 'deleteOrder', //删除订单。发货后的订单不可删除。
 
         'queryTrack' => 'track', //轨迹查询
 
@@ -256,6 +256,11 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_method_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//获取运输方式
+            case 'cancel':
+                unset($data['key']);
+                unset($this->req_data['key']);
+                $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_cancel_command'], $data, $this->dataType, $this->apiHeaders);
+                break;//删除订单
             case 'updateWeight':
                 unset($data['key']);
                 unset($this->req_data['key']);
@@ -338,7 +343,9 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'key' => 'cancel',
         ];
         $response = $this->request(__FUNCTION__, $param);
-        return $response;
+        // 结果
+        $flag = $response['message'] == 'Success';
+        return $flag;
     }
 
     /**

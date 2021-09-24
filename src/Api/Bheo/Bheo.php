@@ -364,7 +364,9 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             'amendment' => '【出口易取消订单】',//取消原因
         ];
         $response = $this->cancelOrder(__FUNCTION__, $data);
-        return $response;
+        // 结果
+        $flag = empty($response);
+        return $flag;
     }
 
     /**

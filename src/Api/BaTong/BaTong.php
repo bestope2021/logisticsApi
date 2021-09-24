@@ -343,7 +343,10 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_code, //客户参考号
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        // 结果
+        $flag = $response['success'] == 1;
+
+        return $flag;
     }
 
     /**

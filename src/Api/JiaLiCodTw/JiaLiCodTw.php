@@ -475,14 +475,15 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
      */
     public function deleteOrder(string $order_code)
     {
+        $flag=0;
         $data = [
             'keHuDanHao' => $order_code, //客户参考号
             'key' => 'orders',
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        $flag=$response['code']==200;
+        return $flag;
     }
-
     /**
      * 获取订单标签
      * @return mixed

@@ -18,7 +18,7 @@ use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
 /**
- * 新马泰嘉里COD物流
+ * 新马泰，台湾，香港，菲律宾嘉里COD物流
  * @link http://hotfix.yidida.top/itdida-api/swagger-ui.html#!/21151330212716922359/loginUsingPOST_7
  * Class JiaLiCod
  * @package smiler\logistics\Api\JiaLiCod

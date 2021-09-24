@@ -300,7 +300,8 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'reference_no' => $order_code,
         ];
         $response = $this->request(__FUNCTION__, 'post', $param);
-        return $response;
+        $flag=$response['ask']=='Success';
+        return $flag;
     }
 
     /**

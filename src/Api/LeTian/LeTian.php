@@ -268,7 +268,8 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'orderId' => $order_id,
         ];
         $response = $this->request(__FUNCTION__, $param);
-        return $response;
+        $flag=$response['success']==true;
+        return $flag;
     }
 
     /**
