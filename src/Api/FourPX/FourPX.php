@@ -410,8 +410,8 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData['info'] = $info;
 
         $fieldData['customerOrderNo'] = $data['ref_no'] ?? '';//客户单号/客户参考号
-        $fieldData['syOrderNo'] = $data['ds_consignment_no'] ?? '';// 直发委托单号
-        $fieldData['trackingNumber'] = $data['4px_tracking_no'] ?? '';// 4PX跟踪号
+        $fieldData['syOrderNo'] = $data['4px_tracking_no'] ?? '';// 直发委托单号
+        $fieldData['trackingNumber'] = '';
         $fieldData['frtTrackingNumber'] = $data['logistics_channel_no'] ?? '';// 物流渠道号码。如果结果返回为空字符，表示暂时没有物流渠道号码，请稍后主动调用查询直发委托单接口查询
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
