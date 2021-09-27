@@ -18,7 +18,7 @@ use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
 /**
- * 易抵达物流
+ * (嘀嗒)易抵达物流
  * @link http://hotfix.yidida.top/itdida-api/swagger-ui.html#!/21151330212716922359/loginUsingPOST_7
  * Class ItDiDa
  * @package smiler\logistics\Api\ItDiDa
@@ -442,7 +442,8 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'key' => 'deleteYundans',
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        $flag=$response['success']==1;
+        return $flag;
     }
 
     /**

@@ -319,7 +319,9 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
             'key' => 'void',
         ];
         $response = $this->request(__FUNCTION__, $param);
-        return $response;
+
+        $flag=$response['status']==1;
+        return $flag;
     }
 
 

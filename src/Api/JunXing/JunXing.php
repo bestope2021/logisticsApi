@@ -433,7 +433,8 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
             'amendment' => '【佰事德批量删除订单】',//取消原因
         ];
         $response = $this->cancelOrder(__FUNCTION__, $data);
-        return $response;
+        $flag=$response['result_code']==0;
+        return $flag;
     }
 
     /**

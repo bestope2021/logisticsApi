@@ -321,7 +321,8 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             'reference_no' => $order_code, //客户参考号
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        $flag=$response['success'] == 1;
+        return $flag;
     }
 
     /**

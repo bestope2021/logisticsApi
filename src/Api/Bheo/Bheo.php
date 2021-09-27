@@ -364,7 +364,9 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             'amendment' => '【出口易取消订单】',//取消原因
         ];
         $response = $this->cancelOrder(__FUNCTION__, $data);
-        return $response;
+        // 结果
+        $flag = empty($response);
+        return $flag;
     }
 
     /**
@@ -374,7 +376,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
      */
     public function getPackagesLabel($params)
     {
-        $trackNumberArray = $this->toArray($params['customerOrderNo']);//用订单号和IdType一一对应
+        $trackNumberArray = $this->toArray($params['trackingNumber']);//用订单号和IdType一一对应,9.27追踪号去获取
         if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
             throw new InvalidIArgumentException($this->iden_name . "查询面单一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
         }
@@ -383,7 +385,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             'PrintFormat' => 'ClassicLabel',//ClassicLabel或者ClassicA4(经典标签纸或者经典A4纸)
             'PrintContent' => 'AddressCostomsSplit',//打印地址、报关单与配货清单（只支持ClassicLabel），包裹的remark有多个以|分隔的值才会打印配货清单
             'CustomPrintOptions' => ['Custom'],//RefNo,CustomsTitleEn,CustomsTitleCn,Custom,Remark,Sku
-            'IdType' => 'PackageId',//PackageId和Ck1PackageId
+            'IdType' => 'Ck1PackageId',//PackageId和Ck1PackageId
         ];
 
         $response = $this->getLabelPrint(__FUNCTION__, $data);

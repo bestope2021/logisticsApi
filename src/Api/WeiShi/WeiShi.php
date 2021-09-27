@@ -267,7 +267,8 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_code, //客户单号，注：只有草稿、已预报状态支持取消。
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        $flag=$response['ask']=='Success';
+        return $flag;
     }
 
     /**
