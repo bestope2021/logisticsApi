@@ -376,7 +376,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
      */
     public function getPackagesLabel($params)
     {
-        $trackNumberArray = $this->toArray($params['trackingNumber']);//用订单号和IdType一一对应,9.27追踪号去获取
+        $trackNumberArray = $this->toArray($params['syOrderNo']);//用订单号和IdType一一对应,9.27用出口易处理号Ck1PackageId去获取
         if (count($trackNumberArray) > self::QUERY_TRACK_COUNT) {
             throw new InvalidIArgumentException($this->iden_name . "查询面单一次最多查询" . self::QUERY_TRACK_COUNT . "个物流单号");
         }
