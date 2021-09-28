@@ -375,36 +375,10 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $resultCode = $response['result'] ?? '';
         $data = $response['data'] ?? [];
-        $flag = $resultCode == self::SUCCESS_IDENT;
+        $error = $response['errors']??'';
+        $flag = empty($error);
         $info = $response['errors'][0]['error_msg'] ?? ($response['msg'] ?? '');
-        $errorCode = $response['errors'][0]['error_code'] ?? '';
-
-        // 重复订单号
-        if ($errorCode == self::ORDER_REPEAT) {
-            // 根据客户订单号查询处理号
-            $detail = $this->searchOrder($pars['ref_no']);
-            // 存在
-            if (!empty($detail['data'])) {
-                $detail = $detail['data'];
-                $shCode = $detail['logistics_product_code'] ?? '';
-                if ($shCode == ($pars['logistics_service_info']['logistics_product_code'] ?? '')) {
-                    $data = $detail;
-                } else {
-                    // 进行删除操作
-                    $delFlag = $this->deleteOrder($pars['ref_no']);
-                    if ($delFlag) {
-                        $response = $this->request(__FUNCTION__, $pars);
-                        // 结果
-                        $resultCode = $response['result'] ?? '';
-                        $data = $response['data'] ?? [];
-                        $flag = $resultCode == self::SUCCESS_IDENT;
-                        $info = $response['errors'][0]['error_msg'] ?? ($response['msg'] ?? '');
-                    }
-                }
-            }
-        }
 
         $fieldData['flag'] = $flag;
         $fieldData['info'] = $info;
