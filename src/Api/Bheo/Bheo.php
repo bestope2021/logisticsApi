@@ -123,7 +123,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
                     'Price' => round((float)($value['declarePrice'] / $value['quantity'] ?? ''), 4),
                     'HsCode' => $value['hsCode'] ?? '',// N:海关编码
                 ];
-                $order_price += round((float)($value['declarePrice'] * $value['quantity']), 4);//订单总价格
+                $order_price += round((float)($value['declarePrice'] * $value['quantity']),4);//订单总价格
                 $order_weight += $value['declareWeight'];//订单总重量
                 $currency = $value['currencyCode'] ?? 'USD';//申报销售产品币种
             }
@@ -168,7 +168,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
                 'Skus' => $skus,
                 'ExportsInfo' => $exportsInfo ?? [],//经济运营商(出口)
                 'ImportsInfo' => $exportsInfo ?? [],//经济运营商(进口)
-                'SellPrice' => $order_price,//售价
+                'SellPrice' => round($order_price,4),//售价
                 'SellPriceCurrency' => $currency,//销售币种
                 'SalesPlatform' => $item['platformSource'] ?? '',//销售平台
                 'OtherSalesPlatform' => $item['platformSource'] ?? '',//其他销售平台
