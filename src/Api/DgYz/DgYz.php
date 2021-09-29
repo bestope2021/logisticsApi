@@ -310,20 +310,6 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
 
 
     /**
-     * 取消订单，删除订单
-     * @return mixed
-     */
-    public function deleteOrder(string $order_id)
-    {
-        $param = [
-            'orderId' => $order_id,
-            'key' => 'cancel',
-        ];
-        $response = $this->request(__FUNCTION__, $param);
-        return $response;
-    }
-
-    /**
      * 修改订单状态
      * @return mixed
      */

@@ -384,11 +384,12 @@ class YiKeDaTc extends LogisticsAbstract implements BaseLogisticsInterface, Pack
     {
         $param = [
             'order_code' => $order_id,
-            'reason' => '易可达取消订单',
+            'reason' => '易可达头程取消订单',
         ];
         $data = $this->buildParams('deleteOrder', $param);
         $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_delete_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'cancelOrder');
-        return $response;
+        $flag=$response['ask']=='Success';
+        return $flag;
     }
 
     /**

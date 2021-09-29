@@ -368,7 +368,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         ];
         $response = $this->cancelOrder(__FUNCTION__, $data);
         // 结果
-        $flag = empty($response);
+        $flag = empty($response)??0;
         return $flag;
     }
 

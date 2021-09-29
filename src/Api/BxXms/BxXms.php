@@ -231,7 +231,6 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
 
-//        $this->dd($res);
         if ($res['success'] != 'true') {
             return $this->retErrorResponseData($res['errorInfo'] ?? '未知错误');
         }
@@ -260,7 +259,10 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
             'orderId' => $order_id,
         ];
         $response = $this->request(__FUNCTION__, $param);
-        return $response;
+        // 结果
+        $flag = $response['success'] == true;
+
+        return $flag;
     }
 
     /**
