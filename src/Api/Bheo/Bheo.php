@@ -161,7 +161,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
 //                'Length' => round((float)(array_sum(array_column($item['productList'], 'length')) ?? ''), 2),//长度
 //                'Width' => round((float)(array_sum(array_column($item['productList'], 'width')) ?? ''), 2),//宽度
 //                'Height' => round((float)(array_sum(array_column($item['productList'], 'height')) ?? ''), 2),//高度
-                'Weight' => round($item['predictionWeight'], 2),//重量
+                'Weight' => round($item['predictionWeight']*1000, 2),//重量
                 'Length'=>round($item['packageLength'],2),//长度
                 'Width' => round($item['packageWidth'],2),//宽度
                 'Height' => round($item['packageHeight'],2),//高度
