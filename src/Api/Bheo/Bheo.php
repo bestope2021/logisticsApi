@@ -155,13 +155,16 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             ];
             $packages = [
                 'PackageId' => $item['customerOrderNo'],
-                //'ServiceCode'=>'CUE',
                 'ServiceCode' => $item['shippingMethodCode'] ?? 'CUE',//运输渠道，字符串
                 'ShipToAddress' => $shipToAddress,
-                'Weight' => ceil($order_weight),//重量(g) [取值是向上取整的],优先取毛重,然后再净重
-                'Length' => round((float)(array_sum(array_column($item['productList'], 'length')) ?? ''), 2),//长度
-                'Width' => round((float)(array_sum(array_column($item['productList'], 'width')) ?? ''), 2),//宽度
-                'Height' => round((float)(array_sum(array_column($item['productList'], 'height')) ?? ''), 2),//高度
+//                'Weight' => ceil($order_weight),//重量(g) [取值是向上取整的],优先取毛重,然后再净重
+//                'Length' => round((float)(array_sum(array_column($item['productList'], 'length')) ?? ''), 2),//长度
+//                'Width' => round((float)(array_sum(array_column($item['productList'], 'width')) ?? ''), 2),//宽度
+//                'Height' => round((float)(array_sum(array_column($item['productList'], 'height')) ?? ''), 2),//高度
+                'Weight' => round($item['predictionWeight'], 2),//重量
+                'Length'=>round($item['packageLength'],2),//长度
+                'Width' => round($item['packageWidth'],2),//宽度
+                'Height' => round($item['packageHeight'],2),//高度
                 'Skus' => $skus,
                 'ExportsInfo' => $exportsInfo ?? [],//经济运营商(出口)
                 'ImportsInfo' => $exportsInfo ?? [],//经济运营商(进口)
