@@ -135,8 +135,8 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
                 'bizProductNo' => $item['shippingMethodCode'] ?? '001',//产品代码,就是渠道代码
                 'weight' => (int)($order_weight * 1000),//邮件重量（克），正整数
                 'batteryFlag' => $isElectricity, //是否有电池 0：无电池,1：有电池，默认 0，整数型
-                'taxNo' => $item['iossNumber'] ?? '',//【选填】收件人税号（巴西必填）
-                'senderTaxNo' => $item['senderTaxNumber'] ?? '',//【选填】寄件人税号，VAT 识别账号 6.11 新增
+                'senderTaxNo' => $item['iossNumber'] ?? '',//【选填】收件人税号（巴西必填）    9.30物流商告知写反了
+                'taxNo' => $item['senderTaxNumber'] ?? '',//【选填】寄件人税号，VAT 识别账号 6.11 新增,   9.30物流商告知写反了
                 'prepaymentOfVat' => 0,//【选填】，预缴增值税方式，(0: IOSS 1: no-IOSS 2: other)，6.11 新增
                 'receiver' => [
                     'receiverName' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 50 '',// Y:收件人姓名Length <= 50
