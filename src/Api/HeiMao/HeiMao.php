@@ -194,12 +194,26 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2     2021/9/2修复优化获取追踪号逻辑
-        if (in_array($response['success'],[1,2])){
-            $flag = 1;
-        }else{
-            $flag = 0;
+
+//        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2   2021/9/2修复优化获取追踪号逻辑
+//        if (in_array($response['success'],[1,2])){
+//            $flag = 1;
+//        }else{
+//            $flag = 0;
+//        }
+
+        // 重复订单号,2021/10/1
+        if($response['success'] == 2){
+            // 进行删除操作,再重新下单
+            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
+            if($delFlag){
+                $response = $this->request(__FUNCTION__, $ls[0]);
+                $reqRes = $this->getReqResData();
+            }
         }
+
+        // 结果
+        $flag = $response['success'] == 1;
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
