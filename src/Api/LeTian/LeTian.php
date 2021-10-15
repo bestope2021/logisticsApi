@@ -43,7 +43,7 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'createOrder' => 'createAndAuditOrder', // 创建并预报订单 todo 如果调用创建订单需要预报
 
-        'deleteOrder' => 'deleteOrder', //删除订单。发货后的订单不可删除。
+        'deleteOrder' => 'deleteOrder2', //删除订单。发货后的订单不可删除。
 
         'queryTrack' => 'getTrack', //轨迹查询
 
@@ -265,7 +265,7 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function deleteOrder(string $order_id)
     {
         $param = [
-            'orderId' => $order_id,
+            'orderNo' => $order_id,
         ];
         $response = $this->request(__FUNCTION__, $param);
         return $response;
@@ -360,14 +360,17 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             return $this->retErrorResponseData($response['error']['errorInfo'] ?? '未知错误');
         }
 
-        $data = $response['trace '];
+        $data = $response['trace'];
 
         $ls = [];
-        foreach ($data['sPaths'] as $key => $val) {
-            $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+        $s_paths = $data['sPaths']??[];
+        if(!empty($s_paths)){
+            foreach ($s_paths as $key => $val) {
+                $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
+            }
+            $data['sPaths'] = $ls;
+            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
         }
-        $data['sPaths'] = $ls;
-        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
 
         return $this->retSuccessResponseData($fieldData);
     }
