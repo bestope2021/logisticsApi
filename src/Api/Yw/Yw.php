@@ -102,17 +102,19 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                 'ProductColor' => '', //产品颜色，中俄SPSR专线此项必填
                 'ProductMaterial' => '', //N:产品材质，中俄SPSR专线此项必填
             ];
+            $declareEnName = [];
+            $declareCnName = [];
             foreach ($item['productList'] as $value) {
-                $productList['NameEn'] .= !empty($value['declareEnName']) ? $value['declareEnName'] . "," : '';
-                $productList['NameCh'] .= !empty($value['declareCnName']) ? $value['declareCnName'] . "," : '';
+                array_push($declareCnName,$value['declareCnName']);
+                array_push($declareEnName,$value['declareEnName']);
                 $productList['Weight'] += ($value['declareWeight'] ?? '') * 1000;
                 $productList['DeclaredValue'] += (float)($value['declarePrice'] ?? '') * (int)($value['quantity'] ?? '');
                 $productList['HsCode'] = $value['hsCode'] ?? '';
                 $quantity += $value['quantity'];
                 $order_weight += $value['declareWeight'];
             }
-            $productList['NameEn'] = trim($productList['NameEn'], ',');
-            $productList['NameCh'] = trim($productList['NameCh'], ',');
+            $productList['NameEn'] = implode(',',array_unique($declareEnName));
+            $productList['NameCh'] = implode(',',array_unique($declareCnName));
             $ls[] = [
                 'Epcode' => '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 'Userid' => $this->config['userId'], // 客户号
@@ -245,7 +247,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
     public function getPackagesLabel($order_id)
     {
 
-        $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId'], $order_id, 'A10x10LCI'); //标签大小。支持的值为：A4L, A4LI, A4LC, A4LCI, A6L, A6LI, A6LC, A6LCI, A10x10L, A10x10LI,A10x10LC, A10x10LCI。(注：L为运单，C为报关签条，I为拣货单。)
+        $requestUrl = $this->config['url'] . sprintf($this->interface[__FUNCTION__], $this->config['userId'], $order_id, 'A6LCI'); //标签大小。支持的值为：A4L, A4LI, A4LC, A4LCI, A6L, A6LI, A6LC, A6LCI, A10x10L, A10x10LI,A10x10LC, A10x10LCI。(注：L为运单，C为报关签条，I为拣货单。)
         $response = $this->request($requestUrl, 'get', [], 'ExpressType',false);
 
         $fieldMap = FieldMap::packagesLabel();
