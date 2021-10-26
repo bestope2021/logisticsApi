@@ -123,7 +123,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
                     'Price' => round((float)($value['declarePrice'] / $value['quantity'] ?? ''), 4),
                     'HsCode' => $value['hsCode'] ?? '',// N:海关编码
                 ];
-                $order_price += round((float)($value['declarePrice'] * $value['quantity']),4);//订单总价格
+                $order_price += round((float)($value['declarePrice'] * $value['quantity']), 4);//订单总价格
                 $order_weight += $value['declareWeight'];//订单总重量
                 $currency = $value['currencyCode'] ?? 'USD';//申报销售产品币种
             }
@@ -161,14 +161,14 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
 //                'Length' => round((float)(array_sum(array_column($item['productList'], 'length')) ?? ''), 2),//长度
 //                'Width' => round((float)(array_sum(array_column($item['productList'], 'width')) ?? ''), 2),//宽度
 //                'Height' => round((float)(array_sum(array_column($item['productList'], 'height')) ?? ''), 2),//高度
-                'Weight' => round($item['predictionWeight']*1000, 2),//重量
-                'Length'=>round($item['packageLength'],2),//长度
-                'Width' => round($item['packageWidth'],2),//宽度
-                'Height' => round($item['packageHeight'],2),//高度
+                'Weight' => round($item['predictionWeight'] * 1000, 2),//重量
+                'Length' => round($item['packageLength'], 2),//长度
+                'Width' => round($item['packageWidth'], 2),//宽度
+                'Height' => round($item['packageHeight'], 2),//高度
                 'Skus' => $skus,
                 'ExportsInfo' => $exportsInfo ?? [],//经济运营商(出口)
                 'ImportsInfo' => $exportsInfo ?? [],//经济运营商(进口)
-                'SellPrice' => round($order_price,4),//售价
+                'SellPrice' => round($order_price, 4),//售价
                 'SellPriceCurrency' => $currency,//销售币种
                 'SalesPlatform' => $item['platformSource'] ?? '',//销售平台
                 'OtherSalesPlatform' => $item['platformSource'] ?? '',//其他销售平台
@@ -257,6 +257,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         $this->res_data = $response;
         return $response;
     }
+
     /**
      * 修改订单重量
      * @param array $params
@@ -266,20 +267,21 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $params = [
             'PackageId' => $pars['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
-            'Weight' => empty($pars['weight'])?0:round($pars['weight']*1000,3),// N:包裹总重量（单位：g）,系统接收后自动四舍五入至 3 位小数
+            'Weight' => empty($pars['weight']) ? 0 : round($pars['weight'], 3),// N:包裹总重量（单位：g）,系统接收后自动四舍五入至 3 位小数
         ];
         if (empty($params)) {
             throw new InvalidIArgumentException("请求参数不能为空");
         }
         $this->req_data = $params;
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('post', $this->config['update_weight_url'], $params, $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('put', $this->config['update_weight_url'], $params, $this->dataType, $apiHeaders);//put方式
         $this->res_data = $response;
         if (!empty($response)) {
             return $this->retErrorResponseData('更新重量失败');
         }
         return $this->retSuccessResponseData([]);
     }
+
     /**获取轨迹
      * @param $function
      * @param array $data
@@ -368,7 +370,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         ];
         $response = $this->cancelOrder(__FUNCTION__, $data);
         // 结果
-        $flag = empty($response)?1:0;
+        $flag = empty($response) ? 1 : 0;
         return $flag;
     }
 
@@ -442,6 +444,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         }
         return $this->retSuccessResponseData($fieldData);
     }
+
     /**
      * 获取跟踪号
      * @param $processCode
@@ -454,13 +457,14 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             'packageId' => $processCode,// $reference_no, //查询号码【一般是运单号码；也支持参考编号】
         ];
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('get', $this->config['update_weight_url'].'/'.$processCode.'/status', $params, $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('get', $this->config['update_weight_url'] . '/' . $processCode . '/status', $params, $this->dataType, $apiHeaders);
         if (empty($response['Status'])) {
             return $this->retErrorResponseData(($response['CreateFailedReason'] ?? ($response['Errors'][0]['Message'] ?? '未知错误')));
         }
 
         return $this->retSuccessResponseData($response);
     }
+
     /**
      * 获取物流商轨迹queryNo
      * {"result_code":0,"message":"请求成功","solution":null,"body":{"datas":[{"trackRecord":"","scanTime":"2018-11-19 08:39","statusNo":"QG","isFinish":"0","operationPerson":"D33099","uploadDate":"2018-11-19 11:23","contact":"","location":"Pending clearance TH KERRY","id":0,"status":"清关中"},{"trackRecord":"","scanTime":"2018-11-19 01:39","statusNo":"HB","isFinish":"0","operationPerson":"D33099","uploadDate":"2018-11-19 11:23","contact":"","location":"Flight arrive TH KERRY","id":0,"status":"航班到达"},{"trackRecord":"","scanTime":"2018-11-19 00:10","statusNo":"QF","isFinish":"0","operationPerson":"D33099","uploadDate":"2018-11-19 11:21","contact":"","location":"Flight departed Head office","id":0,"status":"航班起飞"},{"trackRecord":"","scanTime":"2018-11-17 12:51","statusNo":"DF","isFinish":"0","operationPerson":"D29984","uploadDate":"2018-11-17 12:51","contact":"","location":"In Transit AT SZX Operating Center","id":0,"status":"出货"},{"trackRecord":"","scanTime":"2018-11-17 12:42","statusNo":"PU","isFinish":"0","operationPerson":"sys","uploadDate":"2018-11-17 12:42","contact":"","location":"Receive shipment SZX Operating Center","id":0,"status":"收件"}],"expectTime":"2018-12-29 15:57:04","transNo":"SHX660423527TH","status":"清关中","waybillNo":"SHX660423527TH"}}
