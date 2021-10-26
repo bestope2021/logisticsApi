@@ -266,14 +266,14 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $params = [
             'PackageId' => $pars['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
-            'Weight' => round(($pars['weight'] ?? 0),3),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
+            'Weight' => empty($pars['weight'])?0:round($pars['weight']*1000,3),// N:包裹总重量（单位：g）,系统接收后自动四舍五入至 3 位小数
         ];
         if (empty($params)) {
             throw new InvalidIArgumentException("请求参数不能为空");
         }
         $this->req_data = $params;
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('put', $this->config['update_weight_url'], $params, $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('post', $this->config['update_weight_url'], $params, $this->dataType, $apiHeaders);
         $this->res_data = $response;
         if (!empty($response)) {
             return $this->retErrorResponseData('更新重量失败');
