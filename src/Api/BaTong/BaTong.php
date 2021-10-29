@@ -136,9 +136,9 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'US0022',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'shipping_method_no' => '', //N:服务商单号（追踪单号，默认不需要传值）
-                'order_weight' => (float)$order_weight,// Y:订单重量，单位KG，默认为0.2
+                'order_weight' => round($order_weight,3),// Y:订单重量，单位KG，默认为0.2,3位小数
                 'order_pieces' => 1, //N:外包装件数,默认1
-                'cargotype' => '',//N:货物类型W：包裹  D：文件 B：袋子
+                'cargotype' => 'W',//N:货物类型W：包裹  D：文件 B：袋子
                 'order_status' => '', //N:订单状态P：已预报 (默认) D：草稿 (如果创建草稿订单，则需要再调用submitforecast【提交预报】接口)
                 'mail_cargo_type' => '',//N:包裹申报种类（1-Gif礼品；2-CommercialSample商品货样；3-Document文件；4-Other其他。默认4）
                 'buyer_id' => $item['buyer_id'] ?? '', //N:EORI
