@@ -366,10 +366,15 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $s_paths = $data['sPaths']??[];
         if(!empty($s_paths)){
             foreach ($s_paths as $key => $val) {
+                if(empty($val)) continue;
+                $val['pathAddr'] = (!isset($val['pathAddr']) || empty($val['pathAddr']))?'':$val['pathAddr'];
+                $val['pathInfo'] = (!isset($val['pathInfo']) || empty($val['pathInfo']))?'':$val['pathInfo'];
+                $val['pathTime'] = (!isset($val['pathTime']) || empty($val['pathTime']))?'':$val['pathTime'];
+                $val['pathType'] = (!isset($val['pathType']) || empty($val['pathType']))?'':$val['pathType'];
                 $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
             }
             $data['sPaths'] = $ls;
-            $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
+            $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
         }
 
         return $this->retSuccessResponseData($fieldData);
