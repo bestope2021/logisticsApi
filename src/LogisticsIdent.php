@@ -83,6 +83,8 @@ class LogisticsIdent
     const LS_IDENT_JIALICODTW = 'jialicodtw';
     // 纬狮
     const LS_IDENT_WeiShi = 'weishi';
-    //新乐天 加邮
+    //新乐天 加邮国际
     const LS_IDENT_LETIANEXP = 'ltianexp';
+    //CouPang物流
+    const LS_IDENT_COUPANGCORP = 'coupangcorp';
 }
