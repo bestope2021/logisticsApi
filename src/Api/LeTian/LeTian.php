@@ -45,6 +45,8 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'deleteOrder' => 'deleteOrder2', //删除订单。发货后的订单不可删除。
 
+        'operationPackages' => 'updateorder', //修改订单重量
+
         'queryTrack' => 'getTrack', //轨迹查询
 
         'getShippingMethod' => 'getTransportWayList', //获取配送方式

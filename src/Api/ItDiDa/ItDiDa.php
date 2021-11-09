@@ -132,12 +132,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
      */
     public function operationPackages($params)
     {
-        $data = [
-            'reference_no' => $params['order_id'] ?? '',
-            'order_weight' => $params['weight'] ?? '',
-        ];
-        $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**

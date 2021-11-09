@@ -52,9 +52,12 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
     public $apiHeaders = [];
 
     public $interface = [
+
         'createOrder' => 'createorder', // 【创建订单】
 
         'getPackagesLabel' => 'getnewlabel', // 【打印标签|面单】
+
+        'operationPackages' => 'updateorder', //修改订单重量
 
         'getTrackNumber' => 'gettrackingnumber',//获取跟踪号
 
@@ -506,7 +509,15 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
 
         return $this->retSuccessResponseData($fieldData);
     }
-
+    /**
+     * 修改订单重量
+     * @param array $params
+     * @return mixed|void
+     */
+    public function operationPackages($params)
+    {
+        $this->throwNotSupport(__FUNCTION__);
+    }
     /**
      * 获取物流商轨迹queryNo
      * {"result_code":0,"message":"请求成功","solution":null,"body":{"datas":[{"trackRecord":"","scanTime":"2018-11-19 08:39","statusNo":"QG","isFinish":"0","operationPerson":"D33099","uploadDate":"2018-11-19 11:23","contact":"","location":"Pending clearance TH KERRY","id":0,"status":"清关中"},{"trackRecord":"","scanTime":"2018-11-19 01:39","statusNo":"HB","isFinish":"0","operationPerson":"D33099","uploadDate":"2018-11-19 11:23","contact":"","location":"Flight arrive TH KERRY","id":0,"status":"航班到达"},{"trackRecord":"","scanTime":"2018-11-19 00:10","statusNo":"QF","isFinish":"0","operationPerson":"D33099","uploadDate":"2018-11-19 11:21","contact":"","location":"Flight departed Head office","id":0,"status":"航班起飞"},{"trackRecord":"","scanTime":"2018-11-17 12:51","statusNo":"DF","isFinish":"0","operationPerson":"D29984","uploadDate":"2018-11-17 12:51","contact":"","location":"In Transit AT SZX Operating Center","id":0,"status":"出货"},{"trackRecord":"","scanTime":"2018-11-17 12:42","statusNo":"PU","isFinish":"0","operationPerson":"sys","uploadDate":"2018-11-17 12:42","contact":"","location":"Receive shipment SZX Operating Center","id":0,"status":"收件"}],"expectTime":"2018-12-29 15:57:04","transNo":"SHX660423527TH","status":"清关中","waybillNo":"SHX660423527TH"}}

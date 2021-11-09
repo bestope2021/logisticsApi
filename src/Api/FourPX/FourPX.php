@@ -558,7 +558,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $data = [
             'request_no' => $params['request_no'] ?? '',
-            'weight' => $params['weight']*1000,
+            'weight' => $params['weight'] ?? '',
         ];
         $response = $this->request(__FUNCTION__, $data);
         if (empty($response)) {

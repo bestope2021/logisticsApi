@@ -314,7 +314,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $data = [
             'reference_no' => $params['order_id'] ?? '',
-            'order_weight' => $params['weight'] ?? '',
+            'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
         ];
         $response = $this->request(__FUNCTION__, $data);
         if ($response['success'] != 1) {

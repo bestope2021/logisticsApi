@@ -122,7 +122,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $data = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
@@ -177,13 +177,13 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
-            if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
+            if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [
                     'extra_servicecode' => 'IO',//额外服务类型代码
                     'extra_servicevalue' => $item['iossNumber'],//额外服务值
                 ];
             }
-            if(!empty($extra_service)) $data['extra_service'][] = $extra_service;
+            if (!empty($extra_service)) $data['extra_service'][] = $extra_service;
             $ls[] = $data;
         }
         $response = $this->request(__FUNCTION__, $ls[0]);
@@ -203,10 +203,10 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
 //        }
 
         // 重复订单号,2021/10/1
-        if($response['success'] == 2){
+        if ($response['success'] == 2) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($response['data']['refrence_no']);
-            if($delFlag){
+            if ($delFlag) {
                 $response = $this->request(__FUNCTION__, $ls[0]);
                 $reqRes = $this->getReqResData();
             }
@@ -220,11 +220,11 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         // 获取追踪号
         if ($flag && empty($response['data']['channel_hawbcode'])) {
             $trackNumberResponse = $this->getTrackNumber($response['data']['refrence_no']);
-            if ($trackNumberResponse['info'] !='success'){
+            if ($trackNumberResponse['info'] != 'success') {
                 $fieldData['flag'] = false;
                 $fieldData['info'] = $trackNumberResponse['info'];
             }
-            $fieldData['channel_hawbcode'] = !empty($trackNumberResponse['data']['channel_hawbcode']) ?$trackNumberResponse['data']['channel_hawbcode'] :  $response['data']['shipping_method_no'];
+            $fieldData['channel_hawbcode'] = !empty($trackNumberResponse['data']['channel_hawbcode']) ? $trackNumberResponse['data']['channel_hawbcode'] : $response['data']['shipping_method_no'];
         }
 
         $fieldData['order_id'] = $response['data']['order_id'] ?? '';
@@ -277,7 +277,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         ];
         $res = $this->request(__FUNCTION__, $params);
 
-        if (!in_array($res['success'],[1,2])) {
+        if (!in_array($res['success'], [1, 2])) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
         return $this->retSuccessResponseData($res['data']);
@@ -313,7 +313,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
     {
         $data = [
             'reference_no' => $params['order_id'] ?? '',
-            'order_weight' => $params['weight'] ?? '',
+            'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位KG
         ];
         $response = $this->request(__FUNCTION__, $data);
         if ($response['success'] != 1) {
@@ -333,7 +333,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             'reference_no' => $order_code, //客户参考号
         ];
         $response = $this->request(__FUNCTION__, $data);
-        $flag=$response['success'] == 1;
+        $flag = $response['success'] == 1;
         return $flag;
     }
 
