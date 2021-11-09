@@ -212,7 +212,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $data = [
             'orderNo' => $params['ProcessCode'] ?? '',
-            'weight' => $params['weight'] ?? '',
+            'weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
             'key' => 'updateWeight',
         ];
         $response = $this->request(__FUNCTION__, $data);

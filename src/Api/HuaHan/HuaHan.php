@@ -273,7 +273,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 if (!empty($item['order_code']) && !empty($item['weight'])) {
                     $ls[] = [
                         'order_code' => $item['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
-                        'weight' => (float)($item['weight'] ?? ''),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
+                        'weight' => empty($item['weight']) ? 0 : round($item['weight'], 3),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
                     ];
                 }
 

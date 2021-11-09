@@ -274,7 +274,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         $this->getAuth();
         $ls = [
             'orderNo' => $pars['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
-            'weight' => (float)($pars['weight'] ?? ''),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
+            'weight' => empty($pars['weight']) ? 0 : round($pars['weight'], 3),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
             'customerId' => $this->config['customer_id'],
         ];
 
@@ -285,9 +285,9 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
 
         $response = $this->request(__FUNCTION__, $ls, false);
 
-        if(!empty($response)){
+        if (!empty($response)) {
             return $this->retSuccessResponseData($response);
-        }else{
+        } else {
             return $this->retErrorResponseData('修改订单重量异常');
         }
     }

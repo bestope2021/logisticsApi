@@ -243,7 +243,7 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $data = [[
             'order_code' => $params['ProcessCode'] ?? '',
-            'weight' => $params['weight'] ?? '',
+            'weight' => empty($params['weight']) ? 0 : round($params['weight'], 2),
         ]];
         $response = $this->request(__FUNCTION__, $data);
         if (empty($response)) {

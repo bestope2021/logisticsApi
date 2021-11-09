@@ -136,7 +136,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'US0022',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'shipping_method_no' => '', //N:服务商单号（追踪单号，默认不需要传值）
-                'order_weight' => round($order_weight,3),// Y:订单重量，单位KG，默认为0.2,3位小数
+                'order_weight' => round($order_weight, 3),// Y:订单重量，单位KG，默认为0.2,3位小数
                 'order_pieces' => 1, //N:外包装件数,默认1
                 'cargotype' => 'W',//N:货物类型W：包裹  D：文件 B：袋子
                 'order_status' => '', //N:订单状态P：已预报 (默认) D：草稿 (如果创建草稿订单，则需要再调用submitforecast【提交预报】接口)
@@ -206,10 +206,10 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 //        }
 
         // 重复订单号,2021/10/1
-        if($response['success'] == 2){
+        if ($response['success'] == 2) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($response['data']['refrence_no']);
-            if($delFlag){
+            if ($delFlag) {
                 $response = $this->request(__FUNCTION__, $ls[0]);
                 $reqRes = $this->getReqResData();
             }
@@ -286,10 +286,10 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $param);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
-        if($response['success']==1){
-            $flag=1;
-        }else{
-            $flag=0;
+        if ($response['success'] == 1) {
+            $flag = 1;
+        } else {
+            $flag = 0;
         }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? '未知错误'));
@@ -332,7 +332,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $data = [
             'reference_no' => $params['ProcessCode'] ?? '',
-            'order_weight' => $params['weight'] ?? '',
+            'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位KG
         ];
         $response = $this->request(__FUNCTION__, $data);
         if (empty($response)) {

@@ -216,7 +216,7 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
                 'client_reference' => $params['ProcessCode'] ?? '',
                 'parcels' => [[
                     'number' => $params['ProcessCode'] ?? '',
-                    'client_weight' => $params['weight'] ?? '',
+                    'client_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
                 ]],
             ],
             'validation' => ['access_token' => $this->config['access_token']],

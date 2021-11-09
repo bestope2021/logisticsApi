@@ -192,7 +192,7 @@ class LeTianExp extends LogisticsAbstract implements BaseLogisticsInterface, Pac
     {
         $data = [
             'trackingNo' => $params['ProcessCode'] ?? '',//跟踪号
-            'weight' => empty($params['weight']) ? '' : round($params['weight'], 3),//KG
+            'weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
             'unit' => 'kg',
             'key' => 'updateWeight',
         ];
@@ -385,8 +385,8 @@ class LeTianExp extends LogisticsAbstract implements BaseLogisticsInterface, Pac
         $responses = $this->request(__FUNCTION__, $data);
         // 处理结果
         $fieldData = [];
-        if(!empty($responses)){
-            $response=json_decode($responses,true);
+        if (!empty($responses)) {
+            $response = json_decode($responses, true);
             $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
             $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
             // 结果
@@ -398,17 +398,17 @@ class LeTianExp extends LogisticsAbstract implements BaseLogisticsInterface, Pac
             $ls = [];
             if (!empty($datas)) {
                 foreach ($datas as $keys => $vals) {
-                    if(!empty($vals['fromDetail'])){
+                    if (!empty($vals['fromDetail'])) {
                         foreach ($vals['fromDetail'] as $key => $val) {
                             $data['trackingNo'] = $vals['trackingNo'];
                             $data['status'] = $val['pathCode'] ?? '';
                             $data['status_msg'] = $val['pathInfo'] ?? '';
                             $ls[$keys] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
                         }
-                    }else{
+                    } else {
                         $data['trackingNo'] = $vals['trackingNo'];
-                        $data['status'] ='';
-                        $data['status_msg'] ='';
+                        $data['status'] = '';
+                        $data['status_msg'] = '';
                         $ls[$keys] = LsSdkFieldMapAbstract::getResponseData2MapData([], $fieldMap2);
                     }
 
