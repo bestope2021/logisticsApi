@@ -10,9 +10,11 @@ namespace smiler\logistics;
 
 use smiler\logistics\Api\BaTong\BaTong;
 use smiler\logistics\Api\BaXing\BaXing;
+use smiler\logistics\Api\BaXing\CouPang;
 use smiler\logistics\Api\Bheo\Bheo;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
+use smiler\logistics\Api\CouPangCorp\CouPangCorp;
 use smiler\logistics\Api\DgYz\DgYz;
 use smiler\logistics\Api\JiaLiCod\JiaLiCod;
 use smiler\logistics\Api\LeTianExp\LeTianExp;
@@ -98,6 +100,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_JIALICODTW => JiaLiCodTw::class,// 台湾嘉里COD物流
         LogisticsIdent::LS_IDENT_WeiShi => WeiShi::class,// 纬狮物流
         LogisticsIdent::LS_IDENT_LETIANEXP => LeTianExp::class,//新乐天（加邮国际）
+        LogisticsIdent::LS_IDENT_COUPANGCORP => CouPangCorp::class,//CouPang物流
     ];
 
     /**
