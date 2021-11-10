@@ -192,7 +192,7 @@ class LeTianExp extends LogisticsAbstract implements BaseLogisticsInterface, Pac
     {
         $data = [
             'trackingNo' => $params['ProcessCode'] ?? '',//跟踪号
-            'weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
+            'weight' => empty($params['weight']) ? 0 : round($params['weight']/1000, 3),//单位是KG
             'unit' => 'kg',
             'key' => 'updateWeight',
         ];

@@ -194,7 +194,7 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
     {
         $data = [
             'orderNo' => $params['ProcessCode'] ?? '',
-            'weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
+            'weight' => empty($params['weight']) ? 0 : round($params['weight']/1000, 3),//单位是KG
             'key' => 'updateWeight',
         ];
         $response = $this->request(__FUNCTION__, $data);

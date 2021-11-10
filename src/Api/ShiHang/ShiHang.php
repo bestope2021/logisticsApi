@@ -313,7 +313,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
     {
         $data = [
             'reference_no' => $params['order_id'] ?? '',
-            'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位KG
+            'order_weight' => empty($params['weight']) ? 0 : round($params['weight']/1000, 3),//单位KG
         ];
         $response = $this->request(__FUNCTION__, $data);
         if ($response['success'] != 1) {
