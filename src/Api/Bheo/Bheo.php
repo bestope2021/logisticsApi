@@ -267,7 +267,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $params = [
             'PackageId' => $pars['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
-            'Weight' => empty($pars['weight']) ? 0 : round($pars['weight']/1000, 2),// N:包裹总重量（单位：g）,系统接收后自动四舍五入至2位小数
+            'Weight' => empty($pars['weight']) ? 0 : round($pars['weight'], 2),// N:包裹总重量（单位：g）,系统接收后自动四舍五入至2位小数
         ];
         if (empty($params)) {
             throw new InvalidIArgumentException("请求参数不能为空");
