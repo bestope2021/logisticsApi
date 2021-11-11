@@ -458,7 +458,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     {
         $extUrlParams = [$params['ProcessCode']];
         $data = [
-            'WeightInKg' => round($params['weight'],3),//预报重量(单位:KG),保留3位小数
+            'WeightInKg' => round($params['weight']/1000,3),//预报重量(单位:KG),保留3位小数
             'AutoConfirm' => true,//是否在修改完预报重量后自动确认交运，默认为 false此值设置为true，则无须再次调用确认交运包裹接口
         ];
 
