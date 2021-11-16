@@ -203,9 +203,17 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
 //        }
 
         // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
-        if (($response['success'] == 2) || (stripos($response['cnmessage'],'exists') !== false) || (stripos($response['enmessage'],'exists') !== false)) {
+        if ($response['success'] == 2) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($response['data']['refrence_no']);
+            if ($delFlag) {
+                $response = $this->request(__FUNCTION__, $ls[0]);
+                $reqRes = $this->getReqResData();
+            }
+        }
+        if ((stripos($response['cnmessage'],'exists') !== false) || (stripos($response['enmessage'],'exists') !== false)) {
+            // 进行删除操作,再重新下单
+            $delFlag = $this->deleteOrder($ls[0]['reference_no']);
             if ($delFlag) {
                 $response = $this->request(__FUNCTION__, $ls[0]);
                 $reqRes = $this->getReqResData();
