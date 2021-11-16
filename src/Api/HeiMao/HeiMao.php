@@ -202,8 +202,8 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 //            $flag = 0;
 //        }
 
-        // 重复订单号,2021/10/1
-        if($response['success'] == 2){
+        // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
+        if (($response['success'] == 2) || (stripos($response['cnmessage'],'exists') !== false) || (stripos($response['enmessage'],'exists') !== false)) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($response['data']['refrence_no']);
             if($delFlag){
