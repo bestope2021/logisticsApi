@@ -214,7 +214,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $reqRes = $this->getReqResData();
             }
         }
-        if ((stripos($response['cnmessage'],'exists') !== false) || (stripos($response['enmessage'],'exists') !== false)) {
+        if ((stripos($response['cnmessage'], 'exists') !== false) || (stripos($response['enmessage'], 'exists') !== false)) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($ls[0]['reference_no']);
             if ($delFlag) {
@@ -238,15 +238,12 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             }
         }
 
-        $fieldData['order_id'] = $response['data']['channel_hawbcode'] ?? ($response['data']['order_id'] ?? '');
-        $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
-        $fieldData['trackingNo'] = $response['data']['shipping_method_no'] ?? '';
-        $fieldData['frt_channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
-
+        $fieldData['order_id'] = empty($response['data']['channel_hawbcode']) ? (empty($response['data']['order_id']) ? '' : $response['data']['order_id']) : $response['data']['channel_hawbcode'];
+        $fieldData['refrence_no'] = empty($response['data']['refrence_no']) ? ($ls[0]['reference_no'] ?? '') : $response['data']['refrence_no'];
+        $fieldData['trackingNo'] = empty($response['data']['shipping_method_no']) ? '' : $response['data']['shipping_method_no'];
+        $fieldData['frt_channel_hawbcode'] = empty($response['data']['channel_hawbcode']) ? '' : $response['data']['channel_hawbcode'];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
-
     }
 
     /**统一封装请求

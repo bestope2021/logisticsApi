@@ -211,7 +211,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 $reqRes = $this->getReqResData();
             }
         }
-        if ((stripos($response['cnmessage'],'exists') !== false) || (stripos($response['enmessage'],'exists') !== false)) {
+        if ((stripos($response['cnmessage'], 'exists') !== false) || (stripos($response['enmessage'], 'exists') !== false)) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($ls[0]['reference_no']);
             if ($delFlag) {
@@ -235,14 +235,12 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
             $fieldData['channel_hawbcode'] = !empty($trackNumberResponse['data']['channel_hawbcode']) ? $trackNumberResponse['data']['channel_hawbcode'] : $response['data']['shipping_method_no'];
         }
 
-        $fieldData['order_id'] = $response['data']['order_id'] ?? '';
-        $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
-        $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
-
+        $fieldData['order_id'] = empty($response['data']['order_id']) ? '' : $response['data']['order_id'];
+        $fieldData['refrence_no'] = empty($response['data']['refrence_no']) ? ($ls[0]['reference_no'] ?? '') : $response['data']['refrence_no'];
+        $fieldData['shipping_method_no'] = empty($response['data']['shipping_method_no']) ? '' : $response['data']['shipping_method_no'];
+        $fieldData['channel_hawbcode'] = empty($response['data']['channel_hawbcode']) ? '' : $response['data']['channel_hawbcode'];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
-
     }
 
     public function request($function, $data = [])
