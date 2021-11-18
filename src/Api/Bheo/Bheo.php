@@ -253,7 +253,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $this->req_data = $data;
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $data['wayBillNos'] . '/cancel?idType=PackageId', [], $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $data['packageId'] . '/cancel?idType='.$data['idType'], [], $this->dataType, $apiHeaders);
         $this->res_data = $response;
         return $response;
     }
@@ -365,8 +365,8 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             throw new InvalidIArgumentException($this->iden_name . "取消订单一次最多删除" . self::DEL_TRACK_COUNT . "个物流单号");
         }
         $data = [
-            'wayBillNos' => $order_code, //运单号码,[以,如有多个隔开]
-            'amendment' => '【出口易取消订单】',//取消原因
+            'packageId' => $order_code, //运单号码,[以,如有多个隔开]
+            'idType' => 'PackageId',
         ];
         $response = $this->cancelOrder(__FUNCTION__, $data);
         // 结果
