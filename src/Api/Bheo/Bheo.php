@@ -253,7 +253,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $this->req_data = $data;
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $data['wayBillNos'] . '/cancel?idType=PackageId', $data, $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $data['wayBillNos'] . '/cancel?idType=PackageId', [], $this->dataType, $apiHeaders);
         $this->res_data = $response;
         return $response;
     }
