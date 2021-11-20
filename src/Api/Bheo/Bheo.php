@@ -189,14 +189,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             $ls[] = $data;
         }
 
-        $response = $this->createOrderNumber(__FUNCTION__, $ls[0]);
-
-        if (empty($response['Errors'])) {
-            $this->successData['track_number'] = $response['TrackingNumber'];
-            $this->successData['handle_id'] = $response['Ck1PackageId'];
-            $this->successData['order_no'] = $ls[0]['Package']['PackageId'];
-        }
-        $reqRes = $this->getReqResData();
+        $response = $this->createOrderNumber(__FUNCTION__, $ls[0]);//第一次直接同步获取，如果没有获取到就调用异步接口
 
         // 处理结果
         $fieldData = [];
@@ -204,9 +197,15 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
 
         // 结果
         $flag = empty($response['Status']) ? 0 : ($response['Status'] === 'Created' ? 1 : 0);//有创建成功标识
+        if (!$flag) {
+            //异步调用获取订单追踪号接口  2021/11/20，芳强提出的bug，经物流商沟通，确需调用此接口
+            $response = $this->asyncGetOrderStatus($ls[0]['Package']['PackageId']);//输入订单号参数
+            $flag = empty($response['Status']) ? 0 : ($response['Status'] === 'Created' ? 1 : 0);//有创建成功标识
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['CreateFailedReason'] ?? ($response['Errors'][0]['Message'] ?? ''));
         $resBody = $response ?? [];
+        $reqRes = $this->getReqResData();
 
         // 获取追踪号
         if ($flag && !empty($resBody)) {
@@ -217,7 +216,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
             $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'];//转单号
         }
 
-        $fieldData['order_id'] = $resBody['Ck1PackageId'] ?? '';
+        $fieldData['order_id'] = $resBody['Ck1PackageId'] ?? '';//出口易处理号
         $fieldData['refrence_no'] = $ls[0]['Package']['PackageId'] ?? '';//$resBody['waybillNo']
         $fieldData['shipping_method_no'] = $resBody['TrackingNumber'] ?? '';//追踪号
         $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'] ?? '';//转单号
@@ -253,10 +252,25 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $this->req_data = $data;
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $data['packageId'] . '/cancel?idType='.$data['idType'], [], $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $data['packageId'] . '/cancel?idType=' . $data['idType'], [], $this->dataType, $apiHeaders);
         $this->res_data = $response;
         return $response;
     }
+
+
+    /**
+     * 当首次获取追踪号失败时，则异步调用此获取追踪号接口再次获取
+     * @param $order_no
+     * @return mixed
+     */
+    public function asyncGetOrderStatus($order_no)
+    {
+        $apiHeaders = $this->buildHeaders();//生成头部信息
+        $response = $this->sendCurl('get', $this->config['delete_order_url'] . '/' . $order_no . '/status', [], $this->dataType, $apiHeaders);
+        $this->res_data = $response;
+        return $response;
+    }
+
 
     /**
      * 修改订单重量
@@ -267,7 +281,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
     {
         $params = [
             'PackageId' => $pars['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
-            'Weight' => empty($pars['weight']) ? 0 : round($pars['weight']*1000, 2),// N:包裹总重量（单位：g）,系统接收后自动四舍五入至2位小数
+            'Weight' => empty($pars['weight']) ? 0 : round($pars['weight'] * 1000, 2),// N:包裹总重量（单位：g）,系统接收后自动四舍五入至2位小数
         ];
         if (empty($params)) {
             throw new InvalidIArgumentException("请求参数不能为空");
