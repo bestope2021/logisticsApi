@@ -74,7 +74,7 @@ class YwTrack extends LogisticsAbstract implements TrackLogisticsInterface
                 }
             }
 
-            
+
         }
         return $this->retSuccessResponseData($fieldData);
     }
