@@ -70,11 +70,11 @@ class LogisticsIdent
     // 易抵达
     const LS_IDENT_ITDIDA = 'ITDIDA';
     // 八星小包
-    const LS_IDENT_BaXing= 'baxing';
+    const LS_IDENT_BaXing = 'baxing';
     // 美通头程
-    const LS_IDENT_MeiTong= 'meitong';
+    const LS_IDENT_MeiTong = 'meitong';
     // 东莞邮政小包直发
-    const LS_IDENT_DgYz= 'dgyz';
+    const LS_IDENT_DgYz = 'dgyz';
     // 新马泰嘉里COD物流
     const LS_IDENT_JIALICOD = 'jialicod';
     // 易可达头程
@@ -87,4 +87,6 @@ class LogisticsIdent
     const LS_IDENT_LETIANEXP = 'ltianexp';
     //CouPang物流
     const LS_IDENT_COUPANGCORP = 'coupangcorp';
+    // 睿捷
+    const LS_IDENT_RuiJie = 'ruijie';
 }

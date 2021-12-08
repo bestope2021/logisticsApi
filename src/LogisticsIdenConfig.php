@@ -18,6 +18,7 @@ use smiler\logistics\Api\CouPangCorp\CouPangCorp;
 use smiler\logistics\Api\DgYz\DgYz;
 use smiler\logistics\Api\JiaLiCod\JiaLiCod;
 use smiler\logistics\Api\LeTianExp\LeTianExp;
+use smiler\logistics\Api\RuiJie\RuiJie;
 use smiler\logistics\Api\WeiShi\WeiShi;
 use smiler\logistics\Api\YiKeDaTc\YiKeDaTc;
 use smiler\logistics\Api\CNE\Cne;
@@ -101,6 +102,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_WeiShi => WeiShi::class,// 纬狮物流
         LogisticsIdent::LS_IDENT_LETIANEXP => LeTianExp::class,//新乐天（加邮国际）
         LogisticsIdent::LS_IDENT_COUPANGCORP => CouPangCorp::class,//CouPang物流
+        LogisticsIdent::LS_IDENT_RuiJie => RuiJie::class,//睿捷物流 2021/12/7新增
     ];
 
     /**
