@@ -41,8 +41,6 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
     public $apiHeaders = [];
 
-    public $order_track = [];
-
     public $interface = [
 
         'createOrder' => 'CreateAndConfirmPackage', // 创建申请邮件号（运单号），直接返回追踪号
@@ -283,9 +281,6 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function request($function, $data = [])
     {
         $this->req_data = $data;
-        //$this->apiHeaders['OldData']=json_encode($data,JSON_UNESCAPED_UNICODE);
-        //$this->apiHeaders['Data'] = $this->handleDataJson($data);
-        //$this->apiHeaders['Not_Sign'] = strtolower($this->config['Token'] . $this->config['Userid'] . $this->apiHeaders['timestamp'] . $this->apiHeaders['nonce']. $this->handleDataJson($data));
         $this->apiHeaders['signature'] = md5(strtolower($this->config['Token'] . $this->config['Userid'] . $this->apiHeaders['timestamp'] . $this->apiHeaders['nonce'] . $this->handleDataJson($data)));
         $response = $this->sendCurl('post', $this->buildParams($function, $data), $data, $this->dataType, $this->apiHeaders);
         $this->res_data = $response;
