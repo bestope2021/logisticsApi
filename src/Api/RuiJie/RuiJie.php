@@ -312,7 +312,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['Msg'] ?? ($response['Msg'] ?? ($response['DetailExceptionMsg'] ?? '未知错误')));
         $fieldData['trackingNo'] = $flag ? ($response['Data']['Data']['TrackingNumber'] ?? '') : '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $flag ? ($response['Data']['Data']['TrackingNumber'] ?? ($response['Data']['Data']['OrderCode'] ?? '')) : ($response['Data']['Data']['MethodApiCode'] ?? '');//尾程追踪号,优先取追踪号的值
+        $fieldData['frt_channel_hawbcode'] = $flag ? ($response['Data']['Data']['TrackingNumber'] ?? ($response['Data']['Data']['OrderCode'] ?? '')) : ($response['Data']['Data']['OrderCode'] ?? '');//尾程追踪号,优先取追踪号的值
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
         return $ret;
