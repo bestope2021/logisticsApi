@@ -211,7 +211,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         if ($flag && !empty($resBody)) {
             if (empty($resBody['TrackingNumber'])) {
                 $fieldData['flag'] = false;
-                $fieldData['info'] = $resBody['CreateFailedReason'];//创建订单时直接返回了
+                $fieldData['info'] = $resBody['CreateFailedReason'] ?? ($resBody['Errors'][0]['Message'] ?? '');//创建订单时直接返回了
             }
             $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'];//转单号
         }
@@ -467,15 +467,14 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
      */
     public function getTrackNumber(string $processCode, $is_ret = false)
     {
-        $params = [
-            'packageId' => $processCode,// $reference_no, //查询号码【一般是运单号码；也支持参考编号】
-        ];
         $apiHeaders = $this->buildHeaders();//生成头部信息
-        $response = $this->sendCurl('get', $this->config['update_weight_url'] . '/' . $processCode . '/status', $params, $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('get', $this->config['update_weight_url'] . '/' . $processCode . '/status', [], $this->dataType, $apiHeaders);
         if (empty($response['Status'])) {
-            return $this->retErrorResponseData(($response['CreateFailedReason'] ?? ($response['Errors'][0]['Message'] ?? '未知错误')));
+            return $this->retErrorResponseData(empty($response['CreateFailedReason']) ? (empty($response['Errors'][0]['Message']) ? '未知错误' : $response['Errors'][0]['Message']) : $response['CreateFailedReason']);
         }
-
+        if ((!empty($response['IsFinalTrackingNumber'])) && ($response['IsFinalTrackingNumber'] == true)) {
+            $response['TransferNumber'] = $response['TrackingNumber'];//转单号信息
+        }
         return $this->retSuccessResponseData($response);
     }
 
