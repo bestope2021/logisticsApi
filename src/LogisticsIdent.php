@@ -87,6 +87,8 @@ class LogisticsIdent
     const LS_IDENT_LETIANEXP = 'ltianexp';
     //CouPang物流
     const LS_IDENT_COUPANGCORP = 'coupangcorp';
-    // 睿捷
+    // 睿捷物流
     const LS_IDENT_RuiJie = 'ruijie';
+    // 实顺物流
+    const LS_IDENT_ShiSun = 'shisun';
 }
