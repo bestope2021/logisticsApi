@@ -196,14 +196,14 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $flag = empty($response['Status']) ? 0 : ($response['Status'] === 'Created' ? 1 : 0);//有创建成功标识
+        $flag = $response['Status'] == 'Created';//有创建成功标识
         if (!$flag) {
             //异步调用获取订单追踪号接口  2021/11/20，芳强提出的bug，经物流商沟通，确需调用此接口
             $response = $this->asyncGetOrderStatus($ls[0]['Package']['PackageId']);//输入订单号参数
-            $flag = empty($response['Status']) ? 0 : ($response['Status'] === 'Created' ? 1 : 0);//有创建成功标识
+            $flag = $response['Status'] == 'Created';//有创建成功标识
         }
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['CreateFailedReason'] ?? ($response['Errors'][0]['Message'] ?? ''));
+        $fieldData['info'] = $flag ? '' : (empty($response['CreateFailedReason']) ? (empty($response['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $response['Errors'][0]['Message']) : $response['CreateFailedReason']);
         $resBody = $response ?? [];
         $reqRes = $this->getReqResData();
 
@@ -211,18 +211,17 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         if ($flag && !empty($resBody)) {
             if (empty($resBody['TrackingNumber'])) {
                 $fieldData['flag'] = false;
-                $fieldData['info'] = $resBody['CreateFailedReason'] ?? ($resBody['Errors'][0]['Message'] ?? '');//创建订单时直接返回了
+                $fieldData['info'] = empty($resBody['CreateFailedReason']) ? (empty($resBody['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $resBody['Errors'][0]['Message']) : $resBody['CreateFailedReason'];//创建订单时直接返回了
             }
             $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'];//转单号
         }
 
         $fieldData['order_id'] = $resBody['Ck1PackageId'] ?? '';//出口易处理号
         $fieldData['refrence_no'] = $ls[0]['Package']['PackageId'] ?? '';//$resBody['waybillNo']
-        $fieldData['shipping_method_no'] = $resBody['TrackingNumber'] ?? '';//追踪号
-        $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'] ?? '';//转单号
+        $fieldData['shipping_method_no'] = empty($resBody['TrackingNumber']) ? '' : $resBody['TrackingNumber'];//追踪号
+        $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'] ?? '';//转单号获取尾程追踪号
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
 
     }
@@ -470,10 +469,12 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         $apiHeaders = $this->buildHeaders();//生成头部信息
         $response = $this->sendCurl('get', $this->config['update_weight_url'] . '/' . $processCode . '/status', [], $this->dataType, $apiHeaders);
         if (empty($response['Status'])) {
-            return $this->retErrorResponseData(empty($response['CreateFailedReason']) ? (empty($response['Errors'][0]['Message']) ? '未知错误' : $response['Errors'][0]['Message']) : $response['CreateFailedReason']);
+            return $this->retErrorResponseData(empty($response['CreateFailedReason']) ? (empty($response['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $response['Errors'][0]['Message']) : $response['CreateFailedReason']);
         }
         if ((!empty($response['IsFinalTrackingNumber'])) && ($response['IsFinalTrackingNumber'] == true)) {
             $response['TransferNumber'] = $response['TrackingNumber'];//转单号信息
+        } else {
+            $response['TransferNumber'] = '';//暂无转单号
         }
         return $this->retSuccessResponseData($response);
     }

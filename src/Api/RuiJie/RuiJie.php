@@ -16,6 +16,7 @@ use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
+use smiler\logistics\Redis;
 
 class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
 {
@@ -206,6 +207,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         $response = $this->request(__FUNCTION__, $ls[0]);
 
+
         // 处理结果
         $reqRes = $this->getReqResData();
 
@@ -215,11 +217,30 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         // 结果
         $flag = $response['IsSuccess'] == true;
 
+        if (!empty((new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']))) {
+            $get_redis = (new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']);
+        }
+        if (!$flag) {
+            //如果是重复下单，可以取消原单，重新下单
+            if (stristr($response['Msg'], '已经存在客单号')) {
+                if (!empty($get_redis)) {
+                    $delete_res = $this->deleteOrder((new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']));
+                    if ($delete_res) {
+                        //重新下单
+                        $response = $this->request(__FUNCTION__, $ls[0]);
+                        $flag = $response['IsSuccess'] == true;//重新赋值条件
+                    }
+                }
+            }
+        }
+
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['Msg'] ?? '未知错误');
 
         // 获取追踪号,如果延迟的话
         if ($flag && !empty($response['Data']['Data']['OrderCode'])) {
+            //设置缓存
+            (new  Redis())->set($this->iden . $ls[0]['CustomerOrderCode'], $response['Data']['Data']['OrderCode'], 0);//缓存关系
             $trackNumberResponse = $this->getTrackNumber($response['Data']['Data']['OrderCode']);
             if ($trackNumberResponse['flag']) {
                 $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
@@ -227,9 +248,9 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             }
         }
         $fieldData['orderNo'] = $ls[0]['CustomerOrderCode'];
-        $fieldData['trackingNo'] = $flag ? ($trackNumberResponse['trackingNumber'] ?? '') : '';//追踪号，不能实时返回，要过一分钟
-        $fieldData['frt_channel_hawbcode'] = $flag ? ($trackNumberResponse['frtTrackingNumber'] ?? '') : '';//尾程追踪号
-        $fieldData['id'] = $response['Data']['Data']['OrderCode'] ?? $ls[0]['CustomerOrderCode'];
+        $fieldData['trackingNo'] = $flag ? (empty($trackNumberResponse['trackingNumber']) ? '' : $trackNumberResponse['trackingNumber']) : '';//追踪号，不能实时返回，要过一分钟
+        $fieldData['frt_channel_hawbcode'] = $flag ? (empty($trackNumberResponse['frtTrackingNumber']) ? '' : $trackNumberResponse['frtTrackingNumber']) : '';//尾程追踪号
+        $fieldData['id'] = empty($response['Data']['Data']['OrderCode']) ? (empty($get_redis) ? $ls[0]['CustomerOrderCode'] : $get_redis) : $response['Data']['Data']['OrderCode'];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
@@ -300,11 +321,12 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * [frtTrackingNumber] => 09900630721395
      * )
      */
-    public function getTrackNumber(string $processCode, $is_ret = false)
+    public function getTrackNumber($processCode, $is_ret = false)
     {
         $params = [
-            'OrderCode' => $processCode, //Fls系统包裹单单号
+            'OrderCode' => $processCode, //Fls系统包裹单单号,
         ];
+
         $response = $this->request(__FUNCTION__, $params);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
@@ -394,9 +416,9 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
 
-        $response['flag'] = $responses['IsSuccess']==true;
-        $response['info'] = $responses['Msg']??'';
-        $response['trackingNo'] = $responses['Data']['Data']['TrackingNumber']??($params['trackingNumber'] ?? '');
+        $response['flag'] = $responses['IsSuccess'] == true;
+        $response['info'] = $responses['Msg'] ?? '';
+        $response['trackingNo'] = $responses['Data']['Data']['TrackingNumber'] ?? ($params['trackingNumber'] ?? '');
         $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
         $response['url'] = $responses['Data']['Data']['Label64'] ?? '';//base64_encode过后的编码pdf数据
         $response['label_path_plat'] = '';//不要填写
