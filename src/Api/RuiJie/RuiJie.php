@@ -228,7 +228,8 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 if (!empty($get_redis)) {
                     ////不要调用取消接口,而是调用获取追踪号接口
                     $trackNumberResponse = $this->getTrackNumber($get_redis);
-                    if ($trackNumberResponse['flag']) {
+                    $flag=$trackNumberResponse['flag'];//重新赋值flag
+                    if ($flag) {
                         $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
                         $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
                     }
