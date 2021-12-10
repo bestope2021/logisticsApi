@@ -157,10 +157,6 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
                 'PackageId' => $item['customerOrderNo'],
                 'ServiceCode' => $item['shippingMethodCode'] ?? 'CUE',//运输渠道，字符串
                 'ShipToAddress' => $shipToAddress,
-//                'Weight' => ceil($order_weight),//重量(g) [取值是向上取整的],优先取毛重,然后再净重
-//                'Length' => round((float)(array_sum(array_column($item['productList'], 'length')) ?? ''), 2),//长度
-//                'Width' => round((float)(array_sum(array_column($item['productList'], 'width')) ?? ''), 2),//宽度
-//                'Height' => round((float)(array_sum(array_column($item['productList'], 'height')) ?? ''), 2),//高度
                 'Weight' => round($item['predictionWeight'] * 1000, 2),//重量
                 'Length' => round($item['packageLength'], 2),//长度
                 'Width' => round($item['packageWidth'], 2),//宽度
@@ -195,31 +191,39 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果
-        $flag = $response['Status'] == 'Created';//有创建成功标识
-        if (!$flag) {
-            //异步调用获取订单追踪号接口  2021/11/20，芳强提出的bug，经物流商沟通，确需调用此接口
-            $response = $this->asyncGetOrderStatus($ls[0]['Package']['PackageId']);//输入订单号参数
+
+        //直接报错返回错误信息 2021/12/10
+        if (empty($response['Status'])) {
+            //直接有错误，返回
+            $fieldData['flag'] = false;
+            $fieldData['info'] = empty($response['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $response['Errors'][0]['Message'];
+            $resBody = $response;//直接赋值
+        } else {
+            // 否则返回结果
             $flag = $response['Status'] == 'Created';//有创建成功标识
-        }
-        $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : (empty($response['CreateFailedReason']) ? (empty($response['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $response['Errors'][0]['Message']) : $response['CreateFailedReason']);
-        $resBody = $response ?? [];
-        $reqRes = $this->getReqResData();
-
-        // 获取追踪号
-        if ($flag && !empty($resBody)) {
-            if (empty($resBody['TrackingNumber'])) {
-                $fieldData['flag'] = false;
-                $fieldData['info'] = empty($resBody['CreateFailedReason']) ? (empty($resBody['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $resBody['Errors'][0]['Message']) : $resBody['CreateFailedReason'];//创建订单时直接返回了
+            if (!$flag) {
+                //异步调用获取订单追踪号接口  2021/11/20，芳强提出的bug，经物流商沟通，确需调用此接口
+                $response = $this->asyncGetOrderStatus($ls[0]['Package']['PackageId']);//输入订单号参数
+                $flag = $response['Status'] == 'Created';//有创建成功标识
             }
-            $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'];//转单号
+            $fieldData['flag'] = $flag ? true : false;
+            $fieldData['info'] = $flag ? '' : (empty($response['CreateFailedReason']) ? (empty($response['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $response['Errors'][0]['Message']) : $response['CreateFailedReason']);
+            $resBody = $response ?? [];
+            $reqRes = $this->getReqResData();
+            // 获取追踪号
+            if ($flag && !empty($resBody)) {
+                if (empty($resBody['TrackingNumber'])) {
+                    $fieldData['flag'] = false;
+                    $fieldData['info'] = empty($resBody['CreateFailedReason']) ? (empty($resBody['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $resBody['Errors'][0]['Message']) : $resBody['CreateFailedReason'];//创建订单时直接返回了
+                }
+                $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'];//转单号
+            }
         }
 
-        $fieldData['order_id'] = $resBody['Ck1PackageId'] ?? '';//出口易处理号
+        $fieldData['order_id'] = empty($resBody['Ck1PackageId']) ? '' : $resBody['Ck1PackageId'];//出口易处理号
         $fieldData['refrence_no'] = $ls[0]['Package']['PackageId'] ?? '';//$resBody['waybillNo']
         $fieldData['shipping_method_no'] = empty($resBody['TrackingNumber']) ? '' : $resBody['TrackingNumber'];//追踪号
-        $fieldData['channel_hawbcode'] = $resBody['Ck1PackageId'] ?? '';//转单号获取尾程追踪号
+        $fieldData['channel_hawbcode'] = empty($resBody['Ck1PackageId']) ? '' : $resBody['Ck1PackageId'];//转单号获取尾程追踪号
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);

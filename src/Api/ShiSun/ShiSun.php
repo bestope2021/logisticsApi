@@ -170,6 +170,13 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'shipperCity' => $item['senderCity'] ?? '',//发件人城市
                 'shipperProvince' => $item['senderState'] ?? '',//发件人省份
             ];
+            $reciper = [
+                'consigneeName' => $item['recipientName'] ?? '',//收件人姓名
+                'street' => $item['recipientStreet'] ?? '',//收件人地址
+                'city' => $item['recipientCity'] ?? '',//收件人城市
+                'province' => $item['recipientState'] ?? '', //N:收件人省
+                'consigneePostcode' => $item['recipientPostCode'] ?? '',//邮编
+            ];
             $ls[] = [
                 'orderNo' => $item['customerOrderNo'] ?? '',//客户单号
                 'transportWayCode' => $item['shippingMethodCode'] ?? 'RJUSZS',//运输方式代码。通过接口getTransportWayList可查询到所有运输方式。
@@ -181,6 +188,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'width' => empty($item['packageWidth']) ? '0.000' : round($item['packageWidth'], 3),//宽
                 'height' => empty($item['packageHeight']) ? '0.000' : round($item['packageHeight'], 3),//高
                 $shipper,
+                $reciper,
                 'weight' => empty($order_weight) ? '0.000' : round($order_weight, 3),//货物预报重量（kg）。0<=value<=1000
                 'insured' => 'N',//购买保险（投保：Y，不投保：N）
                 'goodsCategory' => 'O',//物品类别。取值范围[G:礼物/D:文件/S:商业样本/R:回货品/O:其他]
@@ -190,7 +198,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             ];
             $customerOrderNo = $item['customerOrderNo'] ?? '';
         }
-        $response = $this->request(__FUNCTION__, $ls[0]);
+        $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
         // 处理结果
         $reqRes = $this->getReqResData();
 
@@ -198,13 +206,16 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $flag = $response['success'] == true;
+        $flag = false;
+        if ($response['success']) {
+            $flag = true;
+        }
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
         $fieldData['orderNo'] = $customerOrderNo;//客户订单号
-        $fieldData['trackingNo'] = $flag ? ($response['trackingNo'] ?? '') : '';//追踪号
-        $fieldData['id'] = $flag ? ($response['id'] ?? '') : '';//第三方id，用空运单号代替
+        $fieldData['trackingNo'] = $flag ? (empty($response['trackingNo']) ? '' : $response['trackingNo']) : '';//追踪号
+        $fieldData['id'] = $flag ? (empty($response['id']) ? '' : $response['id']) : '';//第三方id，用空运单号代替
 
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
 
@@ -241,14 +252,15 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $params = [
             'orderNo' => $processCode, //客户单号。length <= 32，orderId、orderNo、trackingNo不能全部为空。
         ];
-        $response = $this->request(__FUNCTION__, $params);
+        $response = $this->request(__FUNCTION__, ['lookupOrderRequest' => $params]);
+
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
         $flag = $response['success'] == true;
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
         $fieldData['trackingNo'] = $flag ? ($response['order']['trackingNo'] ?? '') : '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $flag ? ($response['order']['hawbCode'] ?? '') : '';//尾程追踪号或者是转单号
+        $fieldData['frt_channel_hawbcode'] = $flag ? (empty($response['order']['hawbCode']) ? '' : $response['order']['hawbCode']) : '';//尾程追踪号或者是转单号
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
         return $ret;
@@ -333,7 +345,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
     /**
      *
-     * 获取订单标签(创建订单有返回并保存)
+     * 获取订单标签(创建订单有返回并保存)12021121198710919153
      * @return mixed
      */
     public function getPackagesLabel($params = [])
@@ -346,7 +358,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'showCnoBarcode' => 0,//是否显示客户单号，0代表不显示（默认），1代表显示
             'showRecycleTags' => 0,//是否显示回收标签 ，1 显示，0不显示
         ];
-        $response = $this->request(__FUNCTION__, $data);
+        $response = $this->request(__FUNCTION__, ['printOrderRequest' => $data]);
 
         // 处理结果
         $fieldData = [];
@@ -366,9 +378,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $response['lable_file'] = $flag ? $response['url'] : '';
         $response['label_path_plat'] = '';//不要填写
         $response['lable_content_type'] = 1;
-
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
-
         return $this->retSuccessResponseData($fieldData);
     }
 
@@ -387,6 +397,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'trackingNo' => $trackNumber,
         ];
         $response = $this->request(__FUNCTION__, $data);
+
         // 结果
         $flag = $response['success'] == true;
 
