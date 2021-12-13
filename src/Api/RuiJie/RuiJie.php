@@ -240,7 +240,9 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 if (!empty($get_redis)) {
                     $delete_res = $this->deleteOrder($get_redis);
                     if ($delete_res) {
-                        //重新下单
+                        //清空Redis缓存
+                        (new  Redis())->del($this->iden . $ls[0]['CustomerOrderCode']);
+                        //然后重新下单
                         $response = $this->request(__FUNCTION__, $ls[0]);
                         $flag = $response['IsSuccess'] == true;//重新赋值条件
                     }
