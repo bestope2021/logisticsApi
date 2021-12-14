@@ -147,7 +147,10 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'consignee_company' => $item['recipientCompany'] ?? '', //N:收件人公司名
                     'consignee_province' => $item['recipientState'] ?? '', //N:收件人省
                     'consignee_city' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'consignee_street' => $address ?? '',// Y:收件人街道
+            //        'consignee_street' => $address ?? '',// Y:收件人街道
+                    'consignee_street' => $item['recipientStreet'] ?? ' ',//收件人地址一，最大长度为35字符 ,//2021/12/14
+                    'consignee_street2' => $item['recipientStreet1'] ?? ' ',//收件人地址二，//2021/12/14
+                    'consignee_street3' => empty($item['recipientStreet2']) ? ' ' : $item['recipientStreet2'],//收件人地址三，//2021/12/14
                     'consignee_postcode' => $item['recipientPostCode'] ?? '', //N:收件人邮编
                     'consignee_name' => $item['recipientName'] ?? '',// Y:收件人姓名
                     'consignee_telephone' => $item['recipientPhone'] ?? '', //N:收件人电话

@@ -148,7 +148,9 @@ class YiKeDaTc extends LogisticsAbstract implements BaseLogisticsInterface, Pack
                 'province' => $item['recipientState'] ?? '',//必填 收件人省
                 'city' => $item['recipientCity'] ?? '',//必填 收件人城市
                 'company' => $item['recipientCompany'] ?? '',//非必填 收件人公司名
-                'address1' => $address ?? ' ',//必填 收件人地址
+            //    'address1' => $address ?? ' ',//必填 收件人地址
+                'address1' => $item['recipientStreet'] ?? ' ',// Y:收件人街道1
+                'address2' => ($item['recipientStreet1'] ?? ' ') .' '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//N:收件人街道2
                 'zipcode' => $item['recipientPostCode'] ?? '',//必填 收件人邮编
                 'name' => $item['recipientName'] ?? '',//必填 收件人姓名
                 'phone' => $item['recipientPhone'] ?? '',//非必填 收件人电话

@@ -122,8 +122,8 @@ class ShangMeng extends LogisticsAbstract implements BaseLogisticsInterface, Pac
                 'BuyerCity' => $item['recipientCity'] ?? '', //N:收件人城市
                 'BuyerCounty' => '', //N:买家区县
                 'BuyerAddress' => $item['recipientStreet'] ?? '',// Y:收件人街道
-                'BuyerAddress1' => $item['recipientStreet1'] ?? '',// Y:收件人街道
-                'BuyerTaxNo' => !empty($item['iossNumber']) ?$item['iossNumber']: $item['recipientTaxNumber'],// 欧盟税号（ioss税号）
+                'BuyerAddress1' => ($item['recipientStreet1'] ?? '') . '' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),// Y:收件人街道 2021/12/14
+                'BuyerTaxNo' => !empty($item['iossNumber']) ? $item['iossNumber'] : $item['recipientTaxNumber'],// 欧盟税号（ioss税号）
                 'SellerCode' => '', //N:卖家平台 ID
                 'SellerCompany' => $item['senderCompany'] ?? '', //N:寄件人公司名
                 'SellerFullName' => $item['senderName'] ?? '', //N:发件人姓名
@@ -233,16 +233,16 @@ class ShangMeng extends LogisticsAbstract implements BaseLogisticsInterface, Pac
     {
         $xml = '';
         foreach ($array as $key => $val) {
-            if(empty($val)) continue;
-            if(is_array($val)) {
-                if(is_numeric($key)){
+            if (empty($val)) continue;
+            if (is_array($val)) {
+                if (is_numeric($key)) {
                     $xml .= static::arrayToXmlInc($val);
-                }else{
+                } else {
                     $xml .= "<$key>";
                     $xml .= static::arrayToXmlInc($val);
                     $xml .= "</$key>";
                 }
-            }else{
+            } else {
                 $xml .= "<$key>$val</$key>";
             }
         }
@@ -287,14 +287,14 @@ class ShangMeng extends LogisticsAbstract implements BaseLogisticsInterface, Pac
 //        $this->dd($data);
         $response = $this->request(__FUNCTION__, 'post', $data);
 //        $this->dd($response);
-        if($response['status'] != 'success'){
+        if ($response['status'] != 'success') {
             return $this->retErrorResponseData();
         }
         $fieldMap = FieldMap::packagesLabel();
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData([
             'label_path_type' => ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF,
             'lable_file' => $response['url'] ?? '',
-            'order_no' =>  implode(',', $this->toArray($params['trackNumber'])),
+            'order_no' => implode(',', $this->toArray($params['trackNumber'])),
             'flag' => $response['status'] == 'success' ? true : false,
         ], $fieldMap);
         return $this->retSuccessResponseData($fieldData);

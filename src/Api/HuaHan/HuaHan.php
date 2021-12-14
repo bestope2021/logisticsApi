@@ -166,9 +166,9 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'consignee_company' => $item['recipientCompany'] ?? '', //N:收件人公司名
                     'consignee_province' => $item['recipientState'] ?? '', //N:收件人省
                     'consignee_city' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'consignee_street' => $item['recipientStreet'] ?? '',// Y:收件人街道
-                    'consignee_street2' => $item['recipientStreet1'] ?? '',// Y:收件人街道
-                    'consignee_street3' => $item['recipientStreet2'] ?? '',// Y:收件人街道
+                    'consignee_street' => $item['recipientStreet'] ?? '',// Y:收件人街道1
+                    'consignee_street2' => $item['recipientStreet1'] ?? '',// Y:收件人街道2
+                    'consignee_street3' => $item['recipientStreet2'] ?? '',// Y:收件人街道3
                     'consignee_postcode' => $item['recipientPostCode'] ?? '', //N:收件人邮编
                     'consignee_name' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 64 '',// Y:收件人姓名Length <= 64
                     'consignee_telephone' => $item['recipientPhone'] ?? '', //N:收件人电话

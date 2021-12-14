@@ -133,7 +133,7 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
                 'Province' => $item['recipientState'] ?? '', //N:收件人省
                 'City' => $item['recipientCity'] ?? '',//收件人城市
                 'Street1' => $item['recipientStreet'] ?? '',//收件人地址1
-                'Street2' => $item['recipientStreet1'] ?? '',//收件人地址2
+                'Street2' => ($item['recipientStreet1'] ?? ' ') . ' ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//收件人地址2//2021/12/14
                 'Postcode' => $item['recipientPostCode'] ?? '',//邮编
                 'Contact' => $item['recipientName'] ?? '',//收件人姓名
                 'Company' => $item['recipientName'] ?? '',//公司名
