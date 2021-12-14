@@ -158,8 +158,9 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
                     'country' => $item['recipientCountryCode'] ?? '',//收件人国家
                     'state' => $item['recipientState'] ?? '', //N:收件人省/州
                     'city' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'address_1' => $item['recipientStreet'] ?? ' ' ?? '',// Y:收件人街道1
-                    'address_2' => $item['recipientStreet2'] ?? '',// N:收件人街道2
+                    'address_1' => $item['recipientStreet'] ?? ' ',//收件人地址一，最大长度为35字符 ,//2021/12/14
+                    'address_2' => $item['recipientStreet1'] ?? ' ',//收件人地址二，//2021/12/14
+                    'address_3' => empty($item['recipientStreet2']) ? ' ' : $item['recipientStreet2'],//收件人地址三，//2021/12/14
                     'postcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                 ],
                 'from_address' => [

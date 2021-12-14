@@ -180,7 +180,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'CompanyName' => $item['recipientName'] ?? '',//收件人公司名(个人物品写收件人姓名)
                 'AddressLine1' => $item['recipientStreet'] ?? '',// 收件地址栏1
                 'AddressLine2' => $item['recipientStreet1'] ?? '',// 收件地址栏2
-                'AddressLine3' => $item['recipientStreet2'] ?? '',// 收件地址栏3
+                'AddressLine3' => empty($item['recipientStreet2']) ? '' : $item['recipientStreet2'],// 收件地址栏3 2021/12/14
                 'City' => $item['recipientCity'] ?? '',//收件人城市
                 'Division' => $item['recipientState'] ?? '',//收件人州名称
                 'DivisionCode' => $item['recipientState'] ?? 'AK',//收件人州代码(仅对美国)

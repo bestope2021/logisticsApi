@@ -85,8 +85,8 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $this->checkKeyExist(['appToken', 'url', 'appKey'], $config);
         $this->config = $config;
-        if(!empty($config['apiHeaders'])){
-            $this->apiHeaders = array_merge($this->apiHeaders,$config['apiHeaders']);
+        if (!empty($config['apiHeaders'])) {
+            $this->apiHeaders = array_merge($this->apiHeaders, $config['apiHeaders']);
         }
     }
 
@@ -149,7 +149,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             }
 
             $ls[] = [
-                'reference_no' =>  $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
+                'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'HYTGHC',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'country_code' => $item['recipientCountryCode'] ?? '',// Y:收件人国家二字代码，可用值参见 6.1。Lenth = 2
@@ -166,9 +166,9 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'consignee_company' => $item['recipientCompany'] ?? '', //N:收件人公司名
                     'consignee_province' => $item['recipientState'] ?? '', //N:收件人省
                     'consignee_city' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'consignee_street' => $item['recipientStreet'] ?? '',// Y:收件人街道
-                    'consignee_street2' => $item['recipientStreet1'] ?? '',// Y:收件人街道
-                    'consignee_street3' => $item['recipientStreet2'] ?? '',// Y:收件人街道
+                    'consignee_street' => $item['recipientStreet'] ?? '',// Y:收件人街道1
+                    'consignee_street2' => $item['recipientStreet1'] ?? '',// Y:收件人街道2
+                    'consignee_street3' => empty($item['recipientStreet2']) ? '' : $item['recipientStreet2'],// Y:收件人街道3
                     'consignee_postcode' => $item['recipientPostCode'] ?? '', //N:收件人邮编
                     'consignee_name' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 64 '',// Y:收件人姓名Length <= 64
                     'consignee_telephone' => $item['recipientPhone'] ?? '', //N:收件人电话
@@ -213,15 +213,15 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         }
         $data = [];
         if ($response['Result']) {
-            foreach ($response['Result'] as $keyVale=>$value) {
-                $fieldData =  [
+            foreach ($response['Result'] as $keyVale => $value) {
+                $fieldData = [
                     'channel_hawbcode' => $trackNumberData[$value['reference_no']]['TrackingNumber'] ?? ($value['shipping_method_no'] ?? ''),
                     'refrence_no' => $value['reference_no'] ?? '',
                     'shipping_method_no' => $value['order_code'] ?? '',
                     'flag' => $value['ask'] != 'Failure' ? true : false,
                     'info' => $value['Error']['errMessage'] ?? ($value['message'] ?? ''),
                 ];
-                $data[] = array_merge($reqRes,LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap));
+                $data[] = array_merge($reqRes, LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap));
 
             }
         }
@@ -300,7 +300,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'reference_no' => $order_code,
         ];
         $response = $this->request(__FUNCTION__, 'post', $param);
-        $flag=$response['ask']=='Success';
+        $flag = $response['ask'] == 'Success';
         return $flag;
     }
 
@@ -349,7 +349,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             ],
         ];
         $response = $this->request(__FUNCTION__, 'post', $data);
-        if($response['ask'] != 'Success'){
+        if ($response['ask'] != 'Success') {
             $this->retErrorResponseData();
         }
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData([
@@ -384,7 +384,7 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         $data = $response['Data'];
         $fieldData = [];
-        foreach ($data as $item){
+        foreach ($data as $item) {
             $ls = [];
             foreach ($item['Detail'] as $key => $val) {
                 $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);

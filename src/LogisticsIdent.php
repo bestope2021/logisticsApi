@@ -91,4 +91,6 @@ class LogisticsIdent
     const LS_IDENT_RuiJie = 'ruijie';
     // 实顺物流
     const LS_IDENT_ShiSun = 'shisun';
+    // 巴通
+    const LS_IDENT_ZHI_XIN_DA = 'zhixinda';
 }

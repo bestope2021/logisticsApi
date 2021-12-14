@@ -144,7 +144,7 @@ class LeTianExp extends LogisticsAbstract implements BaseLogisticsInterface, Pac
                 'consigneeCountryCode' => $item['recipientCountryCode'] ?? '',//收件人国家
                 'consigneeProvince' => $item['recipientState'] ?? '', //N:收件人省/州
                 'consigneeCity' => $item['recipientCity'] ?? '', //N:收件人城市
-                'consigneeAddress' => $item['recipientStreet'] ?? ' ' ?? '',// Y:收件人街道1
+                'consigneeAddress' => ($item['recipientStreet'] ?? ' ') .' ' . ($item['recipientStreet1'] ?? ' ') .' '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),// Y:收件人街道地址 2021/12/14
                 'consigneePostcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                 'consigneePhone' => $item['recipientPhone'] ?? '', //N:收件人电话
                 'shipperName' => $item['senderName'] ?? '',//发件人姓名

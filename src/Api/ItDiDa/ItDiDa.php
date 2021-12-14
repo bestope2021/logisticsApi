@@ -257,7 +257,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $order_weight += $value['declareWeight'];
                 $order_num += $value['quantity'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
+            //$address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
             $data = [
                 'baoGuanFangShi' => 0,//报关方式 0:其它 1:单独报关 ,
                 'baoGuoLeiXing' => 1,//N:包裹类型 0:文件 1:包裹 2:包裹袋 ,
@@ -279,7 +279,9 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 'shouHuoQuDao' => $item['shippingMethodCode'] ?? '佐川小包普货',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'shouHuoShiZhong' => (float)$order_weight,//收货实重
                 'shouJianRenChengShi' => $item['recipientCity'] ?? '', //N:收件人城市
-                'shouJianRenDiZhi1' => $address ?? '',//收件人地址一，最大长度为35字符 ,
+                'shouJianRenDiZhi1' => $item['recipientStreet'] ?? ' ',//收件人地址一，最大长度为35字符 ,//2021/12/14
+                'shouJianRenDiZhi2' => $item['recipientStreet1'] ?? ' ',//收件人地址二，//2021/12/14
+                'shouJianRenDiZhi3' => empty($item['recipientStreet2']) ? ' ' : $item['recipientStreet2'],//收件人地址三，//2021/12/14
                 'shouJianRenDianHua' => $item['recipientPhone'] ?? '',//N:收件人电话
                 'shouJianRenGongSi' => $item['recipientCompany'] ?? '', //N:收件人公司名
                 'shouJianRenShouJi' => $item['recipientMobile'] ?? '', //N:收件人手机
@@ -437,7 +439,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'key' => 'deleteYundans',
         ];
         $response = $this->request(__FUNCTION__, $data);
-        $flag=$response['success']==1;
+        $flag = $response['success'] == 1;
         return $flag;
     }
 

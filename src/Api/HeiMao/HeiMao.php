@@ -119,7 +119,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
             if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [
@@ -188,19 +188,12 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $ls[0]);
 
         $reqRes = $this->getReqResData();
-//        $this->dd($response);
+
 
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-
-//        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2   2021/9/2修复优化获取追踪号逻辑
-//        if (in_array($response['success'],[1,2])){
-//            $flag = 1;
-//        }else{
-//            $flag = 0;
-//        }
 
         if ($response['success'] == 2) {
             // 进行删除操作,再重新下单

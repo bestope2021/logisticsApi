@@ -123,7 +123,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
             if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [
@@ -197,13 +197,6 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-
-//        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2   2021/9/2修复优化获取追踪号逻辑
-//        if (in_array($response['success'],[1,2])){
-//            $flag = 1;
-//        }else{
-//            $flag = 0;
-//        }
 
         // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
         if ($response['success'] == 2) {

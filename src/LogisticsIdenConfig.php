@@ -50,6 +50,7 @@ use smiler\logistics\Api\XyExp\XyExpTrack;
 use smiler\logistics\Api\Yw\Yw;
 use smiler\logistics\Api\Yw\YwTrack;
 use smiler\logistics\Api\JunXing\JunXing;
+use smiler\logistics\Api\ZhiXinDa\ZhiXinDa;
 
 /**
  * Class LogisticsApiIdenConfig
@@ -105,6 +106,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_COUPANGCORP => CouPangCorp::class,//CouPang物流
         LogisticsIdent::LS_IDENT_RuiJie => RuiJie::class,//睿捷物流 2021/12/7新增
         LogisticsIdent::LS_IDENT_ShiSun => ShiSun::class,//实顺物流 2021/12/9新增
+        LogisticsIdent::LS_IDENT_ZHI_XIN_DA => ZhiXinDa::class,//至信达 2021/12/13新增
     ];
 
     /**

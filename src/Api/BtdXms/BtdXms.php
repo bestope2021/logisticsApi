@@ -29,7 +29,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     const QUERY_TRACK_COUNT = 1;
     public $iden = 'btdxms';
     public $iden_name = '宝通达物流';
-    
+
     // 定义请求方式
     const METHOD_GET = 'GET';
     const METHOD_POST = 'POST';
@@ -99,14 +99,14 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $xml = '<s:Envelope xmlns:s="http://schemas.xmlsoap.org/soap/envelope/">';
         $xml .= '<s:Body>';
 
-        switch ($root){
+        switch ($root) {
             case "GetLogisticsWay":
-                $xml .= '<'.$root.' xmlns="http://tempuri.org/"/>';
+                $xml .= '<' . $root . ' xmlns="http://tempuri.org/"/>';
                 break;
             default:
-                $xml .= '<'.$root.' xmlns="http://tempuri.org/">';
+                $xml .= '<' . $root . ' xmlns="http://tempuri.org/">';
                 $xml .= static::arrayToXmlInc($array);
-                $xml .= '</'.$root.'>';
+                $xml .= '</' . $root . '>';
                 break;
         }
         $xml .= "</s:Body>";
@@ -118,12 +118,12 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $xml = '';
         foreach ($array as $key => $val) {
-            if(is_array($val)) {
+            if (is_array($val)) {
                 $orderXmlStr = 'xmlns:a="http://schemas.datacontract.org/2004/07/JSON.Logistics.Emmis.Entity" xmlns:i="http://www.w3.org/2001/XMLSchema-instance"';
-                $xml .= ($key === 'order')?"<$key $orderXmlStr>": (is_numeric($key)?"<a:LogisticsOrderProduct>":"<$key>");
+                $xml .= ($key === 'order') ? "<$key $orderXmlStr>" : (is_numeric($key) ? "<a:LogisticsOrderProduct>" : "<$key>");
                 $xml .= static::arrayToXmlInc($val);
-                $xml .= is_numeric($key)?"</a:LogisticsOrderProduct>":"</$key>";
-            }else{
+                $xml .= is_numeric($key) ? "</a:LogisticsOrderProduct>" : "</$key>";
+            } else {
                 $xml .= "<$key>$val</$key>";
             }
         }
@@ -175,12 +175,12 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'a:UnitPrice' => (float)($value['customsDeclarationPrice'] ?? ''), //单价（报关价值）
                 ];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $order_info['a:Products'] = $productList;//产品信息,多个产品信息建议不要超过5个
             $order_info['a:Province'] = $item['recipientState'] ?? '';//收件人省州
             $order_info['a:ShippingWay'] = $item['shippingMethodCode'] ?? 'FedEx';//渠道
             $order_info['a:Street'] = $address ?? '';//街道
-            $order_info['a:TaxID'] = !empty($item['iossNumber']) ?$item['iossNumber']: $item['recipientTaxNumber'];// 欧盟税号（ioss税号）
+            $order_info['a:TaxID'] = !empty($item['iossNumber']) ? $item['iossNumber'] : $item['recipientTaxNumber'];// 欧盟税号（ioss税号）
             $order_info['a:TrackingNumber'] = '';//物流单号
 
             $ls[]['order'] = $order_info;
@@ -190,7 +190,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         // 处理结果
         $reqRes = $this->getReqResData();
 
-        $response = $this->resultsVerify($response,__FUNCTION__);
+        $response = $this->resultsVerify($response, __FUNCTION__);
 
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
@@ -204,10 +204,10 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldData['frt_channel_hawbcode'] = $response['flag'] ? $response['info']['aTrackingNumber'] : '';//尾程追踪号
 
         //单号延迟返回时，重新获取
-        if($response['flag'] && (empty($response['info']['aRefID']) || empty($response['info']['aTrackingNumber']))){
+        if ($response['flag'] && (empty($response['info']['aRefID']) || empty($response['info']['aTrackingNumber']))) {
             $trackNumber = $this->getTrackNumber($response['info']['aID']);
-            if($trackNumber['flag']){
-                $fieldData['trackingNo'] = $trackNumber['trackingNumber']?? '';//追踪号
+            if ($trackNumber['flag']) {
+                $fieldData['trackingNo'] = $trackNumber['trackingNumber'] ?? '';//追踪号
                 $fieldData['frt_channel_hawbcode'] = $trackNumber['frtTrackingNumber'] ?? '';//尾程追踪号
             }
         }
@@ -222,20 +222,20 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * @param $is_ret
      * @return array
      */
-    public function getTrackNumber(string $processCode,$is_ret=false)
+    public function getTrackNumber(string $processCode, $is_ret = false)
     {
         $param = ['number' => $processCode];
         $response = $this->request(__FUNCTION__, $param);
 
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
-        $response = $this->resultsVerify($response,__FUNCTION__);
+        $response = $this->resultsVerify($response, __FUNCTION__);
         $fieldData['flag'] = $response['flag'];
         $fieldData['info'] = $response['flag'] ? '' : ($response['info'] ?? '未知错误');
         $fieldData['trackingNo'] = $response['flag'] ? $response['info']['aRefID'] : '';//追踪号
         $fieldData['frt_channel_hawbcode'] = $response['flag'] ? $response['info']['aTrackingNumber'] : '';//尾程追踪号
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-        if($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
+        if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
         return $ret;
     }
 
@@ -246,21 +246,21 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * @return mixed
      * @throws InvalidIArgumentException
      */
-    public function request($function, $data = [] ,$method = self::METHOD_POST)
+    public function request($function, $data = [], $method = self::METHOD_POST)
     {
         $data = $this->buildParams($function, $data);
         if (!self::$isApiAuth && $function != 'authApi') {
             $this->authApi();
         }
-        
+
         $this->req_data = $data;
         $apiHeaders = $this->setApiHeaders($function);
         $url = $this->config['url'];
-        if($function == 'getPackagesLabel'){
+        if ($function == 'getPackagesLabel') {
             $url = $this->pdfUrl;
             $apiHeaders['CURLOPT_HEADER'] = true;
         }
-        $res = $this->sendCurl($method, $url, $data, $this->dataType, $apiHeaders, 'UTF-8', $this->interface[$function],false);
+        $res = $this->sendCurl($method, $url, $data, $this->dataType, $apiHeaders, 'UTF-8', $this->interface[$function], false);
         $this->res_data = $res;
         return $res;
     }
@@ -269,7 +269,8 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * @param $function
      * @return array|string[]
      */
-    public function setApiHeaders($function){
+    public function setApiHeaders($function)
+    {
         $apiHeaders = $this->apiHeaders;
         $apiHeaders['SOAPAction'] .= $this->interface[$function];
         return $apiHeaders;
@@ -283,8 +284,8 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $data = $this->buildParams(__FUNCTION__, []);
         $apiHeaders = $this->setApiHeaders(__FUNCTION__);
-        $res = $this->sendCurl('post', $this->config['url'], $data, $this->dataType, $apiHeaders, 'UTF-8', $this->interface[__FUNCTION__],false);
-        $res = $this->resultsVerify($res,__FUNCTION__);
+        $res = $this->sendCurl('post', $this->config['url'], $data, $this->dataType, $apiHeaders, 'UTF-8', $this->interface[__FUNCTION__], false);
+        $res = $this->resultsVerify($res, __FUNCTION__);
         if (!$res['flag'] || $res['info'] !== 'true') {
             self::$isApiAuth = false;
         } else {
@@ -300,17 +301,18 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      * @param String $params
      * @return mixed
      */
-    protected function resultsVerify($params,$function){
+    protected function resultsVerify($params, $function)
+    {
         $response = static::xmlToArray($params);
 
         $response_info = [];
         //错误信息
-        if(isset($response['sFault'])){
+        if (isset($response['sFault'])) {
             $response_info['flag'] = false;
             $response_info['info'] = $response['sFault']['faultstring'];
-        }else{
+        } else {
             $response_info['flag'] = true;
-            $response_info['info'] = $response[$this->interface[$function].'Response'][$this->interface[$function].'Result'];
+            $response_info['info'] = $response[$this->interface[$function] . 'Response'][$this->interface[$function] . 'Result'];
         }
 
         return $response_info;
@@ -323,7 +325,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     public function getShippingMethod()
     {
         $response = $this->request(__FUNCTION__);
-        $response = $this->resultsVerify($response,__FUNCTION__);
+        $response = $this->resultsVerify($response, __FUNCTION__);
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
@@ -333,11 +335,11 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         foreach ($response['info']['astring'] as $item) {
             $item_arr = [
-                'code' =>$item,
-                'name_en' =>$item,
-                'name_cn' =>$item,
-                'shipping_method_type' =>$item,
-                'remark' =>$item,
+                'code' => $item,
+                'name_en' => $item,
+                'name_cn' => $item,
+                'shipping_method_type' => $item,
+                'remark' => $item,
             ];
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item_arr, $fieldMap);
         }
@@ -445,7 +447,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     public function buildParams($interface, $arr = [])
     {
-        return $this->interface[$interface]=='GetLogisticsWay'?$arr:array_merge(['clientId' => $this->config['clientId'],'clientAccount' => $this->config['clientAccount']], $arr);
+        return $this->interface[$interface] == 'GetLogisticsWay' ? $arr : array_merge(['clientId' => $this->config['clientId'], 'clientAccount' => $this->config['clientAccount']], $arr);
     }
 
     /**

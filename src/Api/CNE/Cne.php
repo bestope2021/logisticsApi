@@ -120,7 +120,7 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                     'cxOrigin' => $value['originCountry'] ?? 'CN', // N:原产地国家代码
                 ];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $ls[] = [
                 'cRNo' => $item['customerOrderNo'] ?? '',// Y:参考号,0-30 字符。(传用户系统订单号，只允许数字和字母，中划线，其他符号不接受）
                 'nItemType' => $item['nItemType'] ?? '1',// Y:快件类型，默认为1。取值为：0(文件),1(包裹),2(防水袋)
@@ -133,8 +133,8 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 'iItem' => 1,// Y:件数，默认1,此为单个订单包裹数量，非SKU 数量
                 'nPayWay' => ($item['payWay'] ?? 1),// Y:付款方式，默认为1。取值为：0(月结),1(现付),2(到付)
                 'cAddrFrom' => FieldMap::platformMap($item['platformSource'] ?? ''),  //Y:订单对应平台
-                'cRTaxCode' => $item['recipientTaxNumber']??'',// N:进口清关VAT税号-境外海关清关（更新）
-                'cSTaxCode' => $item['recipientTaxNumber']??'',// N:出口清关税号-中国海关出口清关（新增）
+                'cRTaxCode' => $item['recipientTaxNumber'] ?? '',// N:进口清关VAT税号-境外海关清关（更新）
+                'cSTaxCode' => $item['recipientTaxNumber'] ?? '',// N:出口清关税号-中国海关出口清关（新增）
                 'cMemo' => $item['remark'] ?? '', //N:包裹备注
                 // 收件人信息
                 'cReceiver' => $item['recipientName'] ?? '',// Y:收件人,3-63 字符
@@ -179,7 +179,7 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         $info = $response['cMess'] ?? '';
         $data = $response['ErrList'][0] ?? [];
 
-        if(!empty($data)){
+        if (!empty($data)) {
             //错误信息,0-63 字符，空为无错误，如果有cMess 信息，就是获取到了cNo 都是无效的
             $info = $data['cMess'] ?? '';
             $flag = true;
@@ -329,11 +329,11 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
         ];
 
         $ls = [];
-        if($data['details']){
+        if ($data['details']) {
             $status = '';
             $content = '';
             foreach ($data['details'] as $key => $val) {
-                if($key == 0){
+                if ($key == 0) {
                     $status = $val['state'];
                     $content = $val['details'];
                 }
