@@ -172,7 +172,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             ];
             $reciper = [
                 'consigneeName' => $item['recipientName'] ?? '',//收件人姓名
-                'street' => ($item['recipientStreet'] ?? ' ') .' ' . ($item['recipientStreet1'] ?? ' ') .' '. ($item['recipientStreet2'] ?? ''),//收件人地址
+                'street' => ($item['recipientStreet'] ?? ' ') .' ' . ($item['recipientStreet1'] ?? ' ') .' '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//收件人地址
                 'city' => $item['recipientCity'] ?? '',//收件人城市
                 'province' => $item['recipientState'] ?? '', //N:收件人省
                 'consigneePostcode' => $item['recipientPostCode'] ?? '',//邮编

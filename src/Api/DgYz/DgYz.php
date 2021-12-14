@@ -145,7 +145,7 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
                     'receiverNation' => $item['recipientCountryCode'] ?? '',//收件人国家
                     'receiverProvince' => $item['recipientState'] ?? '', //N:收件人省/州
                     'receiverCity' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'receiverAddress' => ($item['recipientStreet'] ?? ' ') . ' ' . ($item['recipientStreet1'] ?? ' ') . ' ' . ($item['recipientStreet2'] ?? ''),// Y:收件人街道1 2021/12/14日新增
+                    'receiverAddress' => ($item['recipientStreet'] ?? ' ') . ' ' . ($item['recipientStreet1'] ?? ' ') . ' ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),// Y:收件人街道1 2021/12/14日新增
                     'receiverEmail' => $item['recipientEmail'] ?? '',// N:收件人邮箱
                     'receiverPostCode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                 ],

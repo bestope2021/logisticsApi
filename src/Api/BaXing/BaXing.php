@@ -153,7 +153,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'state' => $item['recipientState'] ?? '', //N:收件人省/州
                     'city' => $item['recipientCity'] ?? '', //N:收件人城市
                     'address1' => $item['recipientStreet'] ?? ' ' ?? '',// Y:收件人街道1
-                    'address2' => ($item['recipientStreet1'] ?? ' ') . ' ' . $item['recipientStreet2'] ?? '',// N:收件人街道2//2021/12/14
+                    'address2' => ($item['recipientStreet1'] ?? ' ') . ' ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),// N:收件人街道2//2021/12/14
                     'houseno' => '', //N:收件人门牌号/建筑物名称。
                     'zipcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                 ],
