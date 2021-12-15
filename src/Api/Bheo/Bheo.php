@@ -468,19 +468,21 @@ class Bheo extends LogisticsAbstract implements TrackLogisticsInterface, Package
      * @param $is_ret
      * @return array
      */
-    public function getTrackNumber(string $processCode, $is_ret = false)
+    public function getTrackNumber($processCode, $is_ret = false)
     {
         $apiHeaders = $this->buildHeaders();//生成头部信息
         //这里要区分TOKEN，一个是BFAI的（两个小包再用），一个是BEHO的（海外仓再用）2021/12/15
-        if (stripos($processCode, 'BHEO')) {
+        if (stripos($processCode['sy_order_no'], 'BHEO')) {
             $apiHeaders['Authorization'] = 'Bearer ' . $this->config['bheo_access_token'];
         } else {
             $apiHeaders['Authorization'] = 'Bearer ' . $this->config['access_token'];
         }
-        $response = $this->sendCurl('get', $this->config['update_weight_url'] . '/' . $processCode . '/status', [], $this->dataType, $apiHeaders);
+        $response = $this->sendCurl('get', $this->config['update_weight_url'] . '/' . $processCode['customer_order_no'] . '/status', [], $this->dataType, $apiHeaders);
+
         if (empty($response['Status'])) {
             return $this->retErrorResponseData(empty($response['CreateFailedReason']) ? (empty($response['Errors'][0]['Message']) ? '获取追踪号失败,平台未返回！' : $response['Errors'][0]['Message']) : $response['CreateFailedReason']);
         }
+        $response['TrackingNumber'] = empty($response['TrackingNumber']) ? '' : $response['TrackingNumber'];//转单号信息
         if ((!empty($response['IsFinalTrackingNumber'])) && ($response['IsFinalTrackingNumber'] === true)) {
             $response['TransferNumber'] = empty($response['TrackingNumber']) ? '' : $response['TrackingNumber'];//转单号信息
         } else {

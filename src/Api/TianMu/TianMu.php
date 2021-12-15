@@ -281,7 +281,7 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        return $this->retSuccessResponseData($response);
     }
 
     /**
