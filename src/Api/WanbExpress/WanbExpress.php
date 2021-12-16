@@ -206,9 +206,9 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
                     'CountryCode' => $item['recipientCountryCode'] ?? '', //Y:收件人国家二字代码
                     'Province' => $item['recipientState'] ?? '', //Y:收件人州/省
                     'City' => $item['recipientCity'] ?? '', //Y:收件人城市
-                    'Street1' => $item['recipientStreet'] ?? '',// Y:收件人街道
-                    'Street2' => $item['recipientStreet1'] ?? '',// Y:收件人街道
-                    'Street3' => $item['recipientStreet2'] ?? '',// Y:收件人街道
+                    'Street1' => $item['recipientStreet'] ?? '',// Y:收件人街道1
+                    'Street2' => $item['recipientStreet1'] ?? '',// Y:收件人街道2
+                    'Street3' => empty($item['recipientStreet2']) ? '' : $item['recipientStreet2'],// Y:收件人街道3
                     'Postcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                     'Tel' => $item['recipientPhone'] ?? ($item['recipientMobile'] ?? ''), //N:收件人联系电话
                     'Email' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
@@ -485,7 +485,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
     {
         $extUrlParams = [$params['ProcessCode']];
         $data = [
-            'WeightInKg' => $params['weight'],//预报重量(单位:KG)
+            'WeightInKg' => round($params['weight'],3),//预报重量(单位:KG),保留3位小数
             'AutoConfirm' => true,//是否在修改完预报重量后自动确认交运，默认为 false此值设置为true，则无须再次调用确认交运包裹接口
         ];
 

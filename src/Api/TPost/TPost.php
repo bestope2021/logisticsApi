@@ -140,7 +140,7 @@ class TPost extends LogisticsAbstract implements BaseLogisticsInterface, TrackLo
                     'act_id' => '',// 买家账号 id
                     'address' => $item['recipientStreet'] ?? '',// Y:地址 1
                     'address2' => $item['recipientStreet1'] ?? '',// N:地址 2
-                    'address3' => $item['recipientStreet2'] ?? '',// N:地址 3
+                    'address3' => empty($item['recipientStreet2']) ? '' : $item['recipientStreet2'],// N:地址 3
                     'c_name' => $item['senderCompany'] ?? '',// N:公司名称
                     'contact_person' => $item['recipientName'] ?? '',// Y:联系人
                     'country' => $item['recipientCountry'] ?? '',// Y:国 家

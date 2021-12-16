@@ -128,7 +128,7 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'shipper_telephone' => $item['senderPhone'] ?? '',//发件人电话
             ];
 
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);//2021/12/14
             //收件人信息
             $consignee = [
                 'consignee_name' => $item['recipientName'] ?? '',//收件人姓名
@@ -169,7 +169,7 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         if($response['success'] == 2){
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($response['data']['refrence_no']);
-            if($delFlag['success'] == 1){
+            if($delFlag){
                 $response = $this->request(__FUNCTION__, $ls[0]);
                 $reqRes = $this->getReqResData();
             }
@@ -278,10 +278,10 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $data = [
             'reference_no' => $params['order_id'] ?? '',
-            'order_weight' => $params['weight'] ?? '',
+            'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        return $this->retSuccessResponseData($response);
     }
 
     /**
@@ -294,7 +294,8 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'reference_no' => $reference_no,
         ];
         $response = $this->request(__FUNCTION__, $param);
-        return $response;
+        $flag=$response['success'] == 1;
+        return $flag;
     }
 
     /**

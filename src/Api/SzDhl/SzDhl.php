@@ -51,7 +51,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
 
     public $interface = [
         'createOrder' => 'Shipment', // 创建运单和发票
-
+        'getPackagesLabel' => 'getPackagesLabel', // 【打印标签|面单】
         'queryTrack' => 'KnownTracking', //轨迹查询
     ];
 
@@ -180,7 +180,7 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'CompanyName' => $item['recipientName'] ?? '',//收件人公司名(个人物品写收件人姓名)
                 'AddressLine1' => $item['recipientStreet'] ?? '',// 收件地址栏1
                 'AddressLine2' => $item['recipientStreet1'] ?? '',// 收件地址栏2
-                'AddressLine3' => $item['recipientStreet2'] ?? '',// 收件地址栏3
+                'AddressLine3' => empty($item['recipientStreet2']) ? '' : $item['recipientStreet2'],// 收件地址栏3 2021/12/14
                 'City' => $item['recipientCity'] ?? '',//收件人城市
                 'Division' => $item['recipientState'] ?? '',//收件人州名称
                 'DivisionCode' => $item['recipientState'] ?? 'AK',//收件人州代码(仅对美国)
@@ -526,7 +526,35 @@ class SzDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function getPackagesLabel($params = [])
     {
-        $this->throwNotSupport(__FUNCTION__);
+        $data = [
+            'trackNumber' => $params['trackNumber'],
+            'label_id' => '',
+            'shippingMethodCode' => $params['shippingMethodCode'],
+        ];
+        $response = $this->request(__FUNCTION__, $data);
+
+        // 处理结果
+        $fieldData = [];
+        $fieldMap = FieldMap::packagesLabel();
+
+        // 结果
+        $flag = (isset($response['Note']['ActionNote']) && $response['Note']['ActionNote'] == 'Success');
+
+        if (!$flag) {
+            return $this->retErrorResponseData($response['Response']['Status']['Condition']['ConditionCode'] ?'ConditionCode:'.$response['Response']['Status']['Condition']['ConditionCode'].' ConditionData:'.$response['Response']['Status']['Condition']['ConditionData']: '未知错误');
+        }
+
+        $response['flag'] = $flag;
+        $response['info'] = '';
+        $response['order_no'] = $params['trackNumber'] ?? '';
+        $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $response['lable_file'] = $flag ? $response['LabelImage']['OutputImage'] : '';
+        $response['label_path_plat'] = '';//不要填写
+        $response['lable_content_type'] = 1;
+
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
+
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**

@@ -5,7 +5,7 @@
  * Date: 3/1/21
  */
 
-namespace smiler\logistics\Api\BaXing;
+namespace smiler\logistics\Api\CouPangCorp;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
@@ -17,7 +17,7 @@ use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
-class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
+class CouPangCorp extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
 {
     /**
      * 一次最多提交多少个包裹,5自定义
@@ -28,9 +28,9 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
      */
     const QUERY_TRACK_COUNT = 1000;
 
-    public $iden = 'baxing';
+    public $iden = 'coupangcorp';
 
-    public $iden_name = '八星小包物流';
+    public $iden_name = 'CouPang物流';
     /**
      * curl 请求数据类型
      * @var string
@@ -153,7 +153,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'state' => $item['recipientState'] ?? '', //N:收件人省/州
                     'city' => $item['recipientCity'] ?? '', //N:收件人城市
                     'address1' => $item['recipientStreet'] ?? ' ' ?? '',// Y:收件人街道1
-                    'address2' => ($item['recipientStreet1'] ?? ' ') . ' ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),// N:收件人街道2//2021/12/14
+                    'address2' => ($item['recipientStreet1'] ?? '') . '' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),// N:收件人街道2
                     'houseno' => '', //N:收件人门牌号/建筑物名称。
                     'zipcode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                 ],
@@ -212,7 +212,7 @@ class BaXing extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $data = [
             'orderNo' => $params['ProcessCode'] ?? '',
-            'weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
+            'weight' => $params['weight'] ?? '',
             'key' => 'updateWeight',
         ];
         $response = $this->request(__FUNCTION__, $data);

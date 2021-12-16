@@ -123,7 +123,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
             if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [
@@ -136,9 +136,9 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'US0022',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'shipping_method_no' => '', //N:服务商单号（追踪单号，默认不需要传值）
-                'order_weight' => (float)$order_weight,// Y:订单重量，单位KG，默认为0.2
+                'order_weight' => round($order_weight, 3),// Y:订单重量，单位KG，默认为0.2,3位小数
                 'order_pieces' => 1, //N:外包装件数,默认1
-                'cargotype' => '',//N:货物类型W：包裹  D：文件 B：袋子
+                'cargotype' => 'W',//N:货物类型W：包裹  D：文件 B：袋子
                 'order_status' => '', //N:订单状态P：已预报 (默认) D：草稿 (如果创建草稿订单，则需要再调用submitforecast【提交预报】接口)
                 'mail_cargo_type' => '',//N:包裹申报种类（1-Gif礼品；2-CommercialSample商品货样；3-Document文件；4-Other其他。默认4）
                 'buyer_id' => $item['buyer_id'] ?? '', //N:EORI
@@ -197,13 +197,27 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果(2021/08/19加的判断)     2021/9/2修复优化获取追踪号逻辑
-        if(in_array($response['success'],[1,2])){
-            $flag = 1;
-        }else{
-            $flag = 0;
+
+        // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
+        if ($response['success'] == 2) {
+            // 进行删除操作,再重新下单
+            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
+            if ($delFlag) {
+                $response = $this->request(__FUNCTION__, $ls[0]);
+                $reqRes = $this->getReqResData();
+            }
+        }
+        if ((stripos($response['cnmessage'], 'exists') !== false) || (stripos($response['enmessage'], 'exists') !== false)) {
+            // 进行删除操作,再重新下单
+            $delFlag = $this->deleteOrder($ls[0]['reference_no']);
+            if ($delFlag) {
+                $response = $this->request(__FUNCTION__, $ls[0]);
+                $reqRes = $this->getReqResData();
+            }
         }
 
+        // 结果
+        $flag = $response['success'] == 1;
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
@@ -217,15 +231,12 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             }
         }
 
-        $fieldData['order_id'] = $response['data']['channel_hawbcode'] ?? ($response['data']['order_id'] ?? '');
-        $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
-        $fieldData['trackingNo'] = $response['data']['shipping_method_no'] ?? '';
-        $fieldData['frt_channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
-
+        $fieldData['order_id'] = empty($response['data']['channel_hawbcode']) ? (empty($response['data']['order_id']) ? '' : $response['data']['order_id']) : $response['data']['channel_hawbcode'];
+        $fieldData['refrence_no'] = empty($response['data']['refrence_no']) ? ($ls[0]['reference_no'] ?? '') : $response['data']['refrence_no'];
+        $fieldData['trackingNo'] = empty($response['data']['shipping_method_no']) ? '' : $response['data']['shipping_method_no'];
+        $fieldData['frt_channel_hawbcode'] = empty($response['data']['channel_hawbcode']) ? '' : $response['data']['channel_hawbcode'];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
-
     }
 
     /**统一封装请求
@@ -273,10 +284,10 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $param);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
-        if($response['success']==1){
-            $flag=1;
-        }else{
-            $flag=0;
+        if ($response['success'] == 1) {
+            $flag = 1;
+        } else {
+            $flag = 0;
         }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? '未知错误'));
@@ -319,7 +330,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $data = [
             'reference_no' => $params['ProcessCode'] ?? '',
-            'order_weight' => $params['weight'] ?? '',
+            'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位KG
         ];
         $response = $this->request(__FUNCTION__, $data);
         if (empty($response)) {
@@ -343,7 +354,10 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_code, //客户参考号
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        // 结果
+        $flag = $response['success'] == 1;
+
+        return $flag;
     }
 
     /**

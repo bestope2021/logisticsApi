@@ -64,6 +64,16 @@ class YwTrack extends LogisticsAbstract implements TrackLogisticsInterface
             $item['checkpoints'] = $ls;
             $item['flag'] = true;
             $fieldData [] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap1);
+
+            
+            //新增转单号
+            foreach ($fieldData as &$val){
+                if($item['tracking_number']==$val['orderNo']){
+                    $val['exchange_number']=$item['exchange_number'];//转单号字段  2021/11/30新增
+                }
+            }
+
+
         }
         return $this->retSuccessResponseData($fieldData);
     }

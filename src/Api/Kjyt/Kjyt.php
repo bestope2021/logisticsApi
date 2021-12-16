@@ -149,7 +149,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
                 $invoiceValue += (float)($value['declarePrice'] ?? '') * (int)($value['quantity'] ?? '');
                 $weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $ls[] = [
                 "buyerid" => $item['buyer_id'] ?? '',
                 'order_piece' => 1, //件数，小包默认1，快递需真实填写
@@ -169,7 +169,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
                 'consignee_email' => $item['recipientEmail'] ?? '',// N:收件人邮箱Length <= 128
                 'consignee_taxno' => $item['recipientTaxNumber'] ?? '', //税号
                 'consignee_doorno' => '', //门牌号
-                'shipper_taxnotype' => (isset($item['iossNumber'])&&!empty($item['iossNumber']))?'IOSS':'OTHER', //税号类型，可选值IOSS,NO-IOSS,OTHER
+                'shipper_taxnotype' => (isset($item['iossNumber']) && !empty($item['iossNumber'])) ? 'IOSS' : 'OTHER', //税号类型，可选值IOSS,NO-IOSS,OTHER
                 'shipper_taxno' => $item['iossNumber'] ?? '',// 欧盟税号（ioss税号）
                 'customer_id' => $this->config['customer_id'],
                 'customer_userid' => $this->config['customer_userid'],
@@ -270,7 +270,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
         $this->getAuth();
         $ls = [
             'orderNo' => $pars['order_id'] ?? '',// Y:客户单号（或者系统订单号，或者服务商单号都可以）
-            'weight' => (float)($pars['weight'] ?? ''),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
+            'weight' => empty($pars['weight']) ? 0 : round($pars['weight'], 3),// N:包裹总重量（单位：kg）,系统接收后自动四舍五入至 3 位小数
             'customerId' => $this->config['customer_id'],
         ];
 
@@ -280,9 +280,9 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
         }
         $response = $this->request(__FUNCTION__, $ls, false);
 
-        if(!empty($response)){
+        if (!empty($response)) {
             return $this->retSuccessResponseData($response);
-        }else{
+        } else {
             return $this->retErrorResponseData('修改订单重量异常');
         }
     }
@@ -387,6 +387,7 @@ class Kjyt extends LogisticsAbstract implements BaseLogisticsInterface, TrackLog
         $this->res_data = $res;
         return $res;
     }
+
     /**
      * 获取请求数据
      */

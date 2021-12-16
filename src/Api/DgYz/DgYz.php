@@ -135,8 +135,8 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
                 'bizProductNo' => $item['shippingMethodCode'] ?? '001',//产品代码,就是渠道代码
                 'weight' => (int)($order_weight * 1000),//邮件重量（克），正整数
                 'batteryFlag' => $isElectricity, //是否有电池 0：无电池,1：有电池，默认 0，整数型
-                'taxNo' => $item['iossNumber'] ?? '',//【选填】收件人税号（巴西必填）
-                'senderTaxNo' => $item['senderTaxNumber'] ?? '',//【选填】寄件人税号，VAT 识别账号 6.11 新增
+                'senderTaxNo' => $item['iossNumber'] ?? '',//【选填】  寄件人税号，VAT 识别账号 6.11 新增,   9.30物流商告知写反了
+                'taxNo' => $item['recipientTaxNumber'] ?? '',//【选填】收件人税号（巴西必填）9.30物流商告知写反了
                 'prepaymentOfVat' => 0,//【选填】，预缴增值税方式，(0: IOSS 1: no-IOSS 2: other)，6.11 新增
                 'receiver' => [
                     'receiverName' => $item['recipientName'] ?? '',// Y:收件人姓名Length <= 50 '',// Y:收件人姓名Length <= 50
@@ -145,7 +145,7 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
                     'receiverNation' => $item['recipientCountryCode'] ?? '',//收件人国家
                     'receiverProvince' => $item['recipientState'] ?? '', //N:收件人省/州
                     'receiverCity' => $item['recipientCity'] ?? '', //N:收件人城市
-                    'receiverAddress' => $item['recipientStreet'] ?? ' ' ?? '',// Y:收件人街道1
+                    'receiverAddress' => ($item['recipientStreet'] ?? ' ') . ' ' . ($item['recipientStreet1'] ?? ' ') . ' ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),// Y:收件人街道1 2021/12/14日新增
                     'receiverEmail' => $item['recipientEmail'] ?? '',// N:收件人邮箱
                     'receiverPostCode' => $item['recipientPostCode'] ?? '', //Y:收件人邮编
                 ],
@@ -194,7 +194,7 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
     {
         $data = [
             'orderNo' => $params['ProcessCode'] ?? '',
-            'weight' => $params['weight'] ?? '',
+            'weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
             'key' => 'updateWeight',
         ];
         $response = $this->request(__FUNCTION__, $data);
@@ -210,6 +210,16 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
 
 
     /**
+     * 取消订单，删除订单
+     * @return mixed
+     */
+    public function deleteOrder(string $order_code)
+    {
+        $this->throwNotSupport(__FUNCTION__);
+    }
+
+
+    /**
      * @param string $function
      * @param array $data
      * @return mixed
@@ -219,36 +229,43 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
         $this->req_data = $data;
         switch ($this->req_data['key']) {
             case 'apply':
-                unset($data['key']);unset($this->req_data['key']);
+                unset($data['key']);
+                unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['create_order_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//下单
             case 'print':
-                unset($data['key']);unset($this->req_data['key']);
+                unset($data['key']);
+                unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_label_command'], $data, $this->dataType, $this->apiHeaders, '', '', false);
                 break;//获取面单
             case 'trackInfoExt':
-                unset($data['key']);unset($this->req_data['key']);
+                unset($data['key']);
+                unset($this->req_data['key']);
                 $this->apiHeaders = [
                     'token' => $this->config['track_token'],
                     'Content-Type' => 'application/x-www-form-urlencoded;charset=UTF-8',
                 ];
-                $queryStr='sendID='.$this->config['sendID'].'&proviceNo=99&msgKind=XXX_JDPT_TRACE&serialNo=100000000001&sendDate='.date('YmdHis', time()).'&receiveID=JDPT&batchNo=999&dataType=1&dataDigest='.base64_encode(md5(json_encode($data, JSON_FORCE_OBJECT).$this->config['track_token'])).'&msgBody='.urlencode(json_encode($data, JSON_FORCE_OBJECT));
-                $response = $this->sendCurl('post', $this->config['get_track_url'].'?'.$queryStr, urlencode(json_encode($data, JSON_FORCE_OBJECT)),$this->dataType, $this->apiHeaders);
+                $queryStr = 'sendID=' . $this->config['sendID'] . '&proviceNo=99&msgKind=XXX_JDPT_TRACE&serialNo=100000000001&sendDate=' . date('YmdHis', time()) . '&receiveID=JDPT&batchNo=999&dataType=1&dataDigest=' . base64_encode(md5(json_encode($data, JSON_FORCE_OBJECT) . $this->config['track_token'])) . '&msgBody=' . urlencode(json_encode($data, JSON_FORCE_OBJECT));
+                $response = $this->sendCurl('post', $this->config['get_track_url'] . '?' . $queryStr, urlencode(json_encode($data, JSON_FORCE_OBJECT)), $this->dataType, $this->apiHeaders);
                 break;//获取轨迹
             case 'list':
-                unset($data['key']);unset($this->req_data['key']);
+                unset($data['key']);
+                unset($this->req_data['key']);
                 $response = $this->sendCurl('get', $this->config['get_method_url'], [], $this->dataType, $this->apiHeaders);
                 break;//获取运输方式
             case 'updateWeight':
-                unset($data['key']);unset($this->req_data['key']);
+                unset($data['key']);
+                unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['update_weight_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//客户通过updateWeight API提交订单核重，与仓库操作的实重进行对比是否超重量差异值。注意：一定要在仓库操作前推送，否则将不接收客户推送的核重。
             case 'lastnum':
-                unset($data['key']);unset($this->req_data['key']);
+                unset($data['key']);
+                unset($this->req_data['key']);
                 $response = $this->sendCurl('get', $this->config['url'] . $this->req_data['orderNo'], [], $this->dataType, $this->apiHeaders);
                 break;//获取追踪号和转单号用的
             default:
-                unset($data['key']);unset($this->req_data['key']);
+                unset($data['key']);
+                unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['create_order_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//默认是下单
         }
@@ -308,20 +325,6 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
         return $this->retSuccessResponseData($fieldData);
     }
 
-
-    /**
-     * 取消订单，删除订单
-     * @return mixed
-     */
-    public function deleteOrder(string $order_id)
-    {
-        $param = [
-            'orderId' => $order_id,
-            'key' => 'cancel',
-        ];
-        $response = $this->request(__FUNCTION__, $param);
-        return $response;
-    }
 
     /**
      * 修改订单状态

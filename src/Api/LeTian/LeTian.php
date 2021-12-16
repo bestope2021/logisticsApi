@@ -45,6 +45,8 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         'deleteOrder' => 'deleteOrder2', //删除订单。发货后的订单不可删除。
 
+        'operationPackages' => 'updateorder', //修改订单重量
+
         'queryTrack' => 'getTrack', //轨迹查询
 
         'getShippingMethod' => 'getTransportWayList', //获取配送方式
@@ -138,7 +140,7 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     break;
                 }
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $ls[] = [
                 'orderNo' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
                 'trackingNo' => '', //N:服务商跟踪号码。若填写，需符合运输方式中规定的编码规则。length <= 32
@@ -268,7 +270,8 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'orderNo' => $order_id,
         ];
         $response = $this->request(__FUNCTION__, $param);
-        return $response;
+        $flag=$response['success']==true;
+        return $flag;
     }
 
     /**

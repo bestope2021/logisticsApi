@@ -119,9 +119,9 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
-            if(isset($item['iossNumber']) && !empty($item['iossNumber'])){
+            if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [
                     'extra_servicecode' => 'IO',//额外服务类型代码
                     'extra_servicevalue' => $item['iossNumber'],//额外服务值
@@ -181,25 +181,39 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
                 'invoice' => $productList,// Y:一次最多支持 5 个产品信息（超过 5 个将会忽略）
             ];
-            if(!empty($extra_service)) $data['extra_service'] = $extra_service;
+            if (!empty($extra_service)) $data['extra_service'] = $extra_service;
             $ls[] = $data;
         }
 
         $response = $this->request(__FUNCTION__, $ls[0]);
 
         $reqRes = $this->getReqResData();
-//        $this->dd($response);
+
 
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2     2021/9/2修复优化获取追踪号逻辑
-        if (in_array($response['success'],[1,2])){
-            $flag = 1;
-        }else{
-            $flag = 0;
+
+        if ($response['success'] == 2) {
+            // 进行删除操作,再重新下单
+            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
+            if ($delFlag) {
+                $response = $this->request(__FUNCTION__, $ls[0]);
+                $reqRes = $this->getReqResData();
+            }
         }
+        if ((stripos($response['cnmessage'], 'exists') !== false) || (stripos($response['enmessage'], 'exists') !== false)) {
+            // 进行删除操作,再重新下单
+            $delFlag = $this->deleteOrder($ls[0]['reference_no']);
+            if ($delFlag) {
+                $response = $this->request(__FUNCTION__, $ls[0]);
+                $reqRes = $this->getReqResData();
+            }
+        }
+
+        // 结果
+        $flag = $response['success'] == 1;
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
@@ -214,15 +228,12 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $fieldData['channel_hawbcode'] = $trackNumberResponse['data']['channel_hawbcode'] ?? $response['data']['shipping_method_no'];
         }
 
-        $fieldData['order_id'] = $response['data']['order_id'] ?? '';
-        $fieldData['refrence_no'] = $response['data']['refrence_no'] ?? '';
-        $fieldData['shipping_method_no'] = $response['data']['shipping_method_no'] ?? '';
-        $fieldData['channel_hawbcode'] = $response['data']['channel_hawbcode'] ?? '';
-
+        $fieldData['order_id'] = empty($response['data']['order_id']) ? '' : $response['data']['order_id'];
+        $fieldData['refrence_no'] = empty($response['data']['refrence_no']) ? ($ls[0]['reference_no'] ?? '') : $response['data']['refrence_no'];
+        $fieldData['shipping_method_no'] = empty($response['data']['shipping_method_no']) ? '' : $response['data']['shipping_method_no'];
+        $fieldData['channel_hawbcode'] = empty($response['data']['channel_hawbcode']) ? '' : $response['data']['channel_hawbcode'];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
-
     }
 
     public function request($function, $data = [])
@@ -264,7 +275,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $reference_no //客户参考号
         ];
         $res = $this->request(__FUNCTION__, $params);
-        if (!in_array($res['success'],[1,2])) {
+        if (!in_array($res['success'], [1, 2])) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
         return $this->retSuccessResponseData($res['data']);
@@ -300,7 +311,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     {
         $data = [
             'reference_no' => $params['order_id'] ?? '',
-            'order_weight' => $params['weight'] ?? '',
+            'order_weight' => empty($params['weight']) ? 0 : round($params['weight'], 3),//单位是KG
         ];
         $response = $this->request(__FUNCTION__, $data);
         if ($response['success'] != 1) {
@@ -320,7 +331,10 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'reference_no' => $order_code, //客户参考号
         ];
         $response = $this->request(__FUNCTION__, $data);
-        return $response;
+        // 结果
+        $flag = $response['success'] == 1;
+
+        return $flag;
     }
 
     /**

@@ -5,7 +5,7 @@
  * Date: 3/1/21
  */
 
-namespace smiler\logistics\Api\YiKeDa;
+namespace smiler\logistics\Api\YiKeDaTc;
 
 
 use smiler\logistics\Common\BaseLogisticsInterface;
@@ -17,7 +17,7 @@ use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
 
-class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
+class YiKeDaTc extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
 {
     /**
      * 一次最多提交多少个包裹,5自定义
@@ -148,7 +148,9 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'province' => $item['recipientState'] ?? '',//必填 收件人省
                 'city' => $item['recipientCity'] ?? '',//必填 收件人城市
                 'company' => $item['recipientCompany'] ?? '',//非必填 收件人公司名
-                'address1' => $address ?? ' ',//必填 收件人地址
+            //    'address1' => $address ?? ' ',//必填 收件人地址
+                'address1' => $item['recipientStreet'] ?? ' ',// Y:收件人街道1
+                'address2' => ($item['recipientStreet1'] ?? ' ') .' '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//N:收件人街道2
                 'zipcode' => $item['recipientPostCode'] ?? '',//必填 收件人邮编
                 'name' => $item['recipientName'] ?? '',//必填 收件人姓名
                 'phone' => $item['recipientPhone'] ?? '',//非必填 收件人电话
@@ -384,11 +386,12 @@ class YiKeDa extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     {
         $param = [
             'order_code' => $order_id,
-            'reason' => '易可达取消订单',
+            'reason' => '易可达头程取消订单',
         ];
         $data = $this->buildParams('deleteOrder', $param);
         $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_delete_command'], $data, $this->dataType, $this->apiHeaders, 'UTF-8', 'cancelOrder');
-        return $response;
+        $flag=$response['ask']=='Success';
+        return $flag;
     }
 
     /**

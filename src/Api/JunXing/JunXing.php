@@ -52,9 +52,12 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
     public $apiHeaders = [];
 
     public $interface = [
+
         'createOrder' => 'createorder', // 【创建订单】
 
         'getPackagesLabel' => 'getnewlabel', // 【打印标签|面单】
+
+        'operationPackages' => 'updateorder', //修改订单重量
 
         'getTrackNumber' => 'gettrackingnumber',//获取跟踪号
 
@@ -146,7 +149,10 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
                 'payment' => empty($payment_type) ? '税金支付' : $payment_type,//税金支付【值通过对接简易资料接口获取】
                 'declareMethod' => empty($declare_type) ? '' : $declare_type,//报关方式【值通过对接简易资料接口获取】
                 'pcs' => 1,//件数
-                'receiverAddr' => $item['recipientStreet'] ?? '',//收件人地址
+                //'receiverAddr' => $item['recipientStreet'] ?? '',//收件人地址
+                'receiverAddr' => $item['recipientStreet'] ?? ' ',//收件人地址一，最大长度为35字符 ,//2021/12/14
+                'receiverAddrTwo' => $item['recipientStreet1'] ?? ' ',//收件人地址二，//2021/12/14
+                'receiverAddrThree' => empty($item['recipientStreet2']) ? ' ' : $item['recipientStreet2'],//收件人地址三，//2021/12/14
                 'receiverCity' => $item['recipientCity'] ?? '',//收件人城市
                 'receiverCompanyName' => $item['recipientName'] ?? '',//公司名
                 'receiverCountry' => $item['recipientCountryCode'] ?? '',//收货国家
@@ -191,12 +197,12 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? ''));
         $resBody = empty($response['result_code']) ? json_decode($response['body'], true) : [];
-       
+
         // 获取追踪号
         if ($flag && !empty($resBody)) {
             $trackNumberResponse = $this->getTrackNumber($resBody['waybillNo']);
-            if($trackNumberResponse['flag']){
-                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber']?? '';//追踪号
+            if ($trackNumberResponse['flag']) {
+                $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
                 $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
             }
         }
@@ -241,6 +247,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $this->res_data = $response;
         return $response;
     }
+
     /**
      * 获取跟踪号
      * @param $processCode
@@ -261,7 +268,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['message'] ?? ($response['message'] ?? '未知错误'));
         $fieldData['trackingNo'] = $flag ? $processCode : '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $flag ? ($trackNumber['transNo']??'') : '';//尾程追踪号
+        $fieldData['frt_channel_hawbcode'] = $flag ? ($trackNumber['transNo'] ?? '') : '';//尾程追踪号
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
         return $ret;
@@ -433,7 +440,8 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
             'amendment' => '【佰事德批量删除订单】',//取消原因
         ];
         $response = $this->cancelOrder(__FUNCTION__, $data);
-        return $response;
+        $flag = $response['result_code'] == 0;
+        return $flag;
     }
 
     /**
@@ -490,7 +498,7 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         $fieldMap = FieldMap::shippingMethod();//字段映射
         $response = $this->getTransport(__FUNCTION__, []);
         if (!empty($response['result_code'])) {
-            $this->retErrorResponseData($response['message']??'骏兴头程物流商获取运输方式接口异常，获取失败！');
+            $this->retErrorResponseData($response['message'] ?? '骏兴头程物流商获取运输方式接口异常，获取失败！');
         }
         if ((empty($response['result_code'])) && (!empty($response['body']))) {
             $res = json_decode($response['body'], true);
@@ -504,6 +512,16 @@ class JunXing extends LogisticsAbstract implements TrackLogisticsInterface, Pack
         }
 
         return $this->retSuccessResponseData($fieldData);
+    }
+
+    /**
+     * 修改订单重量
+     * @param array $params
+     * @return mixed|void
+     */
+    public function operationPackages($params)
+    {
+        $this->throwNotSupport(__FUNCTION__);
     }
 
     /**

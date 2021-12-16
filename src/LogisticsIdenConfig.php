@@ -10,16 +10,21 @@ namespace smiler\logistics;
 
 use smiler\logistics\Api\BaTong\BaTong;
 use smiler\logistics\Api\BaXing\BaXing;
+use smiler\logistics\Api\BaXing\CouPang;
 use smiler\logistics\Api\Bheo\Bheo;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
+use smiler\logistics\Api\CouPangCorp\CouPangCorp;
+use smiler\logistics\Api\DgYz\DgYz;
 use smiler\logistics\Api\JiaLiCod\JiaLiCod;
+use smiler\logistics\Api\LeTianExp\LeTianExp;
+use smiler\logistics\Api\RuiJie\RuiJie;
+use smiler\logistics\Api\ShiSun\ShiSun;
 use smiler\logistics\Api\WeiShi\WeiShi;
-use smiler\logistics\Api\YikeDa\YiKeDa;
+use smiler\logistics\Api\YiKeDaTc\YiKeDaTc;
 use smiler\logistics\Api\CNE\Cne;
 use smiler\logistics\Api\DgDhl\DgDhl;
 use smiler\logistics\Api\DgPost\DgPost;
-use smiler\logistics\Api\DgYz\DgYz;
 use smiler\logistics\Api\FourPX\FourPX;
 use smiler\logistics\Api\HeiMao\HeiMao;
 use smiler\logistics\Api\HuaHan\HuaHan;
@@ -45,6 +50,7 @@ use smiler\logistics\Api\XyExp\XyExpTrack;
 use smiler\logistics\Api\Yw\Yw;
 use smiler\logistics\Api\Yw\YwTrack;
 use smiler\logistics\Api\JunXing\JunXing;
+use smiler\logistics\Api\ZhiXinDa\ZhiXinDa;
 
 /**
  * Class LogisticsApiIdenConfig
@@ -93,9 +99,14 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_MeiTong => MeiTong::class,// 美通头程
         LogisticsIdent::LS_IDENT_DgYz => DgYz::class,// 东莞邮政小包直发
         LogisticsIdent::LS_IDENT_JIALICOD => JiaLiCod::class,// 新马泰嘉里COD物流
-        LogisticsIdent::LS_IDENT_YIKEDA => YiKeDa::class,// 易可达
+        LogisticsIdent::LS_IDENT_YIKEDA => YiKeDaTc::class,// 易可达
         LogisticsIdent::LS_IDENT_JIALICODTW => JiaLiCodTw::class,// 台湾嘉里COD物流
         LogisticsIdent::LS_IDENT_WeiShi => WeiShi::class,// 纬狮物流
+        LogisticsIdent::LS_IDENT_LETIANEXP => LeTianExp::class,//新乐天（加邮国际）
+        LogisticsIdent::LS_IDENT_COUPANGCORP => CouPangCorp::class,//CouPang物流
+        LogisticsIdent::LS_IDENT_RuiJie => RuiJie::class,//睿捷物流 2021/12/7新增
+        LogisticsIdent::LS_IDENT_ShiSun => ShiSun::class,//实顺物流 2021/12/9新增
+        LogisticsIdent::LS_IDENT_ZHI_XIN_DA => ZhiXinDa::class,//至信达 2021/12/13新增
     ];
 
     /**

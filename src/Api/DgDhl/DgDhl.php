@@ -90,7 +90,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
      * @param string $root
      * @return string
      */
-    public static function arrayToXml($array, $root='ns1:callService' ,$encoding = 'UTF-8')
+    public static function arrayToXml($array, $root = 'ns1:callService', $encoding = 'UTF-8')
     {
         $xml = "<?xml version = '1.0' encoding = '$encoding'?>";
         $xml .= self::$xmlHeader[$root];
@@ -103,23 +103,24 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
     {
         $xml = '';
         foreach ($array as $key => $val) {
-            if(empty($val)) continue;
-            if(is_array($val)) {
-                if(is_numeric($key)){
+            if (empty($val)) continue;
+            if (is_array($val)) {
+                if (is_numeric($key)) {
                     $xml .= static::arrayToXmlInc($val);
-                }else{
+                } else {
                     $xml .= "<$key>";
                     $xml .= static::arrayToXmlInc($val);
                     $xml .= "</$key>";
                 }
-            }else{
+            } else {
                 $xml .= "<$key>$val</$key>";
             }
         }
         return $xml;
     }
 
-    public static function xmlToArray($xml){
+    public static function xmlToArray($xml)
+    {
         //禁止引用外部xml实体
         libxml_disable_entity_loader(true);
         $data = json_decode(json_encode(simplexml_load_string(utf8_encode($xml), 'SimpleXMLElement', LIBXML_NOCDATA)), true);
@@ -180,7 +181,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'CompanyName' => $item['recipientName'] ?? '',//收件人公司名(个人物品写收件人姓名)
                 'AddressLine1' => $item['recipientStreet'] ?? '',// 收件地址栏1
                 'AddressLine2' => $item['recipientStreet1'] ?? '',// 收件地址栏2
-                'AddressLine3' => $item['recipientStreet2'] ?? '',// 收件地址栏3
+                'AddressLine3' => empty($item['recipientStreet2']) ? '' : $item['recipientStreet2'],// 收件地址栏3 2021/12/14
                 'City' => $item['recipientCity'] ?? '',//收件人城市
                 'Division' => $item['recipientState'] ?? '',//收件人州名称
                 'DivisionCode' => $item['recipientState'] ?? 'AK',//收件人州代码(仅对美国)
@@ -190,7 +191,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 'CountryName' => $item['recipientCountryCode'] ?? '',//收件人国家名称
                 'Contact' => [
                     'PersonName' => $item['recipientName'] ?? '',//收件人姓名
-                    'PhoneNumber' => str_replace("+","",$item['recipientPhone'] ?? ''),//收件人电话
+                    'PhoneNumber' => str_replace("+", "", $item['recipientPhone'] ?? ''),//收件人电话
                     'MobilePhoneNumber' => $item['recipientMobile'] ?? '',//收件人手机
                     'Email' => $item['recipientEmail'] ?? '',//收件人邮箱
                 ],
@@ -208,7 +209,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             $productContents = [];
             $grossWeight = 0;
             foreach ($item['productList'] as $index => $value) {
-                array_push($productContents,$value['declareEnName']);
+                array_push($productContents, $value['declareEnName']);
                 $declaredCurrency = $value['currencyCode'];
                 $declaredValue += $value['quantity'] * $value['declarePrice'];
                 $commodity[] = [
@@ -223,7 +224,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                         'Quantity' => (int)($value['quantity'] ?? ''),//单项商品的数量
                         'QuantityUnit' => 'PCS',//数量单位,
                         'Description' => $value['declareEnName'],//单项商品的英文描述,
-                        'Value' => (float)(round($value['declarePrice'],2) ?? 0.00),//商品单价,
+                        'Value' => (float)(round($value['declarePrice'], 2) ?? 0.00),//商品单价,
                         'Weight' => [
                             'Weight' => $value['netWeight'] * $value['quantity'] / 1000 ?? '',//净重
                             'WeightUnit' => 'K',//重量单位,K:千克,L:磅
@@ -241,7 +242,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                         ] : "",//单项商品参考信息节点
                     ]
                 ];
-                $grossWeight += $value['grossWeight']*$value['quantity'];
+                $grossWeight += $value['grossWeight'] * $value['quantity'];
             }
             //快件重量、尺寸信息节点
             $shipmentDetails['Pieces'][] = [
@@ -256,14 +257,14 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             //发件人注册号/税号节点，暂定一个
             $shipperRegistrationNumbers[0] = [
                 'RegistrationNumber' => [
-                    'Number' => ($dhl['sender_tax_number_type'] == 'SDT')?$item['iossNumber']:$item['senderTaxNumber'],//发件人注册号/税号
+                    'Number' => ($dhl['sender_tax_number_type'] == 'SDT') ? $item['iossNumber'] : $item['senderTaxNumber'],//发件人注册号/税号
                     'NumberTypeCode' => $dhl['sender_tax_number_type'] ?? '',//发件人注册号/税号类别
                     'NumberIssuerCountryCode' => $dhl['tax_numberIssuer_country_code'] ?? 'CN',//发件人注册号/税号所属国国家代码
                 ]
             ];
 
-            $senderTaxNumber = $item['senderTaxNumber']??'';
-            $iossNumber = $item['iossNumber']??'';
+            $senderTaxNumber = $item['senderTaxNumber'] ?? '';
+            $iossNumber = $item['iossNumber'] ?? '';
             //发件人信息节点
             $shipper = [
                 'ShipperID' => $dhl['shipper_account_number'] ?? '',//发件人账号
@@ -282,24 +283,24 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
                 ],//发件人信息
             ];
 
-            if(!empty($senderTaxNumber || !empty($iossNumber))) $shipper['RegistrationNumbers'] = $shipperRegistrationNumbers;
+            if (!empty($senderTaxNumber || !empty($iossNumber))) $shipper['RegistrationNumbers'] = $shipperRegistrationNumbers;
             $shipper['BusinessPartyTypeCode'] = $dhl['sender_business_type'] ?? '';//发件人类别
 
             $shipmentDetails['WeightUnit'] = 'K';//重量单位,K:千克,L:磅
             $shipmentDetails['GlobalProductCode'] = $item['productCode'] ?? 'P';//Global 产品代码,普通包裹：P，正午特派包裹：Y
             $shipmentDetails['LocalProductCode'] = $item['productCode'] ?? 'P';//本地产品代码,对于CN来说，GlobalProductCode通常与LocalProductCode一致。但对于某些国家/某些产品，两者可能存在差异，这取决于当地DHL的设定。虽然LocalProductCode是可选项，但出于数据完整传输考虑，建议在Request中保留LocalProductCode，一起传输。
             $shipmentDetails['Date'] = date('Y-m-d');//创建日期,当日开始九日之内
-            $shipmentDetails['Contents'] = implode(',',$productContents);//货物描述,该字段的值对应运单上的货物描述部分请在该字段使用英文准确地录入所寄快件的货物描述
+            $shipmentDetails['Contents'] = implode(',', $productContents);//货物描述,该字段的值对应运单上的货物描述部分请在该字段使用英文准确地录入所寄快件的货物描述
             $shipmentDetails['DimensionUnit'] = 'C';//尺寸单位,C: 厘米; I : 英寸
             $shipmentDetails['PackageType'] = $item['recipientPackageType'] ?? 'EE';//包装类型,EE: DHL Express Envelope, OD:Other DHL Packaging, CP:Customer-provided, JB-Jumbo box, JJ-Junior jumbo Box, DF-DHL Flyer, YP-Your
             $shipmentDetails['IsDutiable'] = 'Y';//快件类别,可选值为：---Y  包裹---N  文件
             $shipmentDetails['CurrencyCode'] = 'CNY';//运费结算币种
-            if(!empty($dhl['dg'])){
-                if(in_array($dhl['dg'],array_keys($this->detailDgList))) $shipmentDetails['CustData'] = $this->detailDgList[$dhl['dg']];//额外信息
+            if (!empty($dhl['dg'])) {
+                if (in_array($dhl['dg'], array_keys($this->detailDgList))) $shipmentDetails['CustData'] = $this->detailDgList[$dhl['dg']];//额外信息
             }
 
             $dutiable = [
-                'DeclaredValue' => (float)(round($declaredValue,2) ?? 0.00),//申报总价值
+                'DeclaredValue' => (float)(round($declaredValue, 2) ?? 0.00),//申报总价值
                 'DeclaredCurrency' => $declaredCurrency,//货币单位
                 'ShipperEIN' => $item['senderTaxNumber'] ?? '',//发件人增值税号
                 'ConsigneeEIN' => $item['recipientTaxNumber'] ?? '',//收件人增值税号
@@ -339,16 +340,16 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
             //增值服务
             $specialService = [];
             if (!empty($dhl['special_service_type'])) {
-                $special_service_type = explode(',',$dhl['special_service_type']);
+                $special_service_type = explode(',', $dhl['special_service_type']);
                 foreach ($special_service_type as $special) {
                     $special_tmp['SpecialServiceType'] = $special;//DHL特殊/增值服务代码
                     if ($special == 'II') $special_tmp['ChargeValue'] = $dhl['special_service_value'];//特殊/增值服务的价值（当前主要用于填写保险价值）最大10位数，最多保留2位小数
                     $specialService[] = ['SpecialService' => $special_tmp];
                 }
-                if(!empty($dhl['dg'])) {
-                    $dg_list = explode(',',$dhl['dg']);
+                if (!empty($dhl['dg'])) {
+                    $dg_list = explode(',', $dhl['dg']);
                     foreach ($dg_list as $dg) {
-                        if(!in_array($dg,array_keys($this->specialServiceDgList))) continue;
+                        if (!in_array($dg, array_keys($this->specialServiceDgList))) continue;
                         $special_tmp['SpecialServiceType'] = $dg;//DHL特殊/增值服务代码
                         $specialService[] = ['SpecialService' => $special_tmp];
                     }
@@ -357,10 +358,10 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
 
             //危险品节点
             $dgs = [];
-            if(!empty($dhl['dg'])){
-                $dg_list = explode(',',$dhl['dg']);
+            if (!empty($dhl['dg'])) {
+                $dg_list = explode(',', $dhl['dg']);
                 foreach ($dg_list as $dg) {
-                    if(in_array($dhl['dg'],array_keys($this->specialServiceDgList))){
+                    if (in_array($dhl['dg'], array_keys($this->specialServiceDgList))) {
                         $dgs[] = [
                             'DG' => [
                                 'DG_ContentID' => $this->specialServiceDgList[$dg]
@@ -403,7 +404,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $flag = (isset($response['Note']['ActionNote']) && $response['Note']['ActionNote'] == 'Success');
 
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['Response']['Status']['Condition']['ConditionCode'] ?'ConditionCode:'.$response['Response']['Status']['Condition']['ConditionCode'].' ConditionData:'.$response['Response']['Status']['Condition']['ConditionData']: '未知错误');
+        $fieldData['info'] = $flag ? '' : ($response['Response']['Status']['Condition']['ConditionCode'] ? 'ConditionCode:' . $response['Response']['Status']['Condition']['ConditionCode'] . ' ConditionData:' . $response['Response']['Status']['Condition']['ConditionData'] : '未知错误');
 
         $fieldData['orderNo'] = $customerOrderNo;//客户订单号
         $fieldData['trackingNo'] = $flag ? $response['AirwayBillNumber'] : '';//空运单号
@@ -414,7 +415,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $fieldData['extended'] = $flag ? [
             ResponseDataConst::LSA_LABEL_TYPE => ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF,//文件类型
             ResponseDataConst::LSA_LABEL_PATH => $flag ? $response['LabelImage']['OutputImage'] : '',//面单
-            ResponseDataConst::LSA_LABEL_INVOICE_PATH => $response['LabelImage']['MultiLabels']['MultiLabel']['DocImageVal']?? '',//发票
+            ResponseDataConst::LSA_LABEL_INVOICE_PATH => $response['LabelImage']['MultiLabels']['MultiLabel']['DocImageVal'] ?? '',//发票
             ResponseDataConst::LSA_IS_LABEL => 0,//是否存在面单接口[默认存在，存在可以不设]
         ] : [];//扩展参数
 
@@ -424,8 +425,9 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
     }
 
     //随机生成发票号
-    private static function getInvoiceNumber(){
-        return mt_rand(10000000,99999999);
+    private static function getInvoiceNumber()
+    {
+        return mt_rand(10000000, 99999999);
     }
 
     public function request($function, $data = [])
@@ -445,14 +447,14 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $header_arr = [
             'Request' => [
                 'ServiceHeader' => [
-                    'MessageTime' =>date("c"),
-                    'MessageReference' =>self::uuid(),
-                    'SiteID' =>$this->config['siteID'],
-                    'Password' =>$this->config['password'],
-                    ]
+                    'MessageTime' => date("c"),
+                    'MessageReference' => self::uuid(),
+                    'SiteID' => $this->config['siteID'],
+                    'Password' => $this->config['password'],
+                ]
             ],
         ];
-        if($interface == 'createOrder'){
+        if ($interface == 'createOrder') {
             $header_arr['Request']['MetaData'] = [
                 'SoftwareName' => 'BST',
                 'SoftwareVersion' => 1.0,
@@ -461,7 +463,7 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         }
 
         $header_arr['LanguageCode'] = 'cn';
-        return array_merge($header_arr,$arr);
+        return array_merge($header_arr, $arr);
     }
 
     /**
@@ -525,7 +527,35 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
      */
     public function getPackagesLabel($params = [])
     {
-        $this->throwNotSupport(__FUNCTION__);
+        $data = [
+            'trackNumber' => $params['trackNumber'],
+            'label_id' => '',
+            'shippingMethodCode' => $params['shippingMethodCode'],
+        ];
+        $response = $this->request(__FUNCTION__, $data);
+
+        // 处理结果
+        $fieldData = [];
+        $fieldMap = FieldMap::packagesLabel();
+
+        // 结果
+        $flag = (isset($response['Note']['ActionNote']) && $response['Note']['ActionNote'] == 'Success');
+
+        if (!$flag) {
+            return $this->retErrorResponseData($response['Response']['Status']['Condition']['ConditionCode'] ? 'ConditionCode:' . $response['Response']['Status']['Condition']['ConditionCode'] . ' ConditionData:' . $response['Response']['Status']['Condition']['ConditionData'] : '未知错误');
+        }
+
+        $response['flag'] = $flag;
+        $response['info'] = '';
+        $response['order_no'] = $params['trackNumber'] ?? '';
+        $response['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $response['lable_file'] = $flag ? $response['LabelImage']['OutputImage'] : '';
+        $response['label_path_plat'] = '';//不要填写
+        $response['lable_content_type'] = 1;
+
+        $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($response, $fieldMap);
+
+        return $this->retSuccessResponseData($fieldData);
     }
 
     /**
@@ -556,11 +586,11 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         // 处理结果
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
-        $data = isset($response['AWBInfo']['Status']['ShipmentInfo']['ShipmentEvent'])?$response['AWBInfo']['Status']['ShipmentInfo']['ShipmentEvent']:null;
+        $data = isset($response['AWBInfo']['Status']['ShipmentInfo']['ShipmentEvent']) ? $response['AWBInfo']['Status']['ShipmentInfo']['ShipmentEvent'] : null;
 
         $ls = [];
         //ShipmentEvent如果是二维数组
-        if(!empty($data)) {
+        if (!empty($data)) {
             foreach ($data as $key => $val) {
                 $info = [
                     'status' => $val['ServiceEvent']['EventCode'],
@@ -582,8 +612,8 @@ class DgDhl extends LogisticsAbstract implements BaseLogisticsInterface, Package
         $ls[0] = LsSdkFieldMapAbstract::getResponseData2MapData($info, $fieldMap2);*/
 
         $data['flag'] = $flag;
-        $data['info'] = $flag ? $response['AWBInfo']['Status']['ActionStatus']:'';
-        $data['status'] = $flag ? $response['AWBInfo']['Status']['ActionStatus']:'';
+        $data['info'] = $flag ? $response['AWBInfo']['Status']['ActionStatus'] : '';
+        $data['status'] = $flag ? $response['AWBInfo']['Status']['ActionStatus'] : '';
         $data['tno'] = $trackNumber;
         $data['sPaths'] = $ls;
         $fieldData = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
