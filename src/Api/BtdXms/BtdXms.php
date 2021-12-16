@@ -175,7 +175,7 @@ class BtdXms extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'a:UnitPrice' => (float)($value['customsDeclarationPrice'] ?? ''), //单价（报关价值）
                 ];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $order_info['a:Products'] = $productList;//产品信息,多个产品信息建议不要超过5个
             $order_info['a:Province'] = $item['recipientState'] ?? '';//收件人省州
             $order_info['a:ShippingWay'] = $item['shippingMethodCode'] ?? 'FedEx';//渠道

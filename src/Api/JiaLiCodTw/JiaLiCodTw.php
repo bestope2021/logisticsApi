@@ -248,7 +248,7 @@ class JiaLiCodTw extends LogisticsAbstract implements BaseLogisticsInterface, Tr
                 $order_price += $value['declarePrice'];
             }
 
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $data = [
                 'sale_platform' => $item['platformSource'] ?? '',
                 'service' => [

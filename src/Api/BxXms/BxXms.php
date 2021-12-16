@@ -136,7 +136,7 @@ class BxXms extends LogisticsAbstract implements BaseLogisticsInterface, Package
                     break;
                 }
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). (empty($item['recipientStreet2'])?'':$item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $ls[] = [
                 'orderNo' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
                 'trackingNo' => '', //N:服务商跟踪号码。若填写，需符合运输方式中规定的编码规则。length <= 32

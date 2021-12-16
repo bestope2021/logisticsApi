@@ -120,7 +120,7 @@ class Cne extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                     'cxOrigin' => $value['originCountry'] ?? 'CN', // N:原产地国家代码
                 ];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $ls[] = [
                 'cRNo' => $item['customerOrderNo'] ?? '',// Y:参考号,0-30 字符。(传用户系统订单号，只允许数字和字母，中划线，其他符号不接受）
                 'nItemType' => $item['nItemType'] ?? '1',// Y:快件类型，默认为1。取值为：0(文件),1(包裹),2(防水袋)

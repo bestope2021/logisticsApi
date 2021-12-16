@@ -122,7 +122,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $data = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死

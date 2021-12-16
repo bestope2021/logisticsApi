@@ -123,7 +123,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
             if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [

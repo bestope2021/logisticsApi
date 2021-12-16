@@ -121,7 +121,7 @@ class DgPost extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'address' => $item['senderAddress'] ?? '',//发件人详细地址
                 'linker' => $item['senderName'] ?? '',//发件人联系人
             ];
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             //收件人节点
             $receiver = [
                 'name' => $item['recipientName'] ?? '',//收件人姓名
