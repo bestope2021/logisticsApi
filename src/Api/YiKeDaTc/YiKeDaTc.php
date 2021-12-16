@@ -138,7 +138,7 @@ class YiKeDaTc extends LogisticsAbstract implements BaseLogisticsInterface, Pack
                     'quantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                 ];
             }
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $sm_code = $item['shippingMethodCode'] ?? 'testAir';
             $ls[] = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12

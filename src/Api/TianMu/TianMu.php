@@ -128,7 +128,7 @@ class TianMu extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'shipper_telephone' => $item['senderPhone'] ?? '',//发件人电话
             ];
 
-            $address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' '). (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);//2021/12/14
+            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             //收件人信息
             $consignee = [
                 'consignee_name' => $item['recipientName'] ?? '',//收件人姓名

@@ -257,7 +257,7 @@ class ItDiDa extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $order_weight += $value['declareWeight'];
                 $order_num += $value['quantity'];
             }
-            //$address = ($item['recipientStreet'] ?? ' ') . ($item['recipientStreet1'] ?? ' ') . ($item['recipientStreet2'] ?? '');
+            //$address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $data = [
                 'baoGuanFangShi' => 0,//报关方式 0:其它 1:单独报关 ,
                 'baoGuoLeiXing' => 1,//N:包裹类型 0:文件 1:包裹 2:包裹袋 ,
