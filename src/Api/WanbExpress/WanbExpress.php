@@ -67,6 +67,7 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
         'getShippingMethod' => 'api/services',// GET:获取产品服务信息
         'searchOrder' => 'api/parcels?referenceId=%s',// 搜索包裹 => %s:{referenceId}客户订单号
         'deleteOrder' => 'api/parcels/%s',// 删除订单 => %s:{processCode}
+        'getShippingFee' => 'api/parcels/%s/invoice',// 获取包裹账单 => %s:{processCode}
     ];
 
     /**
@@ -378,6 +379,32 @@ class WanbExpress extends LogisticsAbstract implements BaseLogisticsInterface, T
             $ret = $response['Data'];
         }
 
+        return $ret;
+    }
+
+    /**
+     * 获取跟踪号
+     * @param $reference_no
+     * @param bool $isOnly 是否仅返回追踪号
+     * @return array|mixed
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+
+        $extUrlParams = [$processCode];
+
+        $response = $this->request(__FUNCTION__, [], self::METHOD_GET, $extUrlParams);
+
+        // 结果
+        $flag = $response['Succeeded'] == true;
+
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['Data'];
         return $ret;
     }
 
