@@ -197,7 +197,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'BuyerStreet1' => $item['recipientStreet'] ?? ' ',// Y:收件人街道1
                     'BuyerStreet2' => ($item['recipientStreet1'] ?? ' ') .' '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//N:收件人街道2
                     'BuyerZipCode' => $item['recipientPostCode'] ?? '', //N:收件人邮编
-                    'BuyerPhone' => (int)$item['recipientPhone'] ?? '', //Y:收件人电话
+                    'BuyerPhone' => $item['recipientPhone'] ?? '', //Y:收件人电话
                     'BuyerEmail' => $item['recipientEmail'] ?? '',// N:收件人邮箱
                     'HouseNumber' => '',// N:门牌号
                 ],
