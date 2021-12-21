@@ -224,7 +224,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         if (!$flag) {
             //如果是重复下单，可以直接调用获取追踪号接口
-            if (stristr($response['Msg'], '已经存在客单号')) {
+            if (stripos($response['Msg'], '已经存在客单号')) {
                 if (!empty($get_redis)) {
                     ////不要调用取消接口,而是调用获取追踪号接口
                     $trackNumberResponse = $this->getTrackNumber($get_redis);
@@ -236,7 +236,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 }
             }
             //如果是异常情况，则直接取消原单，重新下单
-            if (stristr($response['Msg'], 'order is exception')) {
+            if (stripos($response['Msg'], 'order is exception')) {
                 if (!empty($get_redis)) {
                     $delete_res = $this->deleteOrder($get_redis);
                     if ($delete_res) {
