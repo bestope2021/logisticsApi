@@ -90,6 +90,14 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
     }
 
 
+    //包含电池
+    const CONTAINSBATTERY = [
+        '带内置电池',
+        '含纽扣电池',
+        '带外置电池',
+        '眼镜',
+    ];
+
     /**
      * 生成13位时间戳
      * @return float
@@ -156,7 +164,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         foreach ($params as $item) {
             $productList = [];
             $order_weight = $order_price = 0;
-            $isElectricity = 0;
+            $isElectricity = false;
 
             foreach ($item['productList'] as $key => $value) {
                 $productList[] = [
@@ -169,6 +177,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 ];
                 $order_weight += $value['declareWeight'];
                 $order_price += $value['declarePrice'];
+                $isElectricity = (boolean)(in_array($value['commodityAttributeName'],self::CONTAINSBATTERY));//是否带电
             }
             $data = [
                 'CustomerOrderCode' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
@@ -183,7 +192,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 'Length' => empty($item['packageLength']) ? '0.000' : round($item['packageLength'], 3),//长
                 'Width' => empty($item['packageWidth']) ? '0.000' : round($item['packageWidth'], 3),//宽
                 'Height' => empty($item['packageHeight']) ? '0.000' : round($item['packageHeight'], 3),//高
-                'IsElectricity' => (int)$isElectricity, //是否有电池 0：无电池,1：有电池，默认 0，整数型
+                'IsElectricity' => (boolean)$isElectricity, //是否有电池 0：无电池,1：有电池，默认 0，整数型
                 'GoodsType' => (int)4,//货物类型:1-礼品，2-文件，3-商品货样，4-其他
                 'ReqLogisticsExt' => '',//默认值：{}
                 'VATID' => $item['senderTaxNumber'] ?? '',//VAT税号（ShippingMethodCode为英国渠道时，该字段必填）
@@ -206,7 +215,6 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         }
 
         $response = $this->request(__FUNCTION__, $ls[0]);
-
 
         // 处理结果
         $reqRes = $this->getReqResData();
@@ -235,13 +243,13 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     }
                 }
             }
+        }
+        if (!$flag){
             //如果是异常情况，则直接取消原单，重新下单
-            if (stripos($response['Msg'], 'order is exception')) {
+            if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'],'异常'))) {
                 if (!empty($get_redis)) {
                     $delete_res = $this->deleteOrder($get_redis);
                     if ($delete_res) {
-                        //清空Redis缓存
-                        //(new  Redis())->del($this->iden . $ls[0]['CustomerOrderCode']);
                         //然后重新下单
                         $response = $this->request(__FUNCTION__, $ls[0]);
                         $flag = $response['IsSuccess'] == true;//重新赋值条件
