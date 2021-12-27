@@ -104,11 +104,6 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         '眼镜',
         '手机',
         '植物种子',
-        '纯电池',
-        '平衡车',
-        '移动电源',
-        '大功率电池',
-        '配套干电池',
     ];
 
     /**
@@ -228,7 +223,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         }
 
         $response = $this->request(__FUNCTION__, $ls[0]);
-        
+
         // 处理结果
         $reqRes = $this->getReqResData();
 
