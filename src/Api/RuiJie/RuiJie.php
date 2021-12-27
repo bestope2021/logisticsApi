@@ -272,7 +272,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 //        }
 
         $fieldData['flag'] = $flag ? true : false;
-        $fieldData['info'] = $flag ? '' : ($response['Msg'] ?? '未知错误');
+        $fieldData['info'] = $flag ? '' : (empty($trackNumberResponse['tipMsg']) ? ($response['Msg'] ?? '未知错误') : $trackNumberResponse['tipMsg']);
 
         // 获取追踪号,如果延迟的话
         if ($flag && !empty($response['Data']['Data']['OrderCode'])) {
