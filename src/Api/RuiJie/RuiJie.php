@@ -96,6 +96,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         '含纽扣电池',
         '带外置电池',
         '眼镜',
+        '带磁物品',
     ];
 
     /**
@@ -177,7 +178,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 ];
                 $order_weight += $value['declareWeight'];
                 $order_price += $value['declarePrice'];
-                $isElectricity = (boolean)(in_array($value['commodityAttributeName'],self::CONTAINSBATTERY));//是否带电
+                $isElectricity = (boolean)(in_array($value['commodityAttributeName'], self::CONTAINSBATTERY));//是否带电
             }
             $data = [
                 'CustomerOrderCode' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 12
@@ -204,7 +205,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     'BuyerState' => $item['recipientState'] ?? '', //Y:收件人省/州
                     'BuyerCity' => $item['recipientCity'] ?? '', //Y:收件人城市
                     'BuyerStreet1' => $item['recipientStreet'] ?? ' ',// Y:收件人街道1
-                    'BuyerStreet2' => ($item['recipientStreet1'] ?? ' ') .' '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//N:收件人街道2
+                    'BuyerStreet2' => ($item['recipientStreet1'] ?? ' ') . ' ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//N:收件人街道2
                     'BuyerZipCode' => $item['recipientPostCode'] ?? '', //N:收件人邮编
                     'BuyerPhone' => $item['recipientPhone'] ?? '', //Y:收件人电话
                     'BuyerEmail' => $item['recipientEmail'] ?? '',// N:收件人邮箱
@@ -236,27 +237,39 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 if (!empty($get_redis)) {
                     ////不要调用取消接口,而是调用获取追踪号接口
                     $trackNumberResponse = $this->getTrackNumber($get_redis);
-                    $flag=$trackNumberResponse['flag'];//重新赋值flag
+                    $flag = $trackNumberResponse['flag'];//重新赋值flag
                     if ($flag) {
                         $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
                         $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
+                    } else {
+                        //如果是异常情况，则直接取消原单，重新下单
+                        if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'], '异常'))) {
+                            if (!empty($get_redis)) {
+                                $delete_res = $this->deleteOrder($get_redis);
+                                if ($delete_res) {
+                                    //然后重新下单
+                                    $response = $this->request(__FUNCTION__, $ls[0]);
+                                    $flag = $response['IsSuccess'] == true;//重新赋值条件
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        if (!$flag){
-            //如果是异常情况，则直接取消原单，重新下单
-            if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'],'异常'))) {
-                if (!empty($get_redis)) {
-                    $delete_res = $this->deleteOrder($get_redis);
-                    if ($delete_res) {
-                        //然后重新下单
-                        $response = $this->request(__FUNCTION__, $ls[0]);
-                        $flag = $response['IsSuccess'] == true;//重新赋值条件
-                    }
-                }
-            }
-        }
+//        if (!$flag){
+//            //如果是异常情况，则直接取消原单，重新下单
+//            if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'],'异常'))) {
+//                if (!empty($get_redis)) {
+//                    $delete_res = $this->deleteOrder($get_redis);
+//                    if ($delete_res) {
+//                        //然后重新下单
+//                        $response = $this->request(__FUNCTION__, $ls[0]);
+//                        $flag = $response['IsSuccess'] == true;//重新赋值条件
+//                    }
+//                }
+//            }
+//        }
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['Msg'] ?? '未知错误');
