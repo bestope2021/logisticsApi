@@ -257,19 +257,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                 }
             }
         }
-//        if (!$flag){
-//            //如果是异常情况，则直接取消原单，重新下单
-//            if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'],'异常'))) {
-//                if (!empty($get_redis)) {
-//                    $delete_res = $this->deleteOrder($get_redis);
-//                    if ($delete_res) {
-//                        //然后重新下单
-//                        $response = $this->request(__FUNCTION__, $ls[0]);
-//                        $flag = $response['IsSuccess'] == true;//重新赋值条件
-//                    }
-//                }
-//            }
-//        }
+
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($trackNumberResponse['tipMsg']) ? ($response['Msg'] ?? '未知错误') : $trackNumberResponse['tipMsg']);
