@@ -95,15 +95,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         '带内置电池',
         '含纽扣电池',
         '带外置电池',
-        '可拆卸电池',
-        '超体积非普',
-        '电子烟',
-        '无线充',
-        '内置锂金属电池',
-        '医疗设备',
         '眼镜',
-        '手机',
-        '植物种子',
     ];
 
     /**
