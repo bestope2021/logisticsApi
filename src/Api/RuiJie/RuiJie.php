@@ -226,47 +226,47 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         // 结果
         $flag = $response['IsSuccess'] == true;
 
-        //设置redis缓存FLS单号
-        if (!empty((new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']))) {
-            $get_redis = (new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']);
-        }
-
-        if (!$flag) {
-            //如果是重复下单，可以直接调用获取追踪号接口
-            if (stripos($response['Msg'], '已经存在客单号')) {
-                if (!empty($get_redis)) {
-                    ////不要调用取消接口,而是调用获取追踪号接口
-                    $trackNumberResponse = $this->getTrackNumber($get_redis);
-                    $flag = $trackNumberResponse['flag'];//重新赋值flag
-                    if ($flag) {
-                        $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
-                        $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
-                    } else {
-                        //如果是异常情况，则直接取消原单，重新下单
-                        if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'], '异常'))) {
-                            if (!empty($get_redis)) {
-                                $delete_res = $this->deleteOrder($get_redis);
-                                if ($delete_res) {
-                                    //然后重新下单
-                                    $response = $this->request(__FUNCTION__, $ls[0]);
-                                    $flag = $response['IsSuccess'] == true;//重新赋值条件
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+//        //设置redis缓存FLS单号
+//        if (!empty((new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']))) {
+//            $get_redis = (new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']);
+//        }
+//        if (!$flag) {
+//            //如果是重复下单，可以直接调用获取追踪号接口
+//            if (stripos($response['Msg'], '已经存在客单号')) {
+//                if (!empty($get_redis)) {
+//                    ////不要调用取消接口,而是调用获取追踪号接口
+//                    $trackNumberResponse = $this->getTrackNumber($get_redis);
+//                    $flag = $trackNumberResponse['flag'];//重新赋值flag
+//                    if ($flag) {
+//                        $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
+//                        $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
+//                    } else {
+//                        //如果是异常情况，则直接取消原单，重新下单
+//                        if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'], '异常'))) {
+//                            if (!empty($get_redis)) {
+//                                $delete_res = $this->deleteOrder($get_redis);
+//                                if ($delete_res) {
+//                                    //然后重新下单
+//                                    $response = $this->request(__FUNCTION__, $ls[0]);
+//                                    $flag = $response['IsSuccess'] == true;//重新赋值条件
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
 
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($trackNumberResponse['tipMsg']) ? ($response['Msg'] ?? '未知错误') : $trackNumberResponse['tipMsg']);
 
+
         // 获取追踪号,如果延迟的话
-        if ($flag && !empty($response['Data']['Data']['OrderCode'])) {
-            //设置缓存
-            (new  Redis())->set($this->iden . $ls[0]['CustomerOrderCode'], $response['Data']['Data']['OrderCode'], 0);//缓存关系
-        }
+//        if ($flag && !empty($response['Data']['Data']['OrderCode'])) {
+//            //设置缓存
+//            (new  Redis())->set($this->iden . $ls[0]['CustomerOrderCode'], $response['Data']['Data']['OrderCode'], 0);//缓存关系
+//        }
 
         $fieldData['orderNo'] = $ls[0]['CustomerOrderCode'];
         $fieldData['trackingNo'] = $flag ? (empty($trackNumberResponse['trackingNumber']) ? (empty($response['Data']['Data']['TrackingNumber']) ? '' : $response['Data']['Data']['TrackingNumber']) : $trackNumberResponse['trackingNumber']) : '';//追踪号，不能实时返回，要过一分钟

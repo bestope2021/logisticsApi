@@ -208,29 +208,30 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         // 结果
         $flag = $response['success'];
-         //设置redis缓存FLS单号
-        if (!empty((new  Redis())->get($this->iden . $customerOrderNo))) {
-            $get_redis = (new  Redis())->get($this->iden . $customerOrderNo);
-        }
-        //重复下单，删除原单
-        if(!empty($response['error']['errorInfo']) && (!$flag)){
-            if (stripos($response['error']['errorInfo'], '已经存在')) {
-                if (!empty($get_redis)) {
-                    $delete_res = $this->deleteOrder($get_redis);
-                    if ($delete_res) {
-                        //然后重新下单
-                        $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
-                        $flag = $response['success'];//重新赋值条件
-                    }
-                }
-            }
-        }
 
-        // 获取追踪号,如果延迟的话
-        if ($flag && (!empty($response['id']))) {
-            //设置缓存
-            (new  Redis())->set($this->iden . $customerOrderNo, $response['id'], 0);//缓存关系,物流商ID
-        }
+//         //设置redis缓存FLS单号
+//        if (!empty((new  Redis())->get($this->iden . $customerOrderNo))) {
+//            $get_redis = (new  Redis())->get($this->iden . $customerOrderNo);
+//        }
+//        //重复下单，删除原单
+//        if(!empty($response['error']['errorInfo']) && (!$flag)){
+//            if (stripos($response['error']['errorInfo'], '已经存在')) {
+//                if (!empty($get_redis)) {
+//                    $delete_res = $this->deleteOrder($get_redis);
+//                    if ($delete_res) {
+//                        //然后重新下单
+//                        $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
+//                        $flag = $response['success'];//重新赋值条件
+//                    }
+//                }
+//            }
+//        }
+//
+//        // 获取追踪号,如果延迟的话
+//        if ($flag && (!empty($response['id']))) {
+//            //设置缓存
+//            (new  Redis())->set($this->iden . $customerOrderNo, $response['id'], 0);//缓存关系,物流商ID
+//        }
 
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
