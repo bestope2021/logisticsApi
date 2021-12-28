@@ -207,10 +207,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldMap = FieldMap::createOrder();
 
         // 结果
-        $flag = false;
-        if ($response['success']) {
-            $flag = true;
-        }
+        $flag = $response['success'];
          //设置redis缓存FLS单号
         if (!empty((new  Redis())->get($this->iden . $customerOrderNo))) {
             $get_redis = (new  Redis())->get($this->iden . $customerOrderNo);
@@ -240,11 +237,10 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldData['orderNo'] = $customerOrderNo;//客户订单号
         $fieldData['trackingNo'] = $flag ? (empty($response['trackingNo']) ? '' : $response['trackingNo']) : '';//追踪号
         $fieldData['id'] = $flag ? (empty($response['id']) ? '' : $response['id']) : '';//第三方id，用空运单号代替
-
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
-
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
+
 
     public function request($function, $data = [])
     {
