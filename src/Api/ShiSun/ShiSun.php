@@ -365,7 +365,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
     /**
      *
-     * 获取订单标签(创建订单有返回并保存)12021121198710919153
+     * 获取订单标签(创建订单有返回并保存)
      * @return mixed
      */
     public function getPackagesLabel($params = [])
@@ -379,18 +379,14 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'showRecycleTags' => 0,//是否显示回收标签 ，1 显示，0不显示
         ];
         $response = $this->request(__FUNCTION__, ['printOrderRequest' => $data]);
-
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
-
         // 结果
         $flag = $response['success'];
-
         if (!$flag) {
             return $this->retErrorResponseData(empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
         }
-
         $response['flag'] = $flag;
         $response['info'] = '';
         $response['order_no'] = $params['trackNumber'] ?? '';
