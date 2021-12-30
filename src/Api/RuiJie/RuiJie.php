@@ -57,6 +57,8 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         //    'operationPackages' => 'updateWeight',// 核实提交订单重量
 
         'getTrackNumber' => 'LabelInfo',//获取追踪号和面单是同一个接口
+
+        'queryOrder' => 'GetBasePackageData',//通过订单号获取转单号信息
     ];
 
     /**
@@ -226,52 +228,40 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         // 结果
         $flag = $response['IsSuccess'] == true;
 
-//        //设置redis缓存FLS单号
-//        if (!empty((new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']))) {
-//            $get_redis = (new  Redis())->get($this->iden . $ls[0]['CustomerOrderCode']);
-//        }
-//        if (!$flag) {
-//            //如果是重复下单，可以直接调用获取追踪号接口
-//            if (stripos($response['Msg'], '已经存在客单号')) {
-//                if (!empty($get_redis)) {
-//                    ////不要调用取消接口,而是调用获取追踪号接口
-//                    $trackNumberResponse = $this->getTrackNumber($get_redis);
-//                    $flag = $trackNumberResponse['flag'];//重新赋值flag
-//                    if ($flag) {
-//                        $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
-//                        $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
-//                    } else {
-//                        //如果是异常情况，则直接取消原单，重新下单
-//                        if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'], '异常'))) {
-//                            if (!empty($get_redis)) {
-//                                $delete_res = $this->deleteOrder($get_redis);
-//                                if ($delete_res) {
-//                                    //然后重新下单
-//                                    $response = $this->request(__FUNCTION__, $ls[0]);
-//                                    $flag = $response['IsSuccess'] == true;//重新赋值条件
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
-
+        if (!$flag) {
+            //如果是重复下单，可以直接调用获取追踪号接口
+            if (stripos($response['Msg'], '已经存在客单号')) {
+                //通过接口查询ordercode,
+                $get_order_code = $this->queryOrder($ls[0]['CustomerOrderCode']);//通过订单号获取ordercode
+                if (!empty($get_order_code)) {
+                    ////不要调用取消接口,而是调用获取追踪号接口
+                    $trackNumberResponse = $this->getTrackNumber($get_order_code);
+                    $flag = $trackNumberResponse['flag'];//重新赋值flag
+                    if ($flag) {
+                        $fieldData['trackingNo'] = $trackNumberResponse['trackingNumber'] ?? '';//追踪号
+                        $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
+                    } else {
+                        //如果是异常情况，则直接取消原单，重新下单
+                        if (stripos($response['Msg'], '异常') || (stripos($trackNumberResponse['tipMsg'], '异常'))) {
+                            if (!empty($get_order_code)) {
+                                $delete_res = $this->deleteOrder($get_order_code);
+                                if ($delete_res) {
+                                    //然后重新下单
+                                    $response = $this->request(__FUNCTION__, $ls[0]);
+                                    $flag = $response['IsSuccess'] == true;//重新赋值条件
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($trackNumberResponse['tipMsg']) ? ($response['Msg'] ?? '未知错误') : $trackNumberResponse['tipMsg']);
-
-
-        // 获取追踪号,如果延迟的话
-//        if ($flag && !empty($response['Data']['Data']['OrderCode'])) {
-//            //设置缓存
-//            (new  Redis())->set($this->iden . $ls[0]['CustomerOrderCode'], $response['Data']['Data']['OrderCode'], 0);//缓存关系
-//        }
-
         $fieldData['orderNo'] = $ls[0]['CustomerOrderCode'];
         $fieldData['trackingNo'] = $flag ? (empty($trackNumberResponse['trackingNumber']) ? (empty($response['Data']['Data']['TrackingNumber']) ? '' : $response['Data']['Data']['TrackingNumber']) : $trackNumberResponse['trackingNumber']) : '';//追踪号，不能实时返回，要过一分钟
         $fieldData['frt_channel_hawbcode'] = $flag ? (empty($trackNumberResponse['frtTrackingNumber']) ? (empty($response['Data']['Data']['TrackingNumber']) ? '' : $response['Data']['Data']['TrackingNumber']) : $trackNumberResponse['frtTrackingNumber']) : '';//尾程追踪号
-        $fieldData['id'] = empty($response['Data']['Data']['OrderCode']) ? (empty($get_redis) ? $ls[0]['CustomerOrderCode'] : $get_redis) : $response['Data']['Data']['OrderCode'];
+        $fieldData['id'] = empty($response['Data']['Data']['OrderCode']) ? (empty($get_order_code) ? $ls[0]['CustomerOrderCode'] : $get_order_code) : $response['Data']['Data']['OrderCode'];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
@@ -347,7 +337,6 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $params = [
             'OrderCode' => $processCode, //Fls系统包裹单单号,
         ];
-
         $response = $this->request(__FUNCTION__, $params);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
@@ -359,6 +348,25 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
         return $ret;
+    }
+
+
+    /**
+     * 通过客户订单号获取转单号
+     * @param $customer_order_no
+     */
+    public function queryOrder($customer_order_no)
+    {
+        $order_code = '';
+        $params = [
+            'CustomerOrderCode' => $customer_order_no, //Fls系统包裹单单号,
+        ];
+        $response = $this->request(__FUNCTION__, $params);
+        $flag = $response['IsSuccess'] == true;
+        if ($flag) {
+            $order_code = empty($response['Data']['Data'][0]['OrderCode']) ? '' : $response['Data']['Data'][0]['OrderCode'];
+        }
+        return $order_code;
     }
 
     /**

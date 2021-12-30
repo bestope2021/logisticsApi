@@ -173,7 +173,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             ];
             $reciper = [
                 'consigneeName' => $item['recipientName'] ?? '',//收件人姓名
-                'street' => ($item['recipientStreet'] ?? ' ') .' ' . ($item['recipientStreet1'] ?? ' ') .' '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//收件人地址
+                'street' => ($item['recipientStreet'] ?? ' ') . ' ' . ($item['recipientStreet1'] ?? ' ') . ' ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']),//收件人地址
                 'city' => $item['recipientCity'] ?? '',//收件人城市
                 'province' => $item['recipientState'] ?? '', //N:收件人省
                 'consigneePostcode' => $item['recipientPostCode'] ?? '',//邮编
@@ -202,42 +202,33 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
         // 处理结果
         $reqRes = $this->getReqResData();
-
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
-
         // 结果
         $flag = $response['success'];
-
-//         //设置redis缓存FLS单号
-//        if (!empty((new  Redis())->get($this->iden . $customerOrderNo))) {
-//            $get_redis = (new  Redis())->get($this->iden . $customerOrderNo);
-//        }
-//        //重复下单，删除原单
-//        if(!empty($response['error']['errorInfo']) && (!$flag)){
-//            if (stripos($response['error']['errorInfo'], '已经存在')) {
-//                if (!empty($get_redis)) {
-//                    $delete_res = $this->deleteOrder($get_redis);
-//                    if ($delete_res) {
-//                        //然后重新下单
-//                        $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
-//                        $flag = $response['success'];//重新赋值条件
-//                    }
-//                }
-//            }
-//        }
-//
-//        // 获取追踪号,如果延迟的话
-//        if ($flag && (!empty($response['id']))) {
-//            //设置缓存
-//            (new  Redis())->set($this->iden . $customerOrderNo, $response['id'], 0);//缓存关系,物流商ID
-//        }
-
+        //重复下单，删除原单
+        if (!empty($response['error']['errorInfo']) && (!$flag)) {
+            if (stripos($response['error']['errorInfo'], '已经存在')) {
+                $get_id_res = $this->getTrackNumber($customerOrderNo);//通过客户订单号获取orderId
+                $get_id = '';
+                if ($get_id_res['flag']) {
+                    $get_id = empty($get_id_res['frtTrackingNumber']) ? '' : $get_id_res['frtTrackingNumber'];
+                }
+                if (!empty($get_id)) {
+                    $delete_res = $this->deleteOrder($get_id);//删除原订单,通过orderId
+                    if ($delete_res) {
+                        //然后重新下单
+                        $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
+                        $flag = $response['success'];//重新赋值条件
+                    }
+                }
+            }
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
         $fieldData['orderNo'] = $customerOrderNo;//客户订单号
         $fieldData['trackingNo'] = $flag ? (empty($response['trackingNo']) ? '' : $response['trackingNo']) : '';//追踪号
-        $fieldData['id'] = $flag ? (empty($response['id']) ? '' : $response['id']) : '';//第三方id，用空运单号代替
+        $fieldData['id'] = $flag ? (empty($response['id']) ? (empty($get_id) ? '' : $get_id) : $response['id']) : '';//第三方id，用空运单号代替
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
@@ -274,14 +265,13 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'orderNo' => $processCode, //客户单号。length <= 32，orderId、orderNo、trackingNo不能全部为空。
         ];
         $response = $this->request(__FUNCTION__, ['lookupOrderRequest' => $params]);
-
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
         $flag = $response['success'];
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
         $fieldData['trackingNo'] = $flag ? ($response['order']['trackingNo'] ?? '') : '';//追踪号
-        $fieldData['frt_channel_hawbcode'] = $flag ? (empty($response['order']['hawbCode']) ? '' : $response['order']['hawbCode']) : '';//尾程追踪号或者是转单号
+        $fieldData['frt_channel_hawbcode'] = $flag ? (empty($response['order']['hawbCode']) ? (empty($response['order']['orderId']) ? '' : $response['order']['orderId']) : $response['order']['hawbCode']) : '';//尾程追踪号或者是转单号
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         if ($is_ret) return $fieldData['flag'] ? $this->retSuccessResponseData($ret) : $this->retErrorResponseData($fieldData['info'], $fieldData);
         return $ret;
@@ -297,24 +287,18 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $data = [
             'Data' => [],
         ];
-
         $res = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-
-
         if (!$res['success']) {
             return $this->retErrorResponseData($res['error']['errorInfo'] ?? '未知错误');
         }
-
         if (!empty($res['transportWays'])) {
             foreach ($res['transportWays'] as $item) {
                 $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
             }
         }
-
         return $this->retSuccessResponseData($fieldData);
     }
 
@@ -337,7 +321,6 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             'orderId' => $order_id,
         ];
         $response = $this->request(__FUNCTION__, $param);
-
         return $response['success'];
     }
 
