@@ -230,7 +230,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
 
         if (!$flag) {
             //如果是重复下单，可以直接调用获取追踪号接口
-            if (stripos($response['Msg'], '已经存在客单号')) {
+        //    if (stripos($response['Msg'], '已经存在客单号')) {
                 //通过接口查询ordercode,
                 $get_order_code = $this->queryOrder($ls[0]['CustomerOrderCode']);//通过订单号获取ordercode
                 if (!empty($get_order_code)) {
@@ -254,7 +254,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                         }
                     }
                 }
-            }
+        //    }
         }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($trackNumberResponse['tipMsg']) ? ($response['Msg'] ?? '未知错误') : $trackNumberResponse['tipMsg']);
