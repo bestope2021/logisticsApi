@@ -207,7 +207,8 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $reqRes = $this->getReqResData();
             }
         }
-        if ((stripos($response['cnmessage'], 'exists') !== false) || (stripos($response['enmessage'], 'exists') !== false)) {
+        //2022/1/4日单号已存在新增重复判断,中文字符
+        if ((stripos($response['cnmessage'], '单号已存在')) || (stripos($response['cnmessage'], 'exists')) || (stripos($response['enmessage'], 'exists'))  || (stripos($response['enmessage'], '单号已存在'))) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($ls[0]['reference_no']);
             if ($delFlag) {

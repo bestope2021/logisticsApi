@@ -207,7 +207,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         // 结果
         $flag = $response['success'];
         //重复下单，删除原单
-        if (!empty($response['error']['errorInfo']) && (!$flag)) {
+        if ($flag=='false') {
             if (stripos($response['error']['errorInfo'], '已经存在')) {
                 $get_id_res = $this->getTrackNumber($customerOrderNo);//通过客户订单号获取orderId
                 $get_id = '';
