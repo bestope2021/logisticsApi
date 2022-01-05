@@ -204,11 +204,13 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $reqRes = $this->getReqResData();
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
+
         // 结果
-        $flag = $response['success'];
+        $flag=$response['success']=='true';
+
         //重复下单，删除原单
-        if ($flag=='false') {
-            if (stripos($response['error']['errorInfo'], '已经存在')) {
+        if (!$flag) {
+            if((stripos($response['error']['errorInfo'], '已经存在')) || (stripos($response['error']['errorInfo'], '已存在'))) {
                 $get_id_res = $this->getTrackNumber($customerOrderNo);//通过客户订单号获取orderId
                 $get_id = '';
                 if ($get_id_res['flag']) {
@@ -219,7 +221,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
                     if ($delete_res) {
                         //然后重新下单
                         $response = $this->request(__FUNCTION__, ['createOrderRequest' => $ls[0]]);
-                        $flag = $response['success'];//重新赋值条件
+                        $flag = $response['success']=='true';//重新赋值条件
                     }
                 }
             }
@@ -267,7 +269,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $response = $this->request(__FUNCTION__, ['lookupOrderRequest' => $params]);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
-        $flag = $response['success'];
+        $flag = $response['success']=='true';
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : (empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
         $fieldData['trackingNo'] = $flag ? ($response['order']['trackingNo'] ?? '') : '';//追踪号
@@ -291,7 +293,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
-        if (!$res['success']) {
+        if ($res['success']=='false') {
             return $this->retErrorResponseData($res['error']['errorInfo'] ?? '未知错误');
         }
         if (!empty($res['transportWays'])) {
@@ -367,7 +369,8 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
         // 结果
-        $flag = $response['success'];
+        $flag = $response['success']=='true';
+
         if (!$flag) {
             return $this->retErrorResponseData(empty($response['error']['errorInfo']) ? '未知错误' : $response['error']['errorInfo']);
         }
@@ -399,7 +402,7 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         $response = $this->request(__FUNCTION__, $data);
 
         // 结果
-        $flag = $response['success'];
+        $flag = $response['success']=='true';
 
         // 结果
         if (!$flag) {
