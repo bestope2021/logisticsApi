@@ -236,7 +236,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             }
         }
         //2022/1/5修改
-        $fieldData['order_id'] = empty($response['data']['order_id']) ? '' : $response['data']['order_id'];
+        $fieldData['order_id'] = empty($response['data']['channel_hawbcode']) ? (empty($response['data']['order_id']) ? '' : $response['data']['order_id']) : $response['data']['channel_hawbcode'];
         $fieldData['refrence_no'] = empty($response['data']['refrence_no']) ? ($ls[0]['reference_no'] ?? '') : $response['data']['refrence_no'];
         $fieldData['trackingNo'] = empty($response['data']['shipping_method_no']) ? (empty($trackNumberResponse['trackingNumber']) ? '' : $trackNumberResponse['trackingNumber']) : $response['data']['shipping_method_no'];
         $fieldData['frt_channel_hawbcode'] = empty($response['data']['channel_hawbcode']) ? (empty($trackNumberResponse['frtTrackingNumber']) ? '' : $trackNumberResponse['frtTrackingNumber']) : $response['data']['channel_hawbcode'];
