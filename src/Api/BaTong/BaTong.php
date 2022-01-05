@@ -198,15 +198,16 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $fieldMap = FieldMap::createOrder();
 
 
-        // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
-        if ($response['success'] == 2) {
-            // 进行删除操作,再重新下单
-            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
-            if ($delFlag) {
-                $response = $this->request(__FUNCTION__, $ls[0]);
-                $reqRes = $this->getReqResData();
-            }
-        }
+//        // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
+//        if ($response['success'] == 2) {
+//            // 进行删除操作,再重新下单
+//            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
+//            if ($delFlag) {
+//                $response = $this->request(__FUNCTION__, $ls[0]);
+//                $reqRes = $this->getReqResData();
+//            }
+//        }
+
         //2022/1/4日单号已存在新增重复判断,中文字符
         if ((stripos($response['cnmessage'], '单号已存在')) || (stripos($response['cnmessage'], 'exists')) || (stripos($response['enmessage'], 'exists'))  || (stripos($response['enmessage'], '单号已存在'))) {
             // 进行删除操作,再重新下单
@@ -218,8 +219,11 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         }
 
         // 结果
-        $flag = $response['success'] == 1;
-
+        $flag = false;
+        //2022/1/5新增判断 =2是重复判断，直接返回追踪号
+        if(($response['success'] == 1) || ($response['success'] == 2)){
+            $flag = true;
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
 
