@@ -123,7 +123,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') . '   ' . ($item['recipientStreet1'] ?? ' ') . '   ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
             if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
                 $extra_service = [
@@ -209,7 +209,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 //        }
 
         //2022/1/4日单号已存在新增重复判断,中文字符
-        if ((stripos($response['cnmessage'], '单号已存在')) || (stripos($response['cnmessage'], 'exists')) || (stripos($response['enmessage'], 'exists'))  || (stripos($response['enmessage'], '单号已存在'))) {
+        if ((stripos($response['cnmessage'], '单号已存在')) || (stripos($response['cnmessage'], 'exists')) || (stripos($response['enmessage'], 'exists')) || (stripos($response['enmessage'], '单号已存在'))) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($ls[0]['reference_no']);
             if ($delFlag) {
@@ -221,7 +221,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         // 结果
         $flag = false;
         //2022/1/5新增判断 =2是重复判断，直接返回追踪号
-        if(($response['success'] == 1) || ($response['success'] == 2)){
+        if (($response['success'] == 1) || ($response['success'] == 2)) {
             $flag = true;
         }
         $fieldData['flag'] = $flag ? true : false;
@@ -235,11 +235,11 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $fieldData['frt_channel_hawbcode'] = $trackNumberResponse['frtTrackingNumber'] ?? '';//尾程追踪号
             }
         }
-
-        $fieldData['order_id'] = empty($response['data']['channel_hawbcode']) ? (empty($response['data']['order_id']) ? '' : $response['data']['order_id']) : $response['data']['channel_hawbcode'];
+        //2022/1/5修改
+        $fieldData['order_id'] = empty($response['data']['order_id']) ? '' : $response['data']['order_id'];
         $fieldData['refrence_no'] = empty($response['data']['refrence_no']) ? ($ls[0]['reference_no'] ?? '') : $response['data']['refrence_no'];
-        $fieldData['trackingNo'] = empty($response['data']['shipping_method_no']) ? '' : $response['data']['shipping_method_no'];
-        $fieldData['frt_channel_hawbcode'] = empty($response['data']['channel_hawbcode']) ? '' : $response['data']['channel_hawbcode'];
+        $fieldData['trackingNo'] = empty($response['data']['shipping_method_no']) ? (empty($trackNumberResponse['trackingNumber']) ? '' : $trackNumberResponse['trackingNumber']) : $response['data']['shipping_method_no'];
+        $fieldData['frt_channel_hawbcode'] = empty($response['data']['channel_hawbcode']) ? (empty($trackNumberResponse['frtTrackingNumber']) ? '' : $trackNumberResponse['frtTrackingNumber']) : $response['data']['channel_hawbcode'];
         $ret = LsSdkFieldMapAbstract::getResponseData2MapData($fieldData, $fieldMap);
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
@@ -289,10 +289,9 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $param);
         $fieldData = [];
         $fieldMap = FieldMap::getTrackNumber();
+        $flag = false;
         if ($response['success'] == 1) {
-            $flag = 1;
-        } else {
-            $flag = 0;
+            $flag = true;
         }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? '未知错误'));
@@ -312,7 +311,6 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public function getShippingMethod()
     {
         $response = $this->request(__FUNCTION__);
-
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::shippingMethod();
@@ -322,7 +320,6 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         foreach ($response['data'] as $item) {
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
-
         return $this->retSuccessResponseData($fieldData);
     }
 
@@ -361,7 +358,6 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         $response = $this->request(__FUNCTION__, $data);
         // 结果
         $flag = $response['success'] == 1;
-
         return $flag;
     }
 
@@ -432,17 +428,13 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 'config_code' => '1', //标签纸张配置代码1：标签纸-地址标签2：标签纸-地址标签+报关单3：标签纸-地址标签+配货单4：标签纸-地址标签+报关单+配货单5：A4纸-地址标签6：A4纸-地址标签+报关单7：A4纸-地址标签+配货单8：A4纸-地址标签+报关单+配货单
             ];
         }
-
         $response = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap = FieldMap::packagesLabel();
-
         if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
-
         foreach ($response['data'] as $item) {
             $item['flag'] = true;
             $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
@@ -468,25 +460,20 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             'tracking_number' => $trackNumber,
         ];
         $response = $this->request(__FUNCTION__, $data);
-
         // 处理结果
         $fieldData = [];
         $fieldMap1 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_ONE);
         $fieldMap2 = FieldMap::queryTrack(LsSdkFieldMapAbstract::QUERY_TRACK_TWO);
-
         if ($response['success'] != 1) {
             return $this->retErrorResponseData($response['cnmessage'] ?? '未知错误');
         }
-
         $data = $response['data'][0];
-
         $ls = [];
         foreach ($data['details'] as $key => $val) {
             $ls[$key] = LsSdkFieldMapAbstract::getResponseData2MapData($val, $fieldMap2);
         }
         $data['details'] = $ls;
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($data, $fieldMap1);
-
         return $this->retSuccessResponseData($fieldData);
     }
 
