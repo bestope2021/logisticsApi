@@ -125,7 +125,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             }
             $address = ($item['recipientStreet'] ?? ' ') . '   ' . ($item['recipientStreet1'] ?? ' ') . '   ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
-            if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
+            if (isset($item['iossNumber']) && (!empty($item['iossNumber']))) {
                 $extra_service = [
                     'extra_servicecode' => 'IO',//额外服务类型代码
                     'extra_servicevalue' => $item['iossNumber'],//额外服务值
