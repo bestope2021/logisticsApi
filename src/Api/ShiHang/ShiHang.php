@@ -110,8 +110,8 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                     'invoice_cnname' => $value['declareCnName'] ?? '',// N:申报中文名称Length <= 50
                     'invoice_quantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                     'unit_code' => 'PCE', //N:单位  MTR：米  PCE：件 SET：套 默认PCE
-                    'invoice_weight' => $value['declareWeight'] ?? '',// Y:总量;Length <= 50 KG
-                    'invoice_unitcharge' => (float)($value['declarePrice'] ?? ''), //Y:单价
+                    'invoice_weight' => empty($value['declareWeight']) ? '0.000' : round($value['declareWeight'], 3),// Y:总量;Length <= 50 KG
+                    'invoice_unitcharge' => (empty($value['declarePrice']) ? '0.00' : round($value['declarePrice'], 2)), //Y:单价
                     'invoice_currencycode' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
                     'hs_code' => $value['hsCode'] ?? '',// N:海关编码
                     'invoice_note' => '', //配货信息
@@ -122,13 +122,13 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
                 ];
                 $order_weight += $value['declareWeight'];
             }
-            $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $address = ($item['recipientStreet'] ?? ' ') . '   ' . ($item['recipientStreet1'] ?? ' ') . '   ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $data = [
                 'reference_no' => $item['customerOrderNo'] ?? '',// Y:客户订单号，由客户自定义，同一客户不允许重复。Length <= 50
                 //todo 调试写死
                 'shipping_method' => $item['shippingMethodCode'] ?? 'US0022',// Y:serviceCode: test => UBI.CN2FR.ASENDIA.FULLLY.TRACKED
                 'shipping_method_no' => '', //N:服务商单号（追踪单号，默认不需要传值）
-                'order_weight' => (float)$order_weight,// Y:订单重量，单位KG，默认为0.2
+                'order_weight' => round($order_weight, 3),// Y:订单重量，单位KG，默认为0.2
                 'order_pieces' => 1, //N:外包装件数,默认1
                 'cargotype' => '',//N:货物类型W：包裹  D：文件 B：袋子
                 'order_status' => '', //N:订单状态P：已预报 (默认) D：草稿 (如果创建草稿订单，则需要再调用submitforecast【提交预报】接口)
@@ -195,23 +195,20 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         $fieldData = [];
         $fieldMap = FieldMap::createOrder();
 
-//        // 结果,2021/9/1,新增的判断 ，解决重复获取时success=2   2021/9/2修复优化获取追踪号逻辑
-//        if (in_array($response['success'],[1,2])){
-//            $flag = 1;
-//        }else{
-//            $flag = 0;
+
+//        // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
+//        if ($response['success'] == 2) {
+//            // 进行删除操作,再重新下单
+//            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
+//            if ($delFlag) {
+//                $response = $this->request(__FUNCTION__, $ls[0]);
+//                $reqRes = $this->getReqResData();
+//            }
 //        }
 
-        // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
-        if ($response['success'] == 2) {
-            // 进行删除操作,再重新下单
-            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
-            if ($delFlag) {
-                $response = $this->request(__FUNCTION__, $ls[0]);
-                $reqRes = $this->getReqResData();
-            }
-        }
-        if ((stripos($response['cnmessage'], 'exists') !== false) || (stripos($response['enmessage'], 'exists') !== false)) {
+
+        //1月10日新增 重复下单判断，可能要换客户单号
+        if ((stripos($response['cnmessage'], 'exists')) || (stripos($response['enmessage'], 'exists')) || (stripos($response['cnmessage'], '重复')) || (stripos($response['enmessage'], '重复'))) {
             // 进行删除操作,再重新下单
             $delFlag = $this->deleteOrder($ls[0]['reference_no']);
             if ($delFlag) {
@@ -221,7 +218,11 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         }
 
         // 结果
-        $flag = $response['success'] == 1;
+        $flag = false;
+        //2022/1/10新增判断 =2是重复判断，直接返回追踪号
+        if (($response['success'] == 1) || ($response['success'] == 2)) {
+            $flag = true;
+        }
         $fieldData['flag'] = $flag ? true : false;
         $fieldData['info'] = $flag ? '' : ($response['cnmessage'] ?? ($response['enmessage'] ?? ''));
 
