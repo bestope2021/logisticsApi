@@ -118,7 +118,7 @@ class DgYz extends LogisticsAbstract implements BaseLogisticsInterface, PackageL
                     'cargoNo' => $key + 1,
                     'cargoCurrency' => 'USD',
                     'unit' => '个',
-                    'cargoValue' => (float)(round($value['declarePrice'], 2) ?? ''),//【必填】申报单价，浮点型，保留两位小数
+                    'cargoValue' => empty($value['declarePrice'])?'0.00':round($value['declarePrice'], 2),//【必填】申报单价，浮点型，保留两位小数
                     'cargoWeight' => (int)((round($value['declareWeight'], 2) ?? '') * 1000),//【必填】重量（克），正整数
                     'quantity' => (int)($value['quantity'] ?? ''),
                     'cargoNameEn' => $value['declareEnName'] ?? '',

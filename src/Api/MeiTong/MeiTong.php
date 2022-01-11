@@ -54,6 +54,8 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
         'getPackagesLabel' => 'get_labels', // 【打印标签|面单
 
         'operationPackages' => 'update_weight',// 核实提交订单重量
+
+        'getShippingFee'  => 'info',//获取费用
     ];
 
     /**
@@ -205,6 +207,35 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
+
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+        $data = [
+            'shipment' => [
+                'client_reference' => $processCode ?? '',
+            ],
+            'validation' => ['access_token' => $this->config['access_token']],
+            'key' => 'info',
+        ];
+        $response = $this->request(__FUNCTION__, $data);
+        // 结果
+        $flag = $response['status'] == 1;
+        if(!$flag){
+            return '';
+        }
+        $ret = empty($response['data']['shipment'])?'':$response['data']['shipment'];
+        return $ret;
+    }
+
+
     /**
      * 修改订单重量
      * @param array $params
@@ -253,6 +284,11 @@ class MeiTong extends LogisticsAbstract implements BaseLogisticsInterface, Packa
                 unset($data['key']);
                 unset($this->req_data['key']);
                 $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_label_command'], $data, $this->dataType, $this->apiHeaders);
+                break;//获取面单
+            case 'info':
+                unset($data['key']);
+                unset($this->req_data['key']);
+                $response = $this->sendCurl('post', $this->config['url'] . $this->config['get_fee_command'], $data, $this->dataType, $this->apiHeaders);
                 break;//获取面单
             case 'tracking':
                 unset($data['key']);

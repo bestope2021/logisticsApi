@@ -75,6 +75,8 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         'interceptOrder' => 'interceptOrder', //拦截订单 todo 暂时未用
 
         'getFeeByOrder' => 'getOrderFee', //费用查询
+
+        'getShippingFee' => 'getOrderFee',//获取费用
     ];
 
     /**
@@ -261,6 +263,29 @@ class HuaHan extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $this->retSuccessResponseData($fieldData);
     }
 
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+        $param = [
+            'reference_no' => $processCode,
+        ];
+        $response = $this->request(__FUNCTION__, $param);
+
+        // 结果
+        $flag=$response['ask'] == 'Success';
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['data'];
+        return $ret;
+    }
     /**
      * 修改重量
      * @return mixed

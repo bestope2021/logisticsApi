@@ -66,7 +66,7 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
         'getPackagesDetail' => 'getbusinessweight', //查询订单
 
-        'feeTrail' => 'feetrail', //运费试算 todo 暂时未用
+        'getShippingFee' => 'getExpense', //获取费用
     ];
 
     /**
@@ -235,6 +235,30 @@ class WeiShi extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         }
         return $this->retSuccessResponseData($fieldData);
+    }
+
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+        $orderNumberArray = $this->toArray($processCode);
+        $data = [
+            'codes' => $orderNumberArray,//传数组
+        ];
+        $response = $this->request(__FUNCTION__, $data);
+        // 结果
+        $flag = $response['ask'] == 'Success';
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['data'];
+        return $ret;
     }
 
     /**
