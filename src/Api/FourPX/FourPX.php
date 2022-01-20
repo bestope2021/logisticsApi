@@ -243,6 +243,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                 $totalValueValue += ($quantity * $declarePrice);
             }
             $address = ($item['recipientStreet'] ?? ' ') .'   '. ($item['recipientStreet1'] ?? ' ')  .'   '. (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
+            $returnProcess = $item['returnProcess']??'';
             $ls[] = [
                 '4px_tracking_no' => $item['trackingNumber'] ?? '',// N:4PX跟踪号（预分配号段的客户可传此值）
                 'ref_no' => $item['customerOrderNo'] ?? '',// Y:参考号（客户自有系统的单号，如客户单号）
@@ -266,10 +267,9 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'signature_service' => 'N',// N:签名服务（Y/N)；默认值：N
                     'value_added_services' => '',// N:其他服务（待完善)
                 ],
-
                 // 退件信息
                 'return_info' => [
-                    'is_return_on_domestic' => self::RETURN_PROCESS_LIST[$item['returnProcess']]??'Y',// Y:境内异常处理策略(退件：Y；销毁：N；其他：U；) 默认值：N；
+                    'is_return_on_domestic' => self::RETURN_PROCESS_LIST[$returnProcess]??'Y',// Y:境内异常处理策略(退件：Y；销毁：N；其他：U；) 默认值：N；
                     // YN:境内退件接收地址信息（处理策略为Y时必须填写地址信息）
                     'domestic_return_addr' => [
                         'first_name' => $item['returnFirstName'] ?? '',// N:名/姓名
