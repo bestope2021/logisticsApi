@@ -269,7 +269,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
 
                 // 退件信息
                 'return_info' => [
-                    'is_return_on_domestic' => self::RETURN_PROCESS_LIST[$item['returnProcess']]??'N',// Y:境内异常处理策略(退件：Y；销毁：N；其他：U；) 默认值：N；
+                    'is_return_on_domestic' => self::RETURN_PROCESS_LIST[$item['returnProcess']]??'Y',// Y:境内异常处理策略(退件：Y；销毁：N；其他：U；) 默认值：N；
                     // YN:境内退件接收地址信息（处理策略为Y时必须填写地址信息）
                     'domestic_return_addr' => [
                         'first_name' => $item['returnFirstName'] ?? '',// N:名/姓名
