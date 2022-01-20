@@ -472,7 +472,9 @@ class ZhiXinDa extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         }
         $item=$response;
         $item['flag'] = true;
-        $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_PDF;
+        $item['type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
+        $item['url'] = base64_encode(file_get_contents($item['url']));
         $fieldData[] = LsSdkFieldMapAbstract::getResponseData2MapData($item, $fieldMap);
         return $this->retSuccessResponseData($fieldData);
     }
