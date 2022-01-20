@@ -44,6 +44,7 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
     public $apiHeaders = [];
 
     public $interface = [
+
         'createOrder' => 'createorder', // 【创建订单】
 
         'submitOrder' => 'submitforecast', //提交预报(先创建草稿状态的订单才需要再调用此接口提交预报)
@@ -65,6 +66,8 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'getPackagesDetail' => 'getbusinessweight', //查询订单
 
         'feeTrail' => 'feetrail', //运费试算 todo 暂时未用
+
+        'getShippingFee' => 'getbusinessfee', //获取费用
     ];
 
     /**
@@ -324,6 +327,30 @@ class HeiMao extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         }
         return $this->retSuccessResponseData($response);
     }
+
+
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+        $extUrlParams = ['reference_no' => $processCode];
+        $response = $this->request(__FUNCTION__,$extUrlParams);
+        // 结果
+        $flag = $response['success'] == 1;
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['data'];
+        return $ret;
+    }
+
+
 
     /**
      * 删除订单

@@ -47,6 +47,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
     public $apiHeaders = [];
 
     public $interface = [
+
         'createOrder' => 'createorder', // 【创建订单】
 
         'submitOrder' => 'submitforecast', //提交预报(先创建草稿状态的订单才需要再调用此接口提交预报)
@@ -67,7 +68,7 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
 
         'getPackagesDetail' => 'getbusinessweight', //查询订单
 
-        'feeTrail' => 'feetrail', //运费试算 todo 暂时未用
+        'getShippingFee' => 'getbusinessfee', //获取费用
     ];
 
     /**
@@ -196,17 +197,6 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         $fieldMap = FieldMap::createOrder();
 
 
-//        // 重复订单号,2021/10/1,订单号重复，2021/11/16日，变更的判断
-//        if ($response['success'] == 2) {
-//            // 进行删除操作,再重新下单
-//            $delFlag = $this->deleteOrder($response['data']['refrence_no']);
-//            if ($delFlag) {
-//                $response = $this->request(__FUNCTION__, $ls[0]);
-//                $reqRes = $this->getReqResData();
-//            }
-//        }
-
-
         //1月10日新增 重复下单判断，可能要换客户单号
         if ((stripos($response['cnmessage'], 'exists')) || (stripos($response['enmessage'], 'exists')) || (stripos($response['cnmessage'], '重复')) || (stripos($response['enmessage'], '重复'))) {
             // 进行删除操作,再重新下单
@@ -289,6 +279,29 @@ class ShiHang extends LogisticsAbstract implements BaseLogisticsInterface, Track
         }
         return $this->retSuccessResponseData($res['data']);
     }
+
+
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+        $extUrlParams = ['reference_no' => $processCode];
+        $response = $this->request(__FUNCTION__,$extUrlParams);
+        // 结果
+        $flag = $response['success'] == 1;
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['data'];
+        return $ret;
+    }
+
 
     /**
      * 获取物流商运输方式

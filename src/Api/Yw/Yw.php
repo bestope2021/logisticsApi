@@ -47,7 +47,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
 
         'updateOrderStatus' => 'Users/%s/Expresses/ChangeStatus/%s', //修改订单状态
 
-        'getShippingMethod' => '/Users/%s/GetChannels'
+        'getShippingMethod' => '/Users/%s/GetChannels',//获取运输方式
     ];
 
     /**
@@ -144,7 +144,7 @@ class Yw extends LogisticsAbstract implements BaseLogisticsInterface, PackageLab
                     'State' => empty($item['recipientState']) ? '' : str_replace('&','',$item['recipientState']), //N:收件人省
                     'City' => empty($item['recipientCity']) ? '' : str_replace('&','',$item['recipientCity']), //N:收件人城市
                     'Address1' => empty($item['recipientStreet']) ? '' : str_replace('&','',$item['recipientStreet']),// Y:收件人街道
-                    'Address2' => empty($item['recipientStreet1']) ? '' : str_replace('&','',$item['recipientStreet1']), //收货人-地址2
+                    'Address2' => (empty($item['recipientStreet1']) ? '' : str_replace('&','',$item['recipientStreet1'])).' '.(empty($item['recipientStreet2']) ? '' : str_replace('&','',$item['recipientStreet2'])), //收货人-地址2
                     'NationalId' => empty($item['recipientTaxNumber']) ? '' : str_replace('&','',$item['recipientTaxNumber']),// N:护照ID，税号。（国家为巴西时 此属性必填）
                 ],
 

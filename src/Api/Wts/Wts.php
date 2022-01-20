@@ -129,7 +129,7 @@ class Wts extends LogisticsAbstract implements BaseLogisticsInterface, TrackLogi
                 $productList[] = [
                     'invoice_title' => $value['declareEnName'] ?? '',// Y:申报英文名称Length <= 50
                     'sku' => $value['declareCnName'] ?? '',// N:中文品名
-                    'invoice_weight' => $value['declareWeight'] ?? '',// Y:总量;Length <= 50 KG
+                    'invoice_weight' => empty($value['declareWeight'])?'0.000':round($value['declareWeight'],3),// Y:总量;Length <= 50 KG
                     'invoice_pcs' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                     'invoice_amount' => (float)($value['declarePrice'] ?? '') * (int)($value['quantity'] ?? ''), //Y:申报总价值，必填
                     'hs_code' => $value['hsCode'] ?? '',// N:海关编码

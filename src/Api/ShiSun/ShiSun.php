@@ -16,7 +16,7 @@ use smiler\logistics\Common\TrackLogisticsInterface;
 use smiler\logistics\Exception\InvalidIArgumentException;
 use smiler\logistics\Exception\ManyProductException;
 use smiler\logistics\LogisticsAbstract;
-use smiler\logistics\Redis;
+
 
 class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, PackageLabelLogisticsInterface, TrackLogisticsInterface
 {
@@ -53,6 +53,8 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         'getPackagesLabel' => 'printOrder', // 【打印标签|面单
 
         'getTrackNumber' => 'lookupOrder',//获取追踪号
+
+        'getShippingFee' => 'calculateCharge', //获取费用
     ];
 
 
@@ -254,6 +256,27 @@ class ShiSun extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $arr;
     }
 
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+
+        $extUrlParams = ['orderNo' => $processCode];
+        $response = $this->request(__FUNCTION__,['lookupOrderRequest' => $extUrlParams]);
+        // 结果
+        $flag = $response['success'] == 'true';
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['order'];
+        return $ret;
+    }
 
     /**
      * 获取追踪号信息

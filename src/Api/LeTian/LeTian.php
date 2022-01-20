@@ -54,6 +54,8 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         'getPackagesLabel' => 'printOrder', // 【打印标签|面单
 
         'getTrackNumber' => 'lookupOrderVirtualWno', //获取跟踪号
+
+        'getShippingFee' => 'lookupOrder',//获取费用
     ];
 
     /**
@@ -205,6 +207,31 @@ class LeTian extends LogisticsAbstract implements BaseLogisticsInterface, Packag
         return $fieldData['flag'] ? $this->retSuccessResponseData(array_merge($ret, $reqRes)) : $this->retErrorResponseData($fieldData['info'], $fieldData);
     }
 
+
+
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+        $param = [
+            'orderNo' => $processCode,
+        ];
+        $response = $this->request(__FUNCTION__, $param);
+
+        // 结果
+        $flag=$response['success']==true;
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['order'];
+        return $ret;
+    }
 
     /**统一请求
      * @param string $function

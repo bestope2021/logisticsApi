@@ -69,6 +69,8 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         'getPackagesDetail' => 'getbusinessweight', //查询订单
 
         'feeTrail' => 'feetrail', //运费试算 todo 暂时未用
+
+        'getShippingFee' => 'getbusinessfee', //获取费用
     ];
 
     /**
@@ -111,8 +113,8 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                     'invoice_cnname' => $value['declareCnName'] ?? '',// N:申报中文名称Length <= 50
                     'invoice_quantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                     'unit_code' => 'PCE', //N:单位  MTR：米  PCE：件 SET：套 默认PCE
-                    'invoice_weight' => $value['declareWeight'] ?? '',// Y:总量;Length <= 50 KG
-                    'invoice_unitcharge' => (float)($value['declarePrice'] ?? ''), //Y:单价
+                    'invoice_weight' => empty($value['declareWeight']) ? '0.000' : round($value['declareWeight'], 3),// Y:总量;Length <= 50 KG
+                    'invoice_unitcharge' => (empty($value['declarePrice']) ? '0.00' : round($value['declarePrice'], 2)), //Y:单价
                     'invoice_currencycode' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
                     'hs_code' => $value['hsCode'] ?? '',// N:海关编码
                     'invoice_note' => '', //配货信息
@@ -125,7 +127,7 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
             }
             $address = ($item['recipientStreet'] ?? ' ') . '   ' . ($item['recipientStreet1'] ?? ' ') . '   ' . (empty($item['recipientStreet2']) ? '' : $item['recipientStreet2']);
             $extra_service = [];
-            if (isset($item['iossNumber']) && !empty($item['iossNumber'])) {
+            if (isset($item['iossNumber']) && (!empty($item['iossNumber']))) {
                 $extra_service = [
                     'extra_servicecode' => 'IO',//额外服务类型代码
                     'extra_servicevalue' => $item['iossNumber'],//额外服务值
@@ -266,6 +268,29 @@ class BaTong extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
         }
         return $data;
     }
+
+
+    /**
+     * 通过客户单号获取费用
+     * @param string $processCode
+     * @return mixed|string
+     */
+    public function getShippingFee(string $processCode)
+    {
+        if(empty($processCode)){
+            return '';
+        }
+        $extUrlParams = ['reference_no' => $processCode];
+        $response = $this->request(__FUNCTION__,$extUrlParams);
+        // 结果
+        $flag = $response['success'] == 1;
+        if(!$flag){
+            return '';
+        }
+        $ret = $response['data'];
+        return $ret;
+    }
+
 
     /**
      * 获取跟踪号
