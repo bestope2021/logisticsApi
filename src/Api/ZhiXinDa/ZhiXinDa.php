@@ -168,8 +168,8 @@ class ZhiXinDa extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                     'invoice_cnname' => $value['declareCnName'] ?? '',// N:申报中文名称Length <= 50
                     'invoice_quantity' => (int)($value['quantity'] ?? ''),// Y:产品数量;数值必须为正整数
                     'unit_code' => 'PCE', //N:单位  MTR：米  PCE：件 SET：套 默认PCE
-                    'invoice_weight' => empty($value['declareWeight'])?'0.000':round($value['declareWeight'], 3),// Y:总量;Length <= 50 KG
-                    'invoice_unitcharge' => empty($value['declarePrice'])?'0.000':round($value['declarePrice'],3), //Y:单价
+                    'invoice_weight' => empty($value['declareWeight']) ? '0.000' : round($value['declareWeight'], 3),// Y:总量;Length <= 50 KG
+                    'invoice_unitcharge' => empty($value['declarePrice']) ? '0.000' : round($value['declarePrice'], 3), //Y:单价
                     'invoice_currencycode' => $value['currencyCode'] ?? 'USD',// , //申报币种，不传值默认为USD(美元)；USD-美元,AUD-澳元
                     'hs_code' => $value['hsCode'] ?? '',// N:海关编码
                     'invoice_note' => '', //配货信息
@@ -181,8 +181,8 @@ class ZhiXinDa extends LogisticsAbstract implements BaseLogisticsInterface, Trac
                 $order_weight += $value['declareWeight'];
                 $volume[] = [
                     'length' => round($value['length'], 3) ?? '0.000',//长,单位CM
-                    'width' => round($value['length'], 3) ?? '0.000',//长,单位CM
-                    'height' => round($value['length'], 3) ?? '0.000',//长,单位CM
+                    'width' => round($value['width'], 3) ?? '0.000',//宽,单位CM
+                    'height' => round($value['height'], 3) ?? '0.000',//高,单位CM
                     'weight' => round($value['declareWeight'], 3) ?? '0.000',//箱子重量，单位KG
                 ];
             }
@@ -350,7 +350,7 @@ class ZhiXinDa extends LogisticsAbstract implements BaseLogisticsInterface, Trac
      */
     public function getShippingFee(string $processCode)
     {
-        if(empty($processCode)){
+        if (empty($processCode)) {
             return '';
         }
 
@@ -358,7 +358,7 @@ class ZhiXinDa extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         $response = $this->request(__FUNCTION__, $extUrlParams);
         // 结果
         $flag = $response['ask'] == 'Success';
-        if(!$flag){
+        if (!$flag) {
             return '';
         }
         $ret = $response['Data'];
@@ -470,7 +470,7 @@ class ZhiXinDa extends LogisticsAbstract implements BaseLogisticsInterface, Trac
         if ($response['ask'] != 'Success') {
             return $this->retErrorResponseData((empty($response['Error']['errMessage']) ? $response['message'] : $response['Error']['errMessage']) ?? '未知错误');
         }
-        $item=$response;
+        $item = $response;
         $item['flag'] = true;
         $item['type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;
         $item['label_path_type'] = ResponseDataConst::LSA_LABEL_PATH_TYPE_BYTE_STREAM_PDF;

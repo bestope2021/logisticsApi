@@ -93,4 +93,6 @@ class LogisticsIdent
     const LS_IDENT_ShiSun = 'shisun';
     // 巴通
     const LS_IDENT_ZHI_XIN_DA = 'zhixinda';
+    // 超兔
+    const LS_IDENT_ChaoTu = 'chaotu';
 }

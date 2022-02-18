@@ -14,6 +14,7 @@ use smiler\logistics\Api\BaXing\CouPang;
 use smiler\logistics\Api\Bheo\Bheo;
 use smiler\logistics\Api\BtdXms\BtdXms;
 use smiler\logistics\Api\BxXms\BxXms;
+use smiler\logistics\Api\ChaoTu\ChaoTu;
 use smiler\logistics\Api\CouPangCorp\CouPangCorp;
 use smiler\logistics\Api\DgYz\DgYz;
 use smiler\logistics\Api\JiaLiCod\JiaLiCod;
@@ -93,7 +94,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_TIANMU => TianMu::class,// 天木头程
         LogisticsIdent::LS_IDENT_JUNXING => JunXing::class,// 骏兴头程
         LogisticsIdent::LS_IDENT_BA_TONG => BaTong::class,// 巴通
-        LogisticsIdent::LS_IDENT_BHEO =>Bheo::class,// 出口易
+        LogisticsIdent::LS_IDENT_BHEO => Bheo::class,// 出口易
         LogisticsIdent::LS_IDENT_ITDIDA => ItDiDa::class,// （嘀嗒）易抵达
         LogisticsIdent::LS_IDENT_BaXing => BaXing::class,// 八星小包
         LogisticsIdent::LS_IDENT_MeiTong => MeiTong::class,// 美通头程
@@ -107,6 +108,7 @@ class LogisticsIdenConfig
         LogisticsIdent::LS_IDENT_RuiJie => RuiJie::class,//睿捷物流 2021/12/7新增
         LogisticsIdent::LS_IDENT_ShiSun => ShiSun::class,//实顺物流 2021/12/9新增
         LogisticsIdent::LS_IDENT_ZHI_XIN_DA => ZhiXinDa::class,//至信达 2021/12/13新增
+        LogisticsIdent::LS_IDENT_ChaoTu => ChaoTu::class,//超兔物流 2022/2/17新增
     ];
 
     /**
