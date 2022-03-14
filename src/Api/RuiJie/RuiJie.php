@@ -133,6 +133,7 @@ class RuiJie extends LogisticsAbstract implements BaseLogisticsInterface, Packag
             12 => 6,//Cdiscount
             13 => 99,//Rakuten
             14 => 5,//Walmart
+            15 => 99,//JDWorldwide
         ];
     }
 
