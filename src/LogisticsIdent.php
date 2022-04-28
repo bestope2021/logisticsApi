@@ -95,4 +95,6 @@ class LogisticsIdent
     const LS_IDENT_ZHI_XIN_DA = 'zhixinda';
     // 超兔
     const LS_IDENT_ChaoTu = 'chaotu';
+    // 佳成
+    const LS_IDENT_JIA_CHENG = 'jiacheng';
 }
