@@ -286,7 +286,7 @@ class FourPX extends LogisticsAbstract implements BaseLogisticsInterface, TrackL
                         'street' => $item['returnAddress'] ?? '',// N:街道/详细地址
                         'house_number' => $item['returnHouseNumber'] ?? '',// N:门牌号
                     ],
-                    'is_return_on_oversea' => 'N',// Y:境外异常处理策略(退件：Y；销毁：N；其他：U；) 默认值：N；
+                    'is_return_on_oversea' => self::RETURN_PROCESS_LIST[$returnProcess]??'Y',// Y:境外异常处理策略(退件：Y；销毁：N；其他：U；) 默认值：N；
                     // YN:境外退件接收地址信息（处理策略为Y时必须填写地址信息）
                     'oversea_return_addr' => [
                         'first_name' => $item['returnOutFirstName'] ?? '',// N:名/姓名
